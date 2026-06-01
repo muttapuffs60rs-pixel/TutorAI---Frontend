@@ -1,0 +1,36 @@
+name: tutor_preethi
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI and Icons
+  cupertino_icons: ^1.0.8
+  flutter_markdown: ^0.7.5
+
+  # Backend and Networking
+  http: ^1.6.0
+  supabase_flutter: ^2.12.4  # Updated based on image_3c8c52.png
+
+  # Device Features
+  image_picker: ^1.0.7
+  url_launcher: ^6.3.0
+  image_cropper: ^8.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/logo.png
