@@ -66,8 +66,8 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Smart Learning Ecosystem',
-              style: TextStyle(
+              'Architecting the Digital Future',
+                style: TextStyle(
                 color: Colors.white60,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
