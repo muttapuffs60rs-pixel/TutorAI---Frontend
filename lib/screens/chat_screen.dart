@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart'; // INTEGRATED: Crop functionality core engine
+import 'package:image_cropper/image_cropper.dart';
+// INTEGRATED: Crop functionality core engine
 import '../main.dart';
 import '../widgets/custom_drawer.dart';
 import 'subscription_screen.dart';
@@ -114,7 +115,6 @@ class _ChatScreenState extends State<ChatScreen> {
           .eq('user_id', user.id)
           .order('created_at', ascending: false)
           .limit(1);
-
       if (sessionData.isNotEmpty) {
         await _loadChatHistory(sessionData[0]['id']);
       } else {
@@ -133,7 +133,6 @@ class _ChatScreenState extends State<ChatScreen> {
         'user_id': user.id,
         'title': 'New Chat',
       }).select();
-
       if (!mounted) return;
       setState(() {
         _currentSessionId = newSession[0]['id'];
@@ -156,7 +155,6 @@ class _ChatScreenState extends State<ChatScreen> {
           .select()
           .eq('session_id', sessionId)
           .order('created_at', ascending: true);
-
       if (!mounted) return;
       setState(() {
         _currentSessionId = sessionId;
@@ -191,13 +189,11 @@ class _ChatScreenState extends State<ChatScreen> {
         'message': text,
         'is_user': isUser,
       });
-
       final session = await supabase
           .from('chat_sessions')
           .select('title')
           .eq('id', _currentSessionId!)
           .single();
-
       if (isUser && session['title'] == 'New Chat') {
         String shortTitle = text.length > 25 ?
         "${text.substring(0, 25)}..." : text;
@@ -226,14 +222,13 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  // UPDATED WORKFLOW: Native UI crop settings refactored safely to comply with modern v8.x.x standards
   Future<File?> _cropImage(File imageFile) async {
     CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Your Question',
-          toolbarColor: const Color(0xFF5A189A), // Beautifully synced with darkPurple
+          toolbarColor: const Color(0xFF5A189A), 
           toolbarWidgetColor: Colors.white,
           initAspectRatio: CropAspectRatioPreset.original,
           lockAspectRatio: false,
@@ -257,11 +252,10 @@ class _ChatScreenState extends State<ChatScreen> {
           size: const CropperSize(width: 400, height: 400),
         ),
       ],
-    );
+   );
     return croppedFile != null ? File(croppedFile.path) : null;
   }
 
-  // FIXED: Fully processes camera/gallery selections through the cropping channel before uploading 
   Future<void> _pickImage() async {
     if (isLoading) return;
     final pickedFile = await _picker.pickImage(
@@ -273,11 +267,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       if (mounted) setState(() => isLoading = true);
-      // Open layout cropper view before uploading raw textbook image bytes 
       final File? croppedFile = await _cropImage(File(pickedFile.path));
-      if (croppedFile == null) return; // User canceled crop action
+      if (croppedFile == null) return; 
 
-      // Upload cleanly sliced file object directly into Supabase 
       final imageUrl = await _uploadImageToSupabase(XFile(croppedFile.path));
       if (imageUrl == null || imageUrl.isEmpty) {
         throw Exception("Upload failed");
@@ -340,6 +332,12 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
+    // FIXED: Strictly count user questions. Stops right at 15 user requests.
+    final int userQuestionsCount = messages.where((m) => m.isUser).length;
+    if (userQuestionsCount >= 15) {
+      return;
+    }
+
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
@@ -359,13 +357,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _saveMessage(msg, true);
       }
 
-      List<String> history = messages
-          .map((m) => "${m.isUser ? 'You' : 'Preethi'}: ${m.text.isNotEmpty ? m.text : '[Image]'}")
-          .toList();
-      if (history.length > 5) {
-        history = history.sublist(history.length - 5);
-      }
-
+      // FIXED: History array completely removed from request map mapping to solve the 422 mismatch
       final response = await http.post(
         Uri.parse('https://akka-tutor-backend.onrender.com/ask'),
         headers: {'Content-Type': 'application/json'},
@@ -375,11 +367,8 @@ class _ChatScreenState extends State<ChatScreen> {
           'image_url': finalImageUrl,
           'grade_level': _selectedGrade,
           'subject': _selectedSubject,
-          'is_first_message': messages.length <= 2,
-          'history': history,
         }),
       ).timeout(const Duration(seconds: 60));
-      // FIXED: Incremented timeout ceiling window to 60s to completely stop frontend dropping lines 
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -395,6 +384,11 @@ class _ChatScreenState extends State<ChatScreen> {
         });
         await _saveMessage(answer, false);
         await _loadProfileData();
+
+        // FIXED: Clear and soft-dismiss soft keyboard when the 15th response confirms rendering completion
+        if (messages.where((m) => m.isUser).length >= 15) {
+          FocusScope.of(context).unfocus();
+        }
       } else {
         throw Exception('API Error');
       }
@@ -572,9 +566,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputArea(Color fillColor) {
+    // FIXED: Session limit evaluated strictly tracking user inputs
+    final bool isSessionLimitReached = messages.where((m) => m.isUser).length >= 15;
+
     return Column(
       children: [
-        if (_pendingImageUrl != null)
+        if (_pendingImageUrl != null && !isSessionLimitReached)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -614,43 +611,69 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Container(
-            decoration: BoxDecoration(color: fillColor, borderRadius: BorderRadius.circular(30)),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.add_a_photo, color: Colors.white70), 
-                  onPressed: isLoading ? null : _pickImage,
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    enabled: !isLoading,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      hintText: 'Ask Preethi a question...',
-                      border: InputBorder.none,
-                      hintStyle: TextStyle(color: Colors.white70),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    onSubmitted: (val) => sendMessage(text: val),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: isLoading 
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.send, color: Colors.white),
-                        onPressed: () => sendMessage(), 
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: isSessionLimitReached
+                ? Container(
+                    key: const ValueKey("SessionLimitCTA"),
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 4,
                       ),
-                ),
-              ],
-            ),
+                      onPressed: _startNewChat,
+                      icon: const Icon(Icons.refresh, fontWeight: FontWeight.bold),
+                      label: const Text(
+                        "Session Limit Reached! Start New Chat",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                    ),
+                  )
+                : Container(
+                    key: const ValueKey("StandardChatField"),
+                    decoration: BoxDecoration(color: fillColor, borderRadius: BorderRadius.circular(30)),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.add_a_photo, color: Colors.white70), 
+                          onPressed: isLoading ? null : _pickImage,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            enabled: !isLoading,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: 'Ask Preethi a question...',
+                              border: InputBorder.none,
+                              hintStyle: TextStyle(color: Colors.white70),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            onSubmitted: (val) => sendMessage(text: val),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: isLoading 
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : IconButton(
+                                icon: const Icon(Icons.send, color: Colors.white),
+                                onPressed: () => sendMessage(), 
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ),
       ],
