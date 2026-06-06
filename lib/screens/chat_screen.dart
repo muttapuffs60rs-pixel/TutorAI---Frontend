@@ -10,6 +10,7 @@ import 'package:image_cropper/image_cropper.dart';
 import '../main.dart';
 import '../widgets/custom_drawer.dart';
 import 'subscription_screen.dart';
+import '../theme/tailwind_theme.dart';
 
 class ChatMessage {
   final String text;
@@ -457,19 +458,18 @@ class _ChatScreenState extends State<ChatScreen> {
         ? 9999 
         : (maxLimit - _questionsAsked).clamp(0, maxLimit);
         
-    const Color themePurple = Color(0xFF7B2CBF);
-    const Color darkPurple = Color(0xFF5A189A);
     return Scaffold(
-      backgroundColor: themePurple,
+      backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        backgroundColor: darkPurple,
-        title: const Text('Tutor Preethi', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Tailwind.white,
+        title: const Text('Tutor Preethi', style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Tailwind.slate800),
         actions: [
-          IconButton(icon: const Icon(Icons.add_comment, color: Colors.white), onPressed: _startNewChat),
+          IconButton(icon: const Icon(Icons.add_comment, color: Tailwind.indigo600), onPressed: _startNewChat),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout, color: Tailwind.slate500),
             onPressed: _showLogoutConfirmation,
           )
         ],
@@ -489,7 +489,10 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: darkPurple.withOpacity(0.5),
+              decoration: const BoxDecoration(
+                color: Tailwind.white,
+                boxShadow: Tailwind.shadowSm,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -513,7 +516,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 itemBuilder: (context, index) => _buildChatBubble(messages[index]),
               ),
             ),
-            _buildInputArea(darkPurple),
+            _buildInputArea(Tailwind.white),
           ],
         ),
       ),
@@ -523,13 +526,14 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildDropdown<T>(T value, List<T> items, ValueChanged<T?> onChanged, IconData icon, String prefix) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.white70),
+        Icon(icon, size: 18, color: Tailwind.indigo500),
         const SizedBox(width: 8),
         DropdownButton<T>(
           value: value,
-          dropdownColor: const Color(0xFF5A189A),
+          dropdownColor: Tailwind.white,
+          iconEnabledColor: Tailwind.slate500,
           underline: const SizedBox(),
-          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: Tailwind.slate800, fontSize: 14, fontWeight: FontWeight.bold),
           onChanged: items.length > 1 ? onChanged : null,
           items: items.map((T item) => DropdownMenuItem<T>(value: item, child: Text('$prefix $item'))).toList(),
         ),
@@ -550,33 +554,42 @@ class _ChatScreenState extends State<ChatScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               constraints: const BoxConstraints(maxWidth: 250),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: Tailwind.roundedXl,
                 child: Image.network(message.imageUrl!, fit: BoxFit.cover),
               ),
             ),
           ),
         if (displayText.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(bottom: 4),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: message.isUser ? const Color(0xFF9D4EDD) : const Color(0xFF3C096C),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: MarkdownBody(
-              data: displayText,
-              styleSheet: MarkdownStyleSheet( 
-                p: const TextStyle(color: Colors.white, fontSize: 16, height: 1.6),
-                h1: const TextStyle(color: Colors.amber, fontSize: 22, fontWeight: FontWeight.bold),
-                strong: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFD700)),
-                listBullet: const TextStyle(color: Colors.white, fontSize: 18),
-                code: const TextStyle(backgroundColor: Color(0xFF1E1E1E), color: Color(0xFF00FFCC), fontFamily: 'monospace', fontSize: 14),
-                blockquoteDecoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: const Border(left: BorderSide(color: Colors.amber, width: 4)),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutExpo,
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: message.isUser ? Tailwind.indigo600 : Tailwind.white,
+                borderRadius: Tailwind.rounded2Xl.copyWith(
+                  bottomRight: message.isUser ? const Radius.circular(4) : const Radius.circular(16),
+                  bottomLeft: message.isUser ? const Radius.circular(16) : const Radius.circular(4),
                 ),
-                blockquote: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                boxShadow: Tailwind.shadowSm,
+                border: message.isUser ? null : Border.all(color: Tailwind.slate200),
+              ),
+              child: MarkdownBody(
+                data: displayText,
+                styleSheet: MarkdownStyleSheet( 
+                  p: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate800, fontSize: 16, height: 1.5),
+                  h1: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate900, fontSize: 20, fontWeight: FontWeight.bold),
+                  strong: TextStyle(fontWeight: FontWeight.bold, color: message.isUser ? Tailwind.indigo50 : Tailwind.indigo600),
+                  listBullet: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate800, fontSize: 16),
+                  code: TextStyle(backgroundColor: Tailwind.slate100, color: Tailwind.rose500, fontFamily: 'monospace', fontSize: 14),
+                  blockquoteDecoration: BoxDecoration(
+                    color: Tailwind.slate50,
+                    borderRadius: Tailwind.roundedMd,
+                    border: const Border(left: BorderSide(color: Tailwind.indigo500, width: 4)),
+                  ),
+                  blockquote: const TextStyle(color: Tailwind.slate700, fontSize: 15, fontStyle: FontStyle.italic),
+                ),
               ),
             ),
           ),
@@ -585,9 +598,13 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.only(top: 4, bottom: 12),
             child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen())),
-              icon: const Icon(Icons.star, color: Colors.amber, size: 18),
-              label: const Text('Upgrade to Preethi Pro', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purpleAccent),
+              icon: const Icon(Icons.star, color: Tailwind.white, size: 18),
+              label: const Text('Upgrade to Preethi Pro', style: TextStyle(color: Tailwind.white, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Tailwind.amber500,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl)
+              ),
             ),
           )
         else
@@ -617,7 +634,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       width: 80,
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: Tailwind.roundedXl,
+                        boxShadow: Tailwind.shadowSm,
                         image: DecorationImage(
                           image: NetworkImage(_pendingImageUrl!),
                           fit: BoxFit.cover,
@@ -625,21 +643,21 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     Positioned(
-                      right: 0,
-                      top: 0,
+                      right: -4,
+                      top: -4,
                       child: GestureDetector(
                         onTap: () => setState(() => _pendingImageUrl = null),
                         child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                          child: const Icon(Icons.close, size: 16, color: Colors.white),
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(color: Tailwind.rose500, shape: BoxShape.circle),
+                          child: const Icon(Icons.close, size: 14, color: Tailwind.white),
                         ),
                       ),
                     )
                   ],
                 ),
                 const SizedBox(width: 12),
-                const Text("Image ready to send", style: TextStyle(color: Colors.white70, fontSize: 12)),
+                const Text("Image ready to send", style: TextStyle(color: Tailwind.slate500, fontSize: 13, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -654,12 +672,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     height: 54,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isSubscriptionLimitReached ? Colors.purpleAccent : Colors.amber,
-                        foregroundColor: isSubscriptionLimitReached ? Colors.white : Colors.black,
+                        backgroundColor: isSubscriptionLimitReached ? Tailwind.indigo600 : Tailwind.amber500,
+                        foregroundColor: isSubscriptionLimitReached ? Tailwind.white : Tailwind.slate900,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                          borderRadius: Tailwind.roundedFull,
                         ),
-                        elevation: 4,
+                        elevation: 0,
                       ),
                       onPressed: isSubscriptionLimitReached 
                         ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()))
@@ -675,38 +693,53 @@ class _ChatScreenState extends State<ChatScreen> {
                   )
                 : Container(
                     key: const ValueKey("StandardChatField"),
-                    decoration: BoxDecoration(color: fillColor, borderRadius: BorderRadius.circular(30)),
+                    decoration: BoxDecoration(
+                      color: fillColor, 
+                      borderRadius: Tailwind.roundedFull,
+                      boxShadow: Tailwind.shadowSm,
+                      border: Border.all(color: Tailwind.slate200),
+                    ),
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.add_a_photo, color: Colors.white70), 
+                          icon: const Icon(Icons.add_a_photo, color: Tailwind.indigo500), 
                           onPressed: isLoading ? null : _pickImage,
                         ),
                         Expanded(
                           child: TextField(
                             controller: _controller,
                             enabled: !isLoading,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(color: Tailwind.slate800),
                             decoration: const InputDecoration(
                               hintText: 'Ask Preethi a question...',
                               border: InputBorder.none,
-                              hintStyle: TextStyle(color: Colors.white70),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                              hintStyle: TextStyle(color: Tailwind.slate400),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 8),
                             ),
                             onSubmitted: (val) => sendMessage(text: val),
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
+                          padding: const EdgeInsets.only(right: 6.0),
                           child: isLoading 
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            ? const Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(color: Tailwind.indigo600, strokeWidth: 2.5),
+                                ),
                               )
-                            : IconButton(
-                                icon: const Icon(Icons.send, color: Colors.white),
-                                onPressed: () => sendMessage(), 
+                            : Container(
+                                margin: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Tailwind.indigo600,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.send, color: Tailwind.white, size: 18),
+                                  onPressed: () => sendMessage(), 
+                                ),
                               ),
                         ),
                       ],

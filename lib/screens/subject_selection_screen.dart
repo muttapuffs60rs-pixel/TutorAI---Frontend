@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import '../main.dart'; 
+import '../theme/tailwind_theme.dart';
 import 'chat_screen.dart';
 
 class SubjectSelectionScreen extends StatelessWidget {
   const SubjectSelectionScreen({super.key});
 
   final List<Map<String, dynamic>> subjects = const [
-    {'name': 'Science', 'icon': Icons.science, 'color': Colors.greenAccent},
-    {'name': 'Maths', 'icon': Icons.calculate, 'color': Colors.blueAccent},
-    {'name': 'Social', 'icon': Icons.public, 'color': Colors.orangeAccent},
-    {'name': 'English', 'icon': Icons.language, 'color': Colors.redAccent},
+    {'name': 'Science', 'icon': Icons.science, 'color': Tailwind.emerald500},
+    {'name': 'Maths', 'icon': Icons.calculate, 'color': Tailwind.indigo500},
+    {'name': 'Social', 'icon': Icons.public, 'color': Tailwind.amber500},
+    {'name': 'English', 'icon': Icons.language, 'color': Tailwind.rose500},
   ];
 
   void _showLogoutConfirmation(BuildContext context) {
@@ -17,19 +18,21 @@ class SubjectSelectionScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Logout"),
-          content: const Text("Are you sure you want to log out?"),
+          backgroundColor: Tailwind.white,
+          shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
+          title: const Text("Logout", style: TextStyle(color: Tailwind.slate800)),
+          content: const Text("Are you sure you want to log out?", style: TextStyle(color: Tailwind.slate600)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
             ),
             TextButton(
               onPressed: () async {
                 await supabase.auth.signOut();
                 if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
               },
-              child: const Text("Logout", style: TextStyle(color: Colors.red)),
+              child: const Text("Logout", style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -39,18 +42,16 @@ class SubjectSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color themePurple = Color(0xFF7B2CBF);
-    const Color darkPurple = Color(0xFF5A189A);
-
     return Scaffold(
-      backgroundColor: themePurple,
+      backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        backgroundColor: darkPurple,
-        title: const Text('Tutor Preethi', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Tailwind.white,
+        elevation: 0,
+        title: const Text('Tutor Preethi', style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout, color: Tailwind.slate500),
             onPressed: () => _showLogoutConfirmation(context),
           )
         ],
@@ -62,14 +63,32 @@ class SubjectSelectionScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              const Text(
-                "Vanakkam! 👋",
-                style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Iniku enna subject padikalam?",
-                style: TextStyle(color: Colors.white70, fontSize: 18),
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 500),
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value,
+                    child: Transform.translate(
+                      offset: Offset(0, 20 * (1 - value)),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "Vanakkam! 👋",
+                      style: TextStyle(color: Tailwind.slate800, fontSize: 32, fontWeight: FontWeight.w800),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Iniku enna subject padikalam?",
+                      style: TextStyle(color: Tailwind.slate500, fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 40),
               Expanded(
@@ -83,34 +102,53 @@ class SubjectSelectionScreen extends StatelessWidget {
                   itemCount: subjects.length,
                   itemBuilder: (context, index) {
                     final subject = subjects[index];
-                    return GestureDetector(
-                      onTap: () {
-                        // Navigate to ChatScreen and pass the selected subject
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatScreen(initialSubject: subject['name']),
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: Duration(milliseconds: 400 + (index * 100)), // Staggered delay
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.scale(
+                            scale: 0.8 + (0.2 * value),
+                            child: child,
                           ),
                         );
                       },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: darkPurple,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: const [
-                            BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(subject['icon'], size: 48, color: subject['color']),
-                            const SizedBox(height: 16),
-                            Text(
-                              subject['name'],
-                              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(initialSubject: subject['name']),
                             ),
-                          ],
+                          );
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: Tailwind.white,
+                            borderRadius: Tailwind.rounded2Xl,
+                            boxShadow: Tailwind.shadowMd,
+                            border: Border.all(color: Tailwind.slate100),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: subject['color'].withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(subject['icon'], size: 40, color: subject['color']),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                subject['name'],
+                                style: const TextStyle(color: Tailwind.slate800, fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );

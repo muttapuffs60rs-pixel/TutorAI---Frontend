@@ -8,6 +8,7 @@ import 'screens/chat_screen.dart';
 import 'screens/subject_selection_screen.dart';
 import 'screens/change_password_screen.dart'; 
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
+import 'theme/tailwind_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,13 +44,20 @@ class AkkaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Akka AI Tutor',
       debugShowCheckedModeBanner: false,
-      // GLOBAL VIOLET THEME
+      // LIGHT TAILWIND THEME
       theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF7B2CBF), 
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Tailwind.slate50, 
+        primaryColor: Tailwind.indigo600,
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF5A189A), 
+          backgroundColor: Tailwind.white, 
           elevation: 0,
+          iconTheme: IconThemeData(color: Tailwind.slate800),
+          titleTextStyle: TextStyle(
+            color: Tailwind.slate800,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       // STEP 1: Set default initialization view directly to the brand landing layer
