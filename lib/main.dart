@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Screens
 import 'screens/login_screen.dart';
 import 'screens/chat_screen.dart';
+import 'screens/subject_selection_screen.dart';
 import 'screens/change_password_screen.dart'; 
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
 
@@ -84,7 +85,7 @@ class AkkaApp extends StatelessWidget {
                   return const LoginScreen();
                 }
 
-                return const ChatScreen();
+                return const SubjectSelectionScreen();
               },
             );
           },

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart'; 
-import 'chat_screen.dart'; 
+import 'chat_screen.dart';
+import 'subject_selection_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const ChatScreen()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SubjectSelectionScreen()));
       }
     } on AuthException catch (e) {
       if (mounted) _showCustomSnackBar(e.message);
@@ -211,7 +212,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               Future.delayed(Duration.zero, () {
                                 if (mounted) {
                                   Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (_) => const ChatScreen()), 
+                                    MaterialPageRoute(builder: (_) => const SubjectSelectionScreen()), 
                                     (route) => false
                                   );
                                 }

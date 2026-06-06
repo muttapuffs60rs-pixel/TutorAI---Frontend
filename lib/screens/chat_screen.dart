@@ -24,7 +24,8 @@ class ChatMessage {
 }
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String? initialSubject; // ADDED: Constructor to accept subject from Home screen
+  const ChatScreen({super.key, this.initialSubject});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -40,7 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _pendingImageUrl; 
   
   int _selectedGrade = 10;
-  String _selectedSubject = 'Science';
+  late String _selectedSubject; // MODIFIED: Will be initialized dynamically
   final List<int> _grades = [10];
   final List<String> _subjects = ['Science', 'Maths', 'Social', 'English'];
   int _questionsAsked = 0;
@@ -50,6 +51,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Use the subject passed from the Home screen, default to Science if null
+    _selectedSubject = widget.initialSubject ?? 'Science'; 
+
     messages = [
       ChatMessage(text: "Vanakkam! Iniku enna padikalam? 😊", isUser: false),
     ];
@@ -64,7 +68,6 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  // --- ENHANCEMENT: FULLSCREEN VIEW ---
   void _showFullScreenImage(String url) {
     showDialog(
       context: context,
@@ -108,6 +111,13 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _loadInitialChat() async {
     final user = supabase.auth.currentUser;
     if (user == null) return;
+
+    // ADDED: If the user explicitly picked a subject from the home screen, start a fresh chat automatically!
+    if (widget.initialSubject != null) {
+      await _startNewChat();
+      return;
+    }
+
     try {
       final sessionData = await supabase
           .from('chat_sessions')
@@ -306,8 +316,9 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   int _getMaxQuestions() {
-    if (_subscriptionTier == 'tier_49') return 50;
-    if (_subscriptionTier == 'tier_99') return 100;
+    if (_subscriptionTier == 'tier_199') return 50;
+    if (_subscriptionTier == 'tier_499') return 150;
+    if (_subscriptionTier == 'tier_49' || _subscriptionTier == 'admin') return 999999;
     return 5;
   }
 
@@ -332,9 +343,16 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    // FIXED: Strictly count user questions. Stops right at 15 user requests.
+    // Evaluate tier constraints dynamically
+    if (_subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _questionsAsked >= _getMaxQuestions()) {
+      setState(() {
+        messages.add(ChatMessage(text: "Your limit per day is over. Upgrade plan to ask more questions!", isUser: false));
+      });
+      return;
+    }
+
     final int userQuestionsCount = messages.where((m) => m.isUser).length;
-    if (userQuestionsCount >= 15) {
+    if (_subscriptionTier != 'admin' && userQuestionsCount >= 20) {
       return;
     }
 
@@ -342,6 +360,17 @@ class _ChatScreenState extends State<ChatScreen> {
     if (user == null) return;
 
     final String originalText = _controller.text;
+
+    // Build lightweight history map BEFORE appending the new user message to prevent loop duplication
+    final recentMessages = messages.length > 12 ? messages.sublist(messages.length - 12) : messages;
+    final List<Map<String, String>> historyPayload = recentMessages.map((m) {
+      return {
+        'role': m.isUser ? 'user' : 'assistant',
+        'content': m.text.isNotEmpty ? m.text : '[Image attachment]'
+      };
+    }).toList();
+
+    // Now safely add the current message to the UI
     setState(() {
       messages.add(ChatMessage(text: msg, isUser: true, imageUrl: finalImageUrl));
       _controller.clear();
@@ -357,7 +386,6 @@ class _ChatScreenState extends State<ChatScreen> {
         await _saveMessage(msg, true);
       }
 
-      // FIXED: History array completely removed from request map mapping to solve the 422 mismatch
       final response = await http.post(
         Uri.parse('https://akka-tutor-backend.onrender.com/ask'),
         headers: {'Content-Type': 'application/json'},
@@ -367,6 +395,7 @@ class _ChatScreenState extends State<ChatScreen> {
           'image_url': finalImageUrl,
           'grade_level': _selectedGrade,
           'subject': _selectedSubject,
+          'history': historyPayload, // Restored clean context memory tracking
         }),
       ).timeout(const Duration(seconds: 60));
 
@@ -385,8 +414,7 @@ class _ChatScreenState extends State<ChatScreen> {
         await _saveMessage(answer, false);
         await _loadProfileData();
 
-        // FIXED: Clear and soft-dismiss soft keyboard when the 15th response confirms rendering completion
-        if (messages.where((m) => m.isUser).length >= 15) {
+        if (messages.where((m) => m.isUser).length >= 20) {
           FocusScope.of(context).unfocus();
         }
       } else {
@@ -412,7 +440,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final data = await supabase.from('profiles').select().eq('id', user.id);
       if (data.isNotEmpty && mounted) {
         setState(() {
-          _questionsAsked = data[0]['questions_today'] ?? 0;
+          _questionsAsked = data[0]['chats_today'] ?? 0;
           _subscriptionTier = data[0]['subscription_tier'] ?? 'free';
           _selectedGrade = data[0]['grade_level'] ?? 10;
         });
@@ -425,7 +453,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     int maxLimit = _getMaxQuestions();
-    int questionsLeft = (maxLimit - _questionsAsked).clamp(0, maxLimit);
+    int questionsLeft = _subscriptionTier == 'tier_49' || _subscriptionTier == 'admin' 
+        ? 9999 
+        : (maxLimit - _questionsAsked).clamp(0, maxLimit);
+        
     const Color themePurple = Color(0xFF7B2CBF);
     const Color darkPurple = Color(0xFF5A189A);
     return Scaffold(
@@ -444,7 +475,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
       drawer: CustomDrawer(
-        key: UniqueKey(),
+        key: ValueKey<int>(_questionsAsked),
         questionsLeft: questionsLeft,
         maxLimit: maxLimit,
         subscriptionTier: _subscriptionTier,
@@ -566,12 +597,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputArea(Color fillColor) {
-    // FIXED: Session limit evaluated strictly tracking user inputs
-    final bool isSessionLimitReached = messages.where((m) => m.isUser).length >= 15;
+    final int userQuestionsCount = messages.where((m) => m.isUser).length;
+    final bool isSessionLimitReached = _subscriptionTier != 'admin' && userQuestionsCount >= 20;
+    
+    final bool isSubscriptionLimitReached = _subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _questionsAsked >= _getMaxQuestions();
+    final bool blockInput = isSessionLimitReached || isSubscriptionLimitReached;
 
     return Column(
       children: [
-        if (_pendingImageUrl != null && !isSessionLimitReached)
+        if (_pendingImageUrl != null && !blockInput)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -613,25 +647,29 @@ class _ChatScreenState extends State<ChatScreen> {
           padding: const EdgeInsets.all(16.0),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            child: isSessionLimitReached
+            child: blockInput
                 ? Container(
                     key: const ValueKey("SessionLimitCTA"),
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
-                        foregroundColor: Colors.black,
+                        backgroundColor: isSubscriptionLimitReached ? Colors.purpleAccent : Colors.amber,
+                        foregroundColor: isSubscriptionLimitReached ? Colors.white : Colors.black,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                         elevation: 4,
                       ),
-                      onPressed: _startNewChat,
-                      icon: const Icon(Icons.refresh, fontWeight: FontWeight.bold),
-                      label: const Text(
-                        "Session Limit Reached! Start New Chat",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      onPressed: isSubscriptionLimitReached 
+                        ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()))
+                        : _startNewChat,
+                      icon: Icon(isSubscriptionLimitReached ? Icons.star : Icons.refresh, fontWeight: FontWeight.bold),
+                      label: Text(
+                        isSubscriptionLimitReached 
+                          ? "Your limit per day is over! Upgrade to Pro" 
+                          : "Session Limit Reached! Start New Chat",
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
                   )
