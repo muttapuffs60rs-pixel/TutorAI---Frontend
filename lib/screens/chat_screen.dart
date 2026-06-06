@@ -233,14 +233,14 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<File?> _cropImage(File imageFile) async {
-    CroppedFile? croppedFile = await ImageCropper().cropImage(
+  Future<CroppedFile?> _cropImage(XFile imageFile) async {
+    return await ImageCropper().cropImage(
       sourcePath: imageFile.path,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Your Question',
-          toolbarColor: const Color(0xFF5A189A), 
-          toolbarWidgetColor: Colors.white,
+          toolbarColor: Tailwind.indigo600, 
+          toolbarWidgetColor: Tailwind.white,
           initAspectRatio: CropAspectRatioPreset.original,
           lockAspectRatio: false,
           aspectRatioPresets: [
@@ -264,7 +264,6 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ],
    );
-    return croppedFile != null ? File(croppedFile.path) : null;
   }
 
   Future<void> _pickImage() async {
@@ -278,10 +277,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
     try {
       if (mounted) setState(() => isLoading = true);
-      final File? croppedFile = await _cropImage(File(pickedFile.path));
+      final CroppedFile? croppedFile = await _cropImage(pickedFile);
       if (croppedFile == null) return; 
 
-      final imageUrl = await _uploadImageToSupabase(XFile(croppedFile.path));
+      final Uint8List bytes = await croppedFile.readAsBytes();
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+
+      final imageUrl = await _uploadImageToSupabase(fileName, bytes);
       if (imageUrl == null || imageUrl.isEmpty) {
         throw Exception("Upload failed");
       }
@@ -302,11 +304,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<String?> _uploadImageToSupabase(XFile file) async {
+  Future<String?> _uploadImageToSupabase(String fileName, Uint8List bytes) async {
     try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.name}';
       final path = 'chat_uploads/$fileName';
-      final Uint8List bytes = await file.readAsBytes();
       await supabase.storage.from('chat-images').uploadBinary(path, bytes);
       
       return supabase.storage.from('chat-images').getPublicUrl(path);
