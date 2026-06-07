@@ -67,7 +67,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         await supabase.auth.verifyOTP(
           phone: widget.identifier,
           token: token,
-          type: OtpType.recovery,
+          type: OtpType.sms,
         );
       }
 

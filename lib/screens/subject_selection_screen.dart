@@ -216,17 +216,15 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                                     ),
                                     child: Icon(subject['icon'], size: 28, color: subject['color']),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                                      child: Text(
-                                        subject['name'],
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(color: Tailwind.slate800, fontSize: 11, fontWeight: FontWeight.bold),
-                                      ),
+                                  const SizedBox(height: 8),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                    child: Text(
+                                      subject['name'],
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(color: Tailwind.slate800, fontSize: 11, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                 ],

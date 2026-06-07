@@ -61,7 +61,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         if (identifier.length == 10 && !identifier.startsWith('+')) {
           identifier = '+91$identifier';
         }
-        await supabase.auth.resetPasswordForPhone(identifier);
+        await supabase.auth.signInWithOtp(phone: identifier);
       }
 
       if (mounted) {

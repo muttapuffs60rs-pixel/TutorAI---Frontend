@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart'; 
 import '../screens/login_screen.dart';
 import '../screens/subscription_screen.dart';
+import '../theme/tailwind_theme.dart';
 
 class CustomDrawer extends StatefulWidget {
   final int questionsLeft;
@@ -62,7 +63,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                user?.userMetadata?['username'] ?? 'Student';
 
     return Drawer(
-      backgroundColor: const Color(0xFF2E0249), 
+      backgroundColor: Tailwind.white, 
       child: Column( 
         children: [
           Expanded(
@@ -70,20 +71,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
               padding: EdgeInsets.zero,
               children: [
                 UserAccountsDrawerHeader(
-                  decoration: const BoxDecoration(color: Color(0xFF5A189A)), 
+                  decoration: const BoxDecoration(color: Tailwind.indigo600), 
                   accountName: Text(
                     displayName, 
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Tailwind.white)
                   ),
                   accountEmail: Text(
                     user?.email ?? 'Unknown User',
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Tailwind.indigo100),
                   ),
                   currentAccountPicture: CircleAvatar(
-                    backgroundColor: Colors.white,
+                    backgroundColor: Tailwind.white,
                     child: Text(
                       displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S', 
-                      style: const TextStyle(fontSize: 24, color: Color(0xFF7B2CBF), fontWeight: FontWeight.bold)
+                      style: const TextStyle(fontSize: 24, color: Tailwind.indigo600, fontWeight: FontWeight.bold)
                     ),
                   ),
                 ),
@@ -91,32 +92,32 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ListTile(
                   leading: Icon(
                     Icons.bolt, 
-                    color: widget.questionsLeft > 0 ? Colors.amber : Colors.redAccent
+                    color: widget.questionsLeft > 0 ? Tailwind.amber500 : Tailwind.rose500
                   ),
                   title: Text(
                     '${widget.questionsLeft} / ${widget.maxLimit} Questions Left',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: const TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
                     'Current Plan: ${widget.subscriptionTier.toUpperCase()}',
-                    style: const TextStyle(color: Colors.white60),
+                    style: const TextStyle(color: Tailwind.slate500, fontWeight: FontWeight.w500),
                   ),
                 ),
                 
-                const Divider(color: Colors.white24),
+                const Divider(color: Tailwind.slate200),
 
                 ListTile(
-                  leading: const Icon(Icons.upgrade, color: Colors.greenAccent),
-                  title: const Text('Upgrade Plan', style: TextStyle(color: Colors.white)),
+                  leading: const Icon(Icons.upgrade, color: Tailwind.emerald500),
+                  title: const Text('Upgrade Plan', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w600)),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.amber,
+                      color: Tailwind.amber500,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
                       'OFFER',
-                      style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Tailwind.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                   onTap: () {
@@ -129,40 +130,40 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ),
 
                 ListTile(
-                leading: const Icon(Icons.lock_reset, color: Colors.white),
-                title: const Text('Change Password', style: TextStyle(color: Colors.white)),
+                leading: const Icon(Icons.lock_reset, color: Tailwind.slate500),
+                title: const Text('Change Password', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w500)),
                 onTap: () {
                   Navigator.pop(context); // Close drawer
                   Navigator.pushNamed(context, '/change-password'); // Push screen
                   },
                 ),
 
-                const Divider(color: Colors.white24),
+                const Divider(color: Tailwind.slate200),
 
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Text(
                     "RECENT CHATS",
-                    style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Tailwind.slate400, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
 
                 if (_isLoadingSessions)
                   const Center(child: Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(color: Colors.white54),
+                    child: CircularProgressIndicator(color: Tailwind.indigo500),
                   ))
                 else if (_sessions.isEmpty)
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text("No history yet.", style: TextStyle(color: Colors.white38, fontSize: 14)),
+                    child: Text("No history yet.", style: TextStyle(color: Tailwind.slate400, fontSize: 14)),
                   )
                 else
                   ..._sessions.map((session) => ListTile(
-                    leading: const Icon(Icons.chat_bubble_outline, color: Colors.white70, size: 20),
+                    leading: const Icon(Icons.chat_bubble_outline, color: Tailwind.slate400, size: 20),
                     title: Text(
                       session['title'] ?? 'New Chat',
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: const TextStyle(color: Tailwind.slate700, fontSize: 14, fontWeight: FontWeight.w500),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -175,10 +176,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ),
           ),
 
-          const Divider(color: Colors.white24),
+          const Divider(color: Tailwind.slate200),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.white70),
-            title: const Text('Log Out', style: TextStyle(color: Colors.white70)),
+            leading: const Icon(Icons.logout, color: Tailwind.rose500),
+            title: const Text('Log Out', style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.w600)),
             onTap: () async {
               await supabase.auth.signOut();
               if (context.mounted) {

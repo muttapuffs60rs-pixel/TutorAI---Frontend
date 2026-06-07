@@ -319,7 +319,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int _getMaxQuestions() {
     if (_subscriptionTier == 'tier_199') return 50;
     if (_subscriptionTier == 'tier_499') return 150;
-    if (_subscriptionTier == 'tier_49' || _subscriptionTier == 'admin') return 999999;
+    if (_subscriptionTier == 'tier_49' || _subscriptionTier == 'tier_49_daily' || _subscriptionTier == 'admin') return 999999;
     return 5;
   }
 
@@ -345,7 +345,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     // Evaluate tier constraints dynamically
-    if (_subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _questionsAsked >= _getMaxQuestions()) {
+    if (_subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _subscriptionTier != 'tier_49_daily' && _questionsAsked >= _getMaxQuestions()) {
       setState(() {
         messages.add(ChatMessage(text: "Your limit per day is over. Upgrade plan to ask more questions!", isUser: false));
       });
@@ -495,7 +495,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     int maxLimit = _getMaxQuestions();
-    int questionsLeft = _subscriptionTier == 'tier_49' || _subscriptionTier == 'admin' 
+    int questionsLeft = _subscriptionTier == 'tier_49' || _subscriptionTier == 'tier_49_daily' || _subscriptionTier == 'admin' 
         ? 9999 
         : (maxLimit - _questionsAsked).clamp(0, maxLimit);
         
@@ -669,7 +669,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final int userQuestionsCount = messages.where((m) => m.isUser).length;
     final bool isSessionLimitReached = _subscriptionTier != 'admin' && userQuestionsCount >= 20;
     
-    final bool isSubscriptionLimitReached = _subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _questionsAsked >= _getMaxQuestions();
+    final bool isSubscriptionLimitReached = _subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _subscriptionTier != 'tier_49_daily' && _questionsAsked >= _getMaxQuestions();
     final bool blockInput = isSessionLimitReached || isSubscriptionLimitReached;
 
     return Column(
