@@ -9,6 +9,7 @@ import 'package:image_cropper/image_cropper.dart';
 // INTEGRATED: Crop functionality core engine
 import '../main.dart';
 import '../widgets/custom_drawer.dart';
+import '../widgets/subject_picker_sheet.dart';
 import 'subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
 
@@ -25,8 +26,9 @@ class ChatMessage {
 }
 
 class ChatScreen extends StatefulWidget {
-  final String? initialSubject; // ADDED: Constructor to accept subject from Home screen
-  const ChatScreen({super.key, this.initialSubject});
+  final String? initialSubject;
+  final int? initialGradeLevel;
+  const ChatScreen({super.key, this.initialSubject, this.initialGradeLevel});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -42,9 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _pendingImageUrl; 
   
   int _selectedGrade = 10;
-  late String _selectedSubject; // MODIFIED: Will be initialized dynamically
-  final List<int> _grades = [10];
-  final List<String> _subjects = ['Science', 'Maths', 'Social', 'English'];
+  late String _selectedSubject;
   int _questionsAsked = 0;
   String _subscriptionTier = 'free';
   String? _currentSessionId;
@@ -52,7 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Use the subject passed from the Home screen, default to Science if null
+    _selectedGrade = widget.initialGradeLevel ?? 10;
     _selectedSubject = widget.initialSubject ?? 'Science'; 
 
     messages = [
@@ -439,12 +439,49 @@ class _ChatScreenState extends State<ChatScreen> {
     if (user == null) return;
     try {
       final data = await supabase.from('profiles').select().eq('id', user.id);
-      if (data.isNotEmpty && mounted) {
-        setState(() {
-          _questionsAsked = data[0]['chats_today'] ?? 0;
-          _subscriptionTier = data[0]['subscription_tier'] ?? 'free';
-          _selectedGrade = data[0]['grade_level'] ?? 10;
-        });
+      if (data.isNotEmpty) {
+        final profile = data[0];
+        
+        int chatsToday = profile['chats_today'] ?? 0;
+        String subTier = profile['subscription_tier'] ?? 'free';
+        String? prevTier = profile['previous_tier'];
+        String? lastActive = profile['last_active_date'];
+
+        // Get local date string 'YYYY-MM-DD'
+        final todayStr = DateTime.now().toIso8601String().split('T')[0];
+
+        bool needsUpdate = false;
+        
+        // LAZY RESET LOGIC
+        if (lastActive != todayStr) {
+          chatsToday = 0;
+          // Revert Exam Booster access on the next day
+          if (subTier == 'tier_49_daily') {
+            subTier = prevTier ?? 'free';
+            prevTier = null;
+          }
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          await supabase.from('profiles').update({
+            'chats_today': chatsToday,
+            'subscription_tier': subTier,
+            'previous_tier': prevTier,
+            'last_active_date': todayStr,
+          }).eq('id', user.id);
+        }
+
+        if (mounted) {
+          setState(() {
+            _questionsAsked = chatsToday;
+            _subscriptionTier = subTier;
+            // Only update grade if it's the very first load or somehow missing
+            if (_selectedGrade == 10 && profile['grade_level'] != null) {
+              _selectedGrade = profile['grade_level'];
+            }
+          });
+        }
       }
     } catch (e) {
       debugPrint("Error loading profile: $e");
@@ -493,19 +530,28 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: Tailwind.white,
                 boxShadow: Tailwind.shadowSm,
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildDropdown<int>(_selectedGrade, _grades, (val) {
-                    if (val != null) setState(() => _selectedGrade = val);
-                  }, Icons.school, "Class"),
-                  _buildDropdown<String>(_selectedSubject, _subjects, (val) {
-                    if (val != null) {
-                      setState(() => _selectedSubject = val);
-                      _startNewChat();
-                    }
-                  }, Icons.menu_book, ""),
-                ],
+              child: GestureDetector(
+                onTap: _showSubjectPicker,
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Tailwind.indigo50, shape: BoxShape.circle),
+                      child: const Icon(Icons.school, size: 20, color: Tailwind.indigo600),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Class $_selectedGrade', style: const TextStyle(color: Tailwind.slate500, fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text(_selectedSubject, style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.keyboard_arrow_down, color: Tailwind.slate400),
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -523,21 +569,23 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildDropdown<T>(T value, List<T> items, ValueChanged<T?> onChanged, IconData icon, String prefix) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Tailwind.indigo500),
-        const SizedBox(width: 8),
-        DropdownButton<T>(
-          value: value,
-          dropdownColor: Tailwind.white,
-          iconEnabledColor: Tailwind.slate500,
-          underline: const SizedBox(),
-          style: const TextStyle(color: Tailwind.slate800, fontSize: 14, fontWeight: FontWeight.bold),
-          onChanged: items.length > 1 ? onChanged : null,
-          items: items.map((T item) => DropdownMenuItem<T>(value: item, child: Text('$prefix $item'))).toList(),
-        ),
-      ],
+  void _showSubjectPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return SubjectPickerSheet(
+          initialGrade: _selectedGrade,
+          onSubjectSelected: (grade, subject) {
+            setState(() {
+              _selectedGrade = grade;
+              _selectedSubject = subject;
+            });
+            _startNewChat();
+          },
+        );
+      },
     );
   }
 
@@ -703,7 +751,35 @@ class _ChatScreenState extends State<ChatScreen> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.add_a_photo, color: Tailwind.indigo500), 
-                          onPressed: isLoading ? null : _pickImage,
+                          onPressed: isLoading ? null : () {
+                            if (_subscriptionTier == 'free') {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  backgroundColor: Tailwind.white,
+                                  shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
+                                  title: const Text("Premium Feature", style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+                                  content: const Text("Upgrade to use the feature. Image analysis unlocks homework scanning and instant solutions!", style: TextStyle(color: Tailwind.slate600)),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: Tailwind.indigo600, foregroundColor: Tailwind.white, shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedLg)),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()));
+                                      },
+                                      child: const Text("Upgrade", style: TextStyle(fontWeight: FontWeight.bold)),
+                                    )
+                                  ],
+                                ),
+                              );
+                              return;
+                            }
+                            _pickImage();
+                          },
                         ),
                         Expanded(
                           child: TextField(

@@ -22,9 +22,52 @@ class Tailwind {
   static const Color slate900 = Color(0xFF0f172a);
   
   // Status / Alerts
+  static const Color rose400 = Color(0xFFfb7185);
   static const Color rose500 = Color(0xFFf43f5e);
+  static const Color rose600 = Color(0xFFe11d48);
+  
+  static const Color emerald400 = Color(0xFF34d399);
   static const Color emerald500 = Color(0xFF10b981);
+  
   static const Color amber500 = Color(0xFFf59e0b);
+  static const Color amber600 = Color(0xFFd97706);
+  static const Color amber700 = Color(0xFFb45309);
+
+  // Additional Subject Colors
+  static const Color blue400 = Color(0xFF60a5fa);
+  static const Color blue500 = Color(0xFF3b82f6);
+  static const Color blue600 = Color(0xFF2563eb);
+  
+  static const Color teal500 = Color(0xFF14b8a6);
+  static const Color teal600 = Color(0xFF0d9488);
+  
+  static const Color orange400 = Color(0xFFfb923c);
+  static const Color orange500 = Color(0xFFf97316);
+  static const Color orange600 = Color(0xFFea580c);
+  
+  static const Color yellow500 = Color(0xFFeab308);
+  static const Color yellow600 = Color(0xFFca8a04);
+  static const Color yellow700 = Color(0xFFa16207);
+  
+  static const Color cyan500 = Color(0xFF06b6d4);
+  static const Color cyan600 = Color(0xFF0891b2);
+  static const Color cyan700 = Color(0xFF0e7490);
+  
+  static const Color green500 = Color(0xFF22c55e);
+  static const Color green600 = Color(0xFF16a34a);
+  static const Color green700 = Color(0xFF15803d);
+  
+  static const Color indigo400 = Color(0xFF818cf8);
+  
+  static const Color purple500 = Color(0xFFa855f7);
+  static const Color purple600 = Color(0xFF9333ea);
+  
+  static const Color red500 = Color(0xFFef4444);
+  
+  static const Color pink400 = Color(0xFFf472b6);
+  static const Color pink500 = Color(0xFFec4899);
+  
+  static const Color blueGrey = Color(0xFF607d8b);
 
   // Shadows
   static const List<BoxShadow> shadowSm = [

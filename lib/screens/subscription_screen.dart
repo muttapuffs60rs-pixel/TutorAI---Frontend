@@ -33,10 +33,26 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
       final expiryDate = expiry.toIso8601String();
 
-      // Update the user profile with the new tier and expiry date
+      // Fetch current profile to handle previous_tier logic
+      final data = await supabase.from('profiles').select('subscription_tier, previous_tier').eq('id', user.id).single();
+      final String currentTier = data['subscription_tier'] ?? 'free';
+      String? previousTier = data['previous_tier'];
+
+      // Save their existing monthly plan if they buy the daily booster
+      if (tierName == 'tier_49_daily' && currentTier != 'tier_49_daily' && currentTier != 'free') {
+        previousTier = currentTier;
+      }
+      
+      // If they buy a new standard/pro plan, clear previous_tier
+      if (tierName != 'tier_49_daily') {
+        previousTier = null;
+      }
+
+      // Update the user profile with the new tier, expiry date, and previous_tier
       await supabase.from('profiles').update({
         'subscription_tier': tierName,
         'subscription_expires_at': expiryDate, 
+        'previous_tier': previousTier,
       }).eq('id', user.id);
 
       if (mounted) {

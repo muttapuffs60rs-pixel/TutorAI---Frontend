@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import '../main.dart'; 
 import '../theme/tailwind_theme.dart';
+import '../constants.dart';
 import 'chat_screen.dart';
 
-class SubjectSelectionScreen extends StatelessWidget {
+class SubjectSelectionScreen extends StatefulWidget {
   const SubjectSelectionScreen({super.key});
 
-  final List<Map<String, dynamic>> subjects = const [
-    {'name': 'Science', 'icon': Icons.science, 'color': Tailwind.emerald500},
-    {'name': 'Maths', 'icon': Icons.calculate, 'color': Tailwind.indigo500},
-    {'name': 'Social', 'icon': Icons.public, 'color': Tailwind.amber500},
-    {'name': 'English', 'icon': Icons.language, 'color': Tailwind.rose500},
-  ];
+  @override
+  State<SubjectSelectionScreen> createState() => _SubjectSelectionScreenState();
+}
+
+class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
+  int _selectedGrade = 10;
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _showLogoutConfirmation(BuildContext context) {
     showDialog(
@@ -42,6 +51,11 @@ class SubjectSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> activeList = _selectedGrade == 10 ? class10Subjects : class12Subjects;
+    if (_searchQuery.isNotEmpty) {
+      activeList = activeList.where((s) => s['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    }
+
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
@@ -58,102 +72,169 @@ class SubjectSelectionScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
-              TweenAnimationBuilder<double>(
-                tween: Tween<double>(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 500),
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(0, 20 * (1 - value)),
-                      child: child,
+              // Standard Selection Toggle
+              Container(
+                decoration: BoxDecoration(
+                  color: Tailwind.slate200,
+                  borderRadius: Tailwind.roundedXl,
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          _selectedGrade = 10;
+                          _searchController.clear();
+                          _searchQuery = '';
+                        }),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedGrade == 10 ? Tailwind.white : Colors.transparent,
+                            borderRadius: Tailwind.roundedLg,
+                            boxShadow: _selectedGrade == 10 ? Tailwind.shadowSm : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Class 10",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _selectedGrade == 10 ? Tailwind.indigo600 : Tailwind.slate500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "Vanakkam! 👋",
-                      style: TextStyle(color: Tailwind.slate800, fontSize: 32, fontWeight: FontWeight.w800),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      "Iniku enna subject padikalam?",
-                      style: TextStyle(color: Tailwind.slate500, fontSize: 18),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          _selectedGrade = 12;
+                          _searchController.clear();
+                          _searchQuery = '';
+                        }),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedGrade == 12 ? Tailwind.white : Colors.transparent,
+                            borderRadius: Tailwind.roundedLg,
+                            boxShadow: _selectedGrade == 12 ? Tailwind.shadowSm : null,
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Class 12",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _selectedGrade == 12 ? Tailwind.indigo600 : Tailwind.slate500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.0,
+              const SizedBox(height: 24),
+              
+              const Text(
+                "Iniku enna subject padikalam?",
+                style: TextStyle(color: Tailwind.slate800, fontSize: 24, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 16),
+
+              // Search Bar
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Tailwind.white,
+                  borderRadius: Tailwind.roundedXl,
+                  boxShadow: Tailwind.shadowSm,
+                  border: Border.all(color: Tailwind.slate200),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => setState(() => _searchQuery = val),
+                  decoration: const InputDecoration(
+                    hintText: "Search subjects...",
+                    border: InputBorder.none,
+                    icon: Icon(Icons.search, color: Tailwind.slate400),
                   ),
-                  itemCount: subjects.length,
-                  itemBuilder: (context, index) {
-                    final subject = subjects[index];
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: Duration(milliseconds: 400 + (index * 100)), // Staggered delay
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.scale(
-                            scale: 0.8 + (0.2 * value),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(initialSubject: subject['name']),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Subject Grid
+              Expanded(
+                child: activeList.isEmpty
+                    ? Center(child: Text("No subjects found", style: TextStyle(color: Tailwind.slate500)))
+                    : GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.85,
+                        ),
+                        itemCount: activeList.length,
+                        itemBuilder: (context, index) {
+                          final subject = activeList[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                    initialSubject: subject['name'],
+                                    initialGradeLevel: _selectedGrade,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              decoration: BoxDecoration(
+                                color: Tailwind.white,
+                                borderRadius: Tailwind.rounded2Xl,
+                                boxShadow: Tailwind.shadowSm,
+                                border: Border.all(color: Tailwind.slate200),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: subject['color'].withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(subject['icon'], size: 28, color: subject['color']),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                      child: Text(
+                                        subject['name'],
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(color: Tailwind.slate800, fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            color: Tailwind.white,
-                            borderRadius: Tailwind.rounded2Xl,
-                            boxShadow: Tailwind.shadowMd,
-                            border: Border.all(color: Tailwind.slate100),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: subject['color'].withOpacity(0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(subject['icon'], size: 40, color: subject['color']),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                subject['name'],
-                                style: const TextStyle(color: Tailwind.slate800, fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           ),
