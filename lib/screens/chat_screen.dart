@@ -464,12 +464,16 @@ class _ChatScreenState extends State<ChatScreen> {
         }
 
         if (needsUpdate) {
-          await supabase.from('profiles').update({
-            'chats_today': chatsToday,
-            'subscription_tier': subTier,
-            'previous_tier': prevTier,
-            'last_active_date': todayStr,
-          }).eq('id', user.id);
+          try {
+            await supabase.from('profiles').update({
+              'chats_today': chatsToday,
+              'subscription_tier': subTier,
+              'previous_tier': prevTier,
+              'last_active_date': todayStr,
+            }).eq('id', user.id);
+          } catch (e) {
+            debugPrint("Failed to update daily reset columns. Did you add previous_tier and last_active_date to Supabase? $e");
+          }
         }
 
         if (mounted) {

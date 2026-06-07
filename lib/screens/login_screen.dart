@@ -4,6 +4,7 @@ import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import 'chat_screen.dart';
 import 'subject_selection_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -117,7 +118,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     child: const Text('Log In', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                    child: const Text('Forgot Password?', style: TextStyle(color: Tailwind.indigo600, fontWeight: FontWeight.bold)),
+                  ),
                   TextButton(
                     onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignUpScreen())),
                     child: const Text('New user? Create an account here', style: TextStyle(color: Tailwind.slate600, fontWeight: FontWeight.w500)),
