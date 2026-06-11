@@ -39,7 +39,9 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
             TextButton(
               onPressed: () async {
                 await supabase.auth.signOut();
-                if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                }
               },
               child: const Text("Logout", style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)),
             ),

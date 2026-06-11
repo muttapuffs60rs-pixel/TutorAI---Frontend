@@ -99,7 +99,9 @@ class _ChatScreenState extends State<ChatScreen> {
             TextButton(
               onPressed: () async {
                 await supabase.auth.signOut();
-                if (mounted) Navigator.pushReplacementNamed(context, '/login');
+                if (mounted) {
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                }
               },
               child: const Text("Logout", style: TextStyle(color: Colors.red)),
             ),
@@ -387,32 +389,51 @@ class _ChatScreenState extends State<ChatScreen> {
         await _saveMessage(msg, true);
       }
 
-      final response = await http.post(
-        Uri.parse('https://akka-tutor-backend.onrender.com/ask'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': user.id,
-          'question': msg.isEmpty ? "Explain this image." : msg,
-          'image_url': finalImageUrl,
-          'grade_level': _selectedGrade,
-          'subject': _selectedSubject,
-          'history': historyPayload, // Restored clean context memory tracking
-        }),
-      ).timeout(const Duration(seconds: 60));
+      // Create a placeholder bot message for the incoming stream
+      final botMessageIndex = messages.length;
+      setState(() {
+        messages.add(ChatMessage(text: "", isUser: false));
+      });
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        String answer = data['answer'] ?? "No response";
+      final request = http.Request('POST', Uri.parse('https://akka-tutor-backend.onrender.com/ask'));
+      request.headers['Content-Type'] = 'application/json';
+      request.body = jsonEncode({
+        'user_id': user.id,
+        'question': msg.isEmpty ? "Explain this image." : msg,
+        'image_url': finalImageUrl,
+        'grade_level': _selectedGrade,
+        'subject': _selectedSubject,
+        'history': historyPayload, 
+      });
 
-        if (data['show_paywall'] ?? false) {
-          answer += " [PAYWALL]";
+      final client = http.Client();
+      final streamedResponse = await client.send(request).timeout(const Duration(seconds: 60));
+
+      if (streamedResponse.statusCode == 200) {
+        String fullAnswer = "";
+        bool showPaywall = false;
+
+        // Listen to the byte stream in real-time
+        await for (var chunkBytes in streamedResponse.stream) {
+          final chunkString = utf8.decode(chunkBytes, allowMalformed: true);
+          
+          if (chunkString.contains("__PAYWALL__")) {
+             showPaywall = true;
+             fullAnswer += chunkString.replaceAll("__PAYWALL__", "");
+          } else {
+             fullAnswer += chunkString;
+          }
+
+          if (!mounted) return;
+          setState(() {
+            // Update the existing message in real-time for the "typing" effect
+            messages[botMessageIndex] = ChatMessage(text: fullAnswer + (showPaywall ? " [PAYWALL]" : ""), isUser: false);
+          });
+          _scrollToBottom();
         }
 
-        if (!mounted) return;
-        setState(() {
-          messages.add(ChatMessage(text: answer, isUser: false));
-        });
-        await _saveMessage(answer, false);
+        // Save the final completed message
+        await _saveMessage(fullAnswer + (showPaywall ? " [PAYWALL]" : ""), false);
         await _loadProfileData();
 
         if (messages.where((m) => m.isUser).length >= 20) {
