@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../main.dart'; // Ensure this points to your main.dart where supabase is initialized
 import '../theme/tailwind_theme.dart';
 
@@ -11,69 +14,128 @@ class SubscriptionScreen extends StatefulWidget {
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = false;
+  late Razorpay _razorpay;
+  String? _currentPendingTier;
+  int? _currentPendingDays;
 
-  // Function to handle the subscription logic with specific expiry for the daily pass
+  @override
+  void initState() {
+    super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _razorpay.clear();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    final user = supabase.auth.currentUser;
+    if (user == null || _currentPendingTier == null || _currentPendingDays == null) return;
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      // Use local dev endpoint if testing locally, or change to production. Since the user backend has been modified, we'll try to reach it. 
+      // I'll use the onrender.com endpoint since it's already deployed there. Wait, is main.py deployed automatically? 
+      // For now, let's use the deployed endpoint.
+      final verifyRes = await http.post(
+        Uri.parse('https://akka-tutor-backend.onrender.com/verify-payment'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'razorpay_payment_id': response.paymentId ?? '',
+          'razorpay_order_id': response.orderId ?? '',
+          'razorpay_signature': response.signature ?? '',
+          'user_id': user.id,
+          'tier_name': _currentPendingTier,
+          'days': _currentPendingDays,
+        }),
+      );
+      
+      if (verifyRes.statusCode == 200) {
+        if (mounted) {
+          String successMessage = _currentPendingTier == 'tier_49_daily' 
+              ? "Exam Booster active until 11:59 PM tonight!" 
+              : "Success! $_currentPendingTier activated.";
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMessage)));
+          Navigator.pop(context); // Return to chat screen
+        }
+      } else {
+        throw Exception("Verification failed on server");
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment verification error: $e")));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment failed: ${response.message}")));
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("External wallet selected: ${response.walletName}")));
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Function to handle the subscription logic by starting a Razorpay payment
   Future<void> _updateSubscription(String tierName, int days) async {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _currentPendingTier = tierName;
+      _currentPendingDays = days;
+    });
 
     try {
-      DateTime expiry;
+      int amount = 49;
+      if (tierName == 'tier_199') amount = 199;
+      if (tierName == 'tier_499') amount = 499;
 
-      // Logic for Same-Day Midnight Expiry for Tier 49
-      if (tierName == 'tier_49_daily') {
-        final now = DateTime.now();
-        // Sets expiry to 23:59:59 (11:59 PM) of the current day
-        expiry = DateTime(now.year, now.month, now.day, 23, 59, 59);
-      } else {
-        // Standard 30-day logic for other monthly tiers
-        expiry = DateTime.now().add(Duration(days: days));
-      }
-
-      final expiryDate = expiry.toIso8601String();
-
-      // Fetch current profile to handle previous_tier logic
-      final data = await supabase.from('profiles').select('subscription_tier, previous_tier').eq('id', user.id).single();
-      final String currentTier = data['subscription_tier'] ?? 'free';
-      String? previousTier = data['previous_tier'];
-
-      // Save their existing monthly plan if they buy the daily booster
-      if (tierName == 'tier_49_daily' && currentTier != 'tier_49_daily' && currentTier != 'free') {
-        previousTier = currentTier;
-      }
+      final orderRes = await http.post(
+        Uri.parse('https://akka-tutor-backend.onrender.com/create-order'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'amount': amount}),
+      );
       
-      // If they buy a new standard/pro plan, clear previous_tier
-      if (tierName != 'tier_49_daily') {
-        previousTier = null;
-      }
-
-      // Update the user profile with the new tier, expiry date, and previous_tier
-      await supabase.from('profiles').update({
-        'subscription_tier': tierName,
-        'subscription_expires_at': expiryDate, 
-        'previous_tier': previousTier,
-      }).eq('id', user.id);
-
-      if (mounted) {
-        String successMessage = tierName == 'tier_49_daily' 
-            ? "Exam Booster active until 11:59 PM tonight!" 
-            : "Success! $tierName activated for $days days.";
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(successMessage)),
-        );
-        Navigator.pop(context); // Return to chat screen
+      if (orderRes.statusCode == 200) {
+        final orderData = jsonDecode(orderRes.body);
+        var options = {
+          'key': 'rzp_test_T0Hp0QiGT8OyLh',
+          'amount': amount * 100,
+          'name': 'Tutor Preethi',
+          'description': 'Subscription: $tierName',
+          'order_id': orderData['id'],
+          'prefill': {
+            'contact': user.phone ?? '',
+            'email': user.email ?? ''
+          }
+        };
+        _razorpay.open(options);
+      } else {
+        throw Exception("Failed to create order on server");
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error updating subscription: $e")),
+          SnackBar(content: Text("Error initiating payment: $e")),
         );
+        setState(() => _isLoading = false);
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 

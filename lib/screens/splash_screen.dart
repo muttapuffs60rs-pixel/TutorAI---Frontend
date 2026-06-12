@@ -59,29 +59,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Clean shadow wrapper for the logo
-                Container(
+                Image.asset(
+                  'assets/images/logo.png',
                   height: 160,
                   width: 160,
-                  decoration: BoxDecoration(
-                    color: Tailwind.white,
-                    borderRadius: Tailwind.rounded2Xl,
-                    boxShadow: Tailwind.shadowLg,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: Tailwind.rounded2Xl,
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.blur_on_rounded,
-                          size: 72,
-                          color: Tailwind.indigo500,
-                        );
-                      },
-                    ),
-                  ),
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(
+                      Icons.blur_on_rounded,
+                      size: 72,
+                      color: Tailwind.indigo500,
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
                 // Company Name branding Typography
