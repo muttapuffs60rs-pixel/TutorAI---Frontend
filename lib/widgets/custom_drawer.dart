@@ -180,14 +180,36 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ListTile(
             leading: const Icon(Icons.logout, color: Tailwind.rose500),
             title: const Text('Log Out', style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.w600)),
-            onTap: () async {
-              await supabase.auth.signOut();
-              if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()), 
-                  (route) => false
-                );
-              }
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    backgroundColor: Tailwind.white,
+                    shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
+                    title: const Text("Logout", style: TextStyle(color: Tailwind.slate800)),
+                    content: const Text("Are you sure you want to log out?", style: TextStyle(color: Tailwind.slate600)),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          await supabase.auth.signOut();
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (_) => const LoginScreen()), 
+                              (route) => false
+                            );
+                          }
+                        },
+                        child: const Text("Logout", style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  );
+                },
+              );
             },
           ),
           const SizedBox(height: 20),
