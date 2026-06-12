@@ -24,13 +24,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
       String cleanSelected = _selectedOption!.trim();
       String cleanCorrect = widget.questions[_currentIndex]['correct_answer'].toString().trim();
 
-      // 🚨 OUR X-RAY DETECTIVE PRINTS 🚨
-      print('=================================');
-      print('USER SELECTED: "$cleanSelected"');
-      print('AI SAYS CORRECT IS: "$cleanCorrect"');
-      print('=================================');
-
-      // Also making it case-insensitive just to be extra safe!
+      // Case-insensitive comparison for safety
       if (cleanSelected.toLowerCase() == cleanCorrect.toLowerCase()) {
         _score++;
       }

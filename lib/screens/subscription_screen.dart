@@ -16,7 +16,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = false;
   late Razorpay _razorpay;
   String? _currentPendingTier;
-  int? _currentPendingDays;
 
   @override
   void initState() {
@@ -35,7 +34,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
     final user = supabase.auth.currentUser;
-    if (user == null || _currentPendingTier == null || _currentPendingDays == null) return;
+    if (user == null || _currentPendingTier == null) return;
     
     setState(() => _isLoading = true);
     
@@ -94,14 +93,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   // Function to handle the subscription logic by starting a Razorpay payment
-  Future<void> _updateSubscription(String tierName, int days) async {
+  Future<void> _updateSubscription(String tierName) async {
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
     setState(() {
       _isLoading = true;
       _currentPendingTier = tierName;
-      _currentPendingDays = days;
     });
 
     try {
@@ -200,7 +198,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   features: ['Unlimited Chats today', 'High-speed responses', 'Perfect for last-minute prep'],
                   isBooster: true,
                   buttonText: 'Get Today\'s Pass',
-                  onTap: () => _updateSubscription('tier_49_daily', 1),
+                  onTap: () => _updateSubscription('tier_49_daily'),
                 ),
                 const SizedBox(height: 24),
 
@@ -211,7 +209,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   subtitle: 'Monthly subscription',
                   features: ['50 Chats/Day', 'Full Textbook Context', 'Standard Support'],
                   buttonText: 'Choose Standard',
-                  onTap: () => _updateSubscription('tier_199', 30),
+                  onTap: () => _updateSubscription('tier_199'),
                 ),
                 const SizedBox(height: 24),
 
@@ -223,7 +221,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   features: ['150 Chats/Day', 'Priority AI Access', 'Centum-focused Tips'],
                   isPro: true,
                   buttonText: 'Go Pro Master',
-                  onTap: () => _updateSubscription('tier_499', 30),
+                  onTap: () => _updateSubscription('tier_499'),
                 ),
                 const SizedBox(height: 32),
               ],

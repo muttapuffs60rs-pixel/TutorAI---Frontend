@@ -404,7 +404,6 @@ class _ChatScreenState extends State<ChatScreen> {
         request.headers['Authorization'] = 'Bearer $token';
       }
       request.body = jsonEncode({
-        'user_id': user.id,
         'question': msg.isEmpty ? "Explain this image." : msg,
         'image_url': finalImageUrl,
         'grade_level': _selectedGrade,

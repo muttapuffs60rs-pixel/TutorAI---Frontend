@@ -67,11 +67,16 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final session = supabase.auth.currentSession;
+      final String token = session?.accessToken ?? '';
+
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/generate-quiz'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('https://akka-tutor-backend.onrender.com/generate-quiz'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({
-          'user_id': user.id,
           'grade_level': _selectedGrade,
           'subject': _selectedSubject,
           'units': _selectedUnits,

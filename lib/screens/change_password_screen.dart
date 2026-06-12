@@ -145,32 +145,35 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // New Password Field with visibility switch
+                // New PIN Field
                 _buildPasswordField(
                   controller: _newPasswordController,
-                  label: 'New Password',
+                  label: 'New 4-Digit PIN',
                   isObscured: _obscureNew,
+                  isPin: true,
                   onToggleVisibility: () {
                     setState(() => _obscureNew = !_obscureNew);
                   },
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter a new password';
-                    if (value.length < 6) return 'Password must be at least 6 characters';
+                    if (value == null || value.isEmpty) return 'Please enter a new PIN';
+                    if (value.length != 4) return 'PIN must be exactly 4 digits';
+                    if (!RegExp(r'^[0-9]{4}$').hasMatch(value)) return 'PIN must contain only numbers';
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
 
-                // Confirm New Password Field with visibility switch
+                // Confirm PIN Field
                 _buildPasswordField(
                   controller: _confirmPasswordController,
-                  label: 'Confirm New Password',
+                  label: 'Confirm New PIN',
                   isObscured: _obscureConfirm,
+                  isPin: true,
                   onToggleVisibility: () {
                     setState(() => _obscureConfirm = !_obscureConfirm);
                   },
                   validator: (value) {
-                    if (value != _newPasswordController.text) return 'Passwords do not match';
+                    if (value != _newPasswordController.text) return 'PINs do not match';
                     return null;
                   },
                 ),
@@ -209,15 +212,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     required bool isObscured,
     required VoidCallback onToggleVisibility,
     required String? Function(String?) validator,
+    bool isPin = false,
   }) {
     return TextFormField(
       controller: controller,
       obscureText: isObscured,
       style: const TextStyle(color: Colors.white),
       validator: validator,
+      keyboardType: isPin ? TextInputType.number : TextInputType.text,
+      maxLength: isPin ? 4 : null,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
+        counterText: '',  // hide the "0/4" counter on PIN fields
         suffixIcon: IconButton(
           icon: Icon(
             isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,

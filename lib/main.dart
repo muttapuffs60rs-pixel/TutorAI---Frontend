@@ -10,13 +10,26 @@ import 'screens/change_password_screen.dart';
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
 import 'theme/tailwind_theme.dart';
 
+// ============================================================
+// SECURITY: Credentials are passed via --dart-define at build time.
+// Run with:
+//   flutter run \
+//     --dart-define=SUPABASE_URL=https://xhloiwzkoswtdmgwfoil.supabase.co \
+//     --dart-define=SUPABASE_ANON_KEY=sb_publishable_xGuRAr3G-0Z4UF4FfNHbgQ_CUIhdwTt
+// ============================================================
+const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+const _supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  assert(_supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty,
+      'Missing --dart-define values. See comment above main() for usage.');
+
   // Initialize Supabase
   await Supabase.initialize(
-    url: 'https://xhloiwzkoswtdmgwfoil.supabase.co',
-    anonKey: 'sb_publishable_xGuRAr3G-0Z4UF4FfNHbgQ_CUIhdwTt',
+    url: _supabaseUrl,
+    anonKey: _supabaseAnonKey,
   );
 
   runApp(const AkkaApp());
