@@ -43,16 +43,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       // Use local dev endpoint if testing locally, or change to production. Since the user backend has been modified, we'll try to reach it. 
       // I'll use the onrender.com endpoint since it's already deployed there. Wait, is main.py deployed automatically? 
       // For now, let's use the deployed endpoint.
+      final session = supabase.auth.currentSession;
+      final String token = session?.accessToken ?? '';
+
       final verifyRes = await http.post(
         Uri.parse('https://akka-tutor-backend.onrender.com/verify-payment'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({
           'razorpay_payment_id': response.paymentId ?? '',
           'razorpay_order_id': response.orderId ?? '',
           'razorpay_signature': response.signature ?? '',
-          'user_id': user.id,
-          'tier_name': _currentPendingTier,
-          'days': _currentPendingDays,
         }),
       );
       
@@ -106,10 +109,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       if (tierName == 'tier_199') amount = 199;
       if (tierName == 'tier_499') amount = 499;
 
+      final session = supabase.auth.currentSession;
+      final String token = session?.accessToken ?? '';
+
       final orderRes = await http.post(
         Uri.parse('https://akka-tutor-backend.onrender.com/create-order'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'amount': amount}),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'tier_id': tierName}),
       );
       
       if (orderRes.statusCode == 200) {

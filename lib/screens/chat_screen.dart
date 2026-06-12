@@ -395,8 +395,14 @@ class _ChatScreenState extends State<ChatScreen> {
         messages.add(ChatMessage(text: "", isUser: false));
       });
 
+      final session = supabase.auth.currentSession;
+      final String token = session?.accessToken ?? '';
+
       final request = http.Request('POST', Uri.parse('https://akka-tutor-backend.onrender.com/ask'));
       request.headers['Content-Type'] = 'application/json';
+      if (token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
       request.body = jsonEncode({
         'user_id': user.id,
         'question': msg.isEmpty ? "Explain this image." : msg,
