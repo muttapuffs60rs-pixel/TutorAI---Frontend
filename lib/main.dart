@@ -11,20 +11,23 @@ import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
 import 'theme/tailwind_theme.dart';
 
 // ============================================================
-// SECURITY: Credentials are passed via --dart-define at build time.
-// Run with:
+// CREDENTIALS — for local dev, values are hardcoded below.
+// For production builds, use --dart-define instead:
 //   flutter run \
 //     --dart-define=SUPABASE_URL=https://xhloiwzkoswtdmgwfoil.supabase.co \
 //     --dart-define=SUPABASE_ANON_KEY=sb_publishable_xGuRAr3G-0Z4UF4FfNHbgQ_CUIhdwTt
 // ============================================================
-const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-const _supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+const _supabaseUrl = String.fromEnvironment(
+  'SUPABASE_URL',
+  defaultValue: 'https://xhloiwzkoswtdmgwfoil.supabase.co',
+);
+const _supabaseAnonKey = String.fromEnvironment(
+  'SUPABASE_ANON_KEY',
+  defaultValue: 'sb_publishable_xGuRAr3G-0Z4UF4FfNHbgQ_CUIhdwTt',
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  assert(_supabaseUrl.isNotEmpty && _supabaseAnonKey.isNotEmpty,
-      'Missing --dart-define values. See comment above main() for usage.');
 
   // Initialize Supabase
   await Supabase.initialize(
