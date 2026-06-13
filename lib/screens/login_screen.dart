@@ -92,7 +92,11 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.school, size: 80, color: Tailwind.indigo500),
+                Image.asset(
+                  'assets/images/app_icon.png',
+                  height: 100,
+                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, size: 80, color: Tailwind.indigo500),
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   'Welcome to Tutor Preethi', 

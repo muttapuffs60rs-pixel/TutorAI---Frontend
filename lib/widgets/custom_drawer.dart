@@ -138,6 +138,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
 
+                ListTile(
+                  leading: const Icon(Icons.gamepad_rounded, color: Tailwind.indigo500),
+                  title: const Text('Live Quiz 🎮', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/live-quiz');
+                  },
+                ),
+
                 const Divider(color: Tailwind.slate200),
 
                 const Padding(

@@ -8,6 +8,7 @@ import 'screens/chat_screen.dart';
 import 'screens/subject_selection_screen.dart';
 import 'screens/change_password_screen.dart'; 
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
+import 'screens/live_quiz/live_quiz_entry_screen.dart';
 import 'theme/tailwind_theme.dart';
 
 // ============================================================
@@ -82,6 +83,7 @@ class AkkaApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/chat': (context) => const ChatScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),
+        '/live-quiz': (context) => const LiveQuizEntryScreen(),
         
         // STEP 2: Handle routing session validation explicitly post-splash completion
         '/auth_gate': (context) => StreamBuilder<AuthState>(
