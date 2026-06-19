@@ -45,7 +45,7 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
   // ignore: unused_field — used in _fetchFinalLeaderboard and completed screen leaderboard
   List<dynamic> _finalLeaderboard = [];
   int _myRank = 0;
-  int _myScore = 0;
+  num _myScore = 0;
 
   // ── Timer state ─────────────────────────────────────────────────────────────
   Timer? _countdownTimer;
@@ -74,26 +74,56 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     _channel.onBroadcast(event: 'quiz_start', callback: (payload) {
       if (mounted) {
         setState(() { _status = 'active'; _currentIndex = 0; _resetQuestionState(); });
-        _startTimer(
-          (payload['timer_seconds'] as int?) ?? 60,
-          (payload['timer_mode'] as String?) ?? 'auto',
-        );
+        final seconds = int.tryParse(payload['timer_seconds']?.toString() ?? '60') ?? 60;
+        final mode = payload['timer_mode']?.toString() ?? 'auto';
+        _startTimer(seconds, mode);
       }
     });
 
     // Teacher moved to next question — includes timer data for that question
     _channel.onBroadcast(event: 'next_question', callback: (payload) {
       if (mounted) {
-        setState(() {
-          _currentIndex = payload['index'] as int;
-          _resetQuestionState();
-        });
-        _startTimer(
-          (payload['timer_seconds'] as int?) ?? 60,
-          (payload['timer_mode'] as String?) ?? 'auto',
-        );
+        final newIdx = int.tryParse(payload['index']?.toString() ?? '0') ?? 0;
+        if (newIdx > _currentIndex) {
+          setState(() {
+            _currentIndex = newIdx;
+            _resetQuestionState();
+          });
+          final seconds = int.tryParse(payload['timer_seconds']?.toString() ?? '60') ?? 60;
+          final mode = payload['timer_mode']?.toString() ?? 'auto';
+          _startTimer(seconds, mode);
+        }
       }
     });
+
+    // Fallback: If WebSockets drop the broadcast, listen to database updates
+    _channel.onPostgresChanges(
+      event: PostgresChangeEvent.update,
+      schema: 'public',
+      table: 'quiz_sessions',
+      filter: PostgresChangeFilter(type: PostgresChangeFilterType.eq, column: 'id', value: widget.sessionId),
+      callback: (payload) async {
+        if (!mounted) return;
+        final newRecord = payload.newRecord;
+        if (newRecord['status'] == 'completed') {
+           _cancelTimer();
+           await _fetchFinalLeaderboard();
+           if (mounted) setState(() => _status = 'completed');
+        } else if (newRecord['current_question_index'] != null) {
+          final newIdx = int.tryParse(newRecord['current_question_index'].toString()) ?? 0;
+          if (newIdx > _currentIndex && newIdx < widget.questions.length) {
+            setState(() {
+              _currentIndex = newIdx;
+              _resetQuestionState();
+            });
+            final q = widget.questions[_currentIndex];
+            final seconds = int.tryParse(q['timer_seconds']?.toString() ?? '60') ?? 60;
+            final mode = q['timer_mode']?.toString() ?? 'auto';
+            _startTimer(seconds, mode);
+          }
+        }
+      }
+    );
 
     _channel.onBroadcast(event: 'quiz_end', callback: (payload) async {
       _cancelTimer();
@@ -213,11 +243,11 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body)['leaderboard'] as List<dynamic>;
         int rank = 0;
-        int score = 0;
+        num score = 0;
         for (int i = 0; i < data.length; i++) {
           if (data[i]['student_name'] == widget.studentName) {
             rank = i + 1;
-            score = data[i]['total_score'];
+            score = data[i]['total_score'] ?? 0;
             break;
           }
         }
@@ -250,6 +280,29 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
             const Text("You're in!", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Text('See your nickname on screen?', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16)),
+            const SizedBox(height: 32),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(16)),
+              child: const Column(
+                children: [
+                  Text('SCORING RULES', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                  SizedBox(height: 12),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text('Correct: +1 mark', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                  ]),
+                  SizedBox(height: 8),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.cancel_outlined, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text('Wrong: -0.5 marks', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+                  ]),
+                ],
+              ),
+            ),
             const SizedBox(height: 48),
             const Center(child: CircularProgressIndicator(color: Colors.white)),
             const SizedBox(height: 24),

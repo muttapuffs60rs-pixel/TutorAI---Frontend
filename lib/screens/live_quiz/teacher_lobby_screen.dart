@@ -55,9 +55,13 @@ class _TeacherLobbyScreenState extends State<TeacherLobbyScreen> {
       });
   }
 
+  bool _navigatingToActive = false;
+
   @override
   void dispose() {
-    supabase.removeChannel(_channel);
+    if (!_navigatingToActive) {
+      supabase.removeChannel(_channel);
+    }
     super.dispose();
   }
 
@@ -97,6 +101,7 @@ class _TeacherLobbyScreenState extends State<TeacherLobbyScreen> {
           },
         );
 
+        _navigatingToActive = true;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TeacherActiveScreen(
           sessionCode: widget.sessionCode,
           sessionId: widget.sessionId,

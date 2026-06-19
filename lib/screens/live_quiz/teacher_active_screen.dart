@@ -139,7 +139,7 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
   void dispose() {
     _cancelTimer();
     supabase.removeChannel(_responsesChannel);
-    widget.channel.unsubscribe();
+    supabase.removeChannel(widget.channel);
     super.dispose();
   }
 
