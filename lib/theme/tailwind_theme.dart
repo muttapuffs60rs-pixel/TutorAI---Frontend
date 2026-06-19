@@ -4,6 +4,7 @@ class Tailwind {
   // Brand / Accents
   static const Color indigo50 = Color(0xFFeef2ff);
   static const Color indigo100 = Color(0xFFe0e7ff);
+  static const Color indigo200 = Color(0xFFc7d2fe);
   static const Color indigo500 = Color(0xFF6366f1);
   static const Color indigo600 = Color(0xFF4f46e5);
   static const Color indigo900 = Color(0xFF312e81);
@@ -28,7 +29,10 @@ class Tailwind {
   
   static const Color emerald400 = Color(0xFF34d399);
   static const Color emerald500 = Color(0xFF10b981);
+  static const Color emerald600 = Color(0xFF059669);
   
+  static const Color amber50 = Color(0xFFfffbeb);
+  static const Color amber200 = Color(0xFFfde68a);
   static const Color amber500 = Color(0xFFf59e0b);
   static const Color amber600 = Color(0xFFd97706);
   static const Color amber700 = Color(0xFFb45309);
@@ -103,6 +107,20 @@ class Tailwind {
       offset: Offset(0, 4),
       blurRadius: 6,
       spreadRadius: -2,
+    ),
+  ];
+  static const List<BoxShadow> shadowXl = [
+    BoxShadow(
+      color: Color(0x1A000000),
+      offset: Offset(0, 20),
+      blurRadius: 25,
+      spreadRadius: -5,
+    ),
+    BoxShadow(
+      color: Color(0x0F000000),
+      offset: Offset(0, 8),
+      blurRadius: 10,
+      spreadRadius: -6,
     ),
   ];
 

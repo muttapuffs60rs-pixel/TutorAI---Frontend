@@ -68,7 +68,7 @@ class _TeacherCreateQuizScreenState extends State<TeacherCreateQuizScreen> {
           sessionId: data['session_id'],
           title: data['title'],
           questionCount: data['question_count'],
-          questions: _questions,
+          questions: _questions.map((q) => q.toMap()).toList(),
         )));
       } else {
         _snack('Error: ${jsonDecode(res.body)['detail'] ?? res.body}');
@@ -171,6 +171,18 @@ class _QuestionDraft {
   String type = 'mcq';
   List<String> options = ['', '', '', ''];
   String correctAnswer = '';
+  int timerSeconds = 60;          // default 60 s per question
+  String timerMode = 'auto';     // 'auto' = auto-advance | 'manual' = teacher clicks
+
+  Map<String, dynamic> toMap() => {
+    'question_text': questionText.trim(),
+    'question_type': type,
+    'options': type == 'mcq' ? options.map((o) => o.trim()).toList() : null,
+    'correct_answer': correctAnswer.trim(),
+    'timer_seconds': timerSeconds,
+    'timer_mode': timerMode,
+    'id': '', // teacher display only — real IDs live on the backend
+  };
 }
 
 // ─── QUESTION CARD WIDGET ─────────────────────────────────────────────────────
@@ -253,6 +265,92 @@ class _QuestionCardState extends State<_QuestionCard> {
               ),
               const SizedBox(width: 8),
               GestureDetector(onTap: widget.onRemove, child: const Icon(Icons.delete_outline, color: Tailwind.rose500, size: 20)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // ── Timer row: mode toggle + duration chips ───────────────────
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    widget.draft.timerMode = widget.draft.timerMode == 'auto' ? 'manual' : 'auto';
+                  });
+                  widget.onChanged();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: widget.draft.timerMode == 'auto' ? const Color(0xFFEEF2FF) : const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: widget.draft.timerMode == 'auto' ? const Color(0xFF4F46E5) : const Color(0xFF059669),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        widget.draft.timerMode == 'auto' ? Icons.timer_rounded : Icons.touch_app_rounded,
+                        size: 13,
+                        color: widget.draft.timerMode == 'auto' ? const Color(0xFF4F46E5) : const Color(0xFF059669),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.draft.timerMode == 'auto' ? 'Auto' : 'Manual',
+                        style: TextStyle(
+                          color: widget.draft.timerMode == 'auto' ? const Color(0xFF4F46E5) : const Color(0xFF059669),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (widget.draft.timerMode == 'auto') ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [15, 30, 45, 60, 90, 120, 180, 300].map((s) {
+                        final isSelected = widget.draft.timerSeconds == s;
+                        final String label;
+                        if (s < 60) {
+                          label = '${s}s';
+                        } else if (s % 60 == 0) {
+                          label = '${s ~/ 60}m';
+                        } else {
+                          label = '${s ~/ 60}m${s % 60}s';
+                        }
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() => widget.draft.timerSeconds = s);
+                            widget.onChanged();
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF4F46E5) : Tailwind.slate100,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Tailwind.slate600,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 12),

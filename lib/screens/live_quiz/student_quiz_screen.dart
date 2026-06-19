@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -33,17 +34,26 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
   late String _status;
   late int _currentIndex;
   late final RealtimeChannel _channel;
-  
+
   bool _isSubmitting = false;
   bool _hasAnsweredCurrent = false;
   bool _wasCorrect = false;
   String _correctAnswerMsg = '';
-  
+
   final _fillBlankController = TextEditingController();
 
+  // ignore: unused_field — used in _fetchFinalLeaderboard and completed screen leaderboard
   List<dynamic> _finalLeaderboard = [];
   int _myRank = 0;
   int _myScore = 0;
+
+  // ── Timer state ─────────────────────────────────────────────────────────────
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
+  int _totalSeconds = 60;
+  bool _timesUp = false;
+  // ignore: unused_field — used in _startTimer and broadcast handling
+  String _currentTimerMode = 'auto';
 
   @override
   void initState() {
@@ -51,48 +61,109 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     _status = widget.initialStatus;
     _currentIndex = widget.initialQuestionIndex;
     _setupRealtime();
+    // If student joins a mid-session active quiz, start timer with defaults
+    if (_status == 'active') {
+      _startTimer(60, 'manual'); // conservative default — teacher controls pace
+    }
   }
 
   void _setupRealtime() {
     _channel = supabase.channel('quiz:${widget.sessionCode}');
-    
+
+    // Teacher started the quiz → Q0 timer data is in the payload
     _channel.onBroadcast(event: 'quiz_start', callback: (payload) {
-      if (mounted) setState(() { _status = 'active'; _currentIndex = 0; _resetQuestionState(); });
+      if (mounted) {
+        setState(() { _status = 'active'; _currentIndex = 0; _resetQuestionState(); });
+        _startTimer(
+          (payload['timer_seconds'] as int?) ?? 60,
+          (payload['timer_mode'] as String?) ?? 'auto',
+        );
+      }
     });
 
+    // Teacher moved to next question — includes timer data for that question
     _channel.onBroadcast(event: 'next_question', callback: (payload) {
-      if (mounted) setState(() { 
-        _currentIndex = payload['index']; 
-        _resetQuestionState();
-      });
+      if (mounted) {
+        setState(() {
+          _currentIndex = payload['index'] as int;
+          _resetQuestionState();
+        });
+        _startTimer(
+          (payload['timer_seconds'] as int?) ?? 60,
+          (payload['timer_mode'] as String?) ?? 'auto',
+        );
+      }
     });
 
     _channel.onBroadcast(event: 'quiz_end', callback: (payload) async {
+      _cancelTimer();
       await _fetchFinalLeaderboard();
-      if (mounted) setState(() { _status = 'completed'; });
+      if (mounted) setState(() => _status = 'completed');
     });
 
     _channel.subscribe((status, error) async {
-      if (status == 'SUBSCRIBED') {
+      if (status == RealtimeSubscribeStatus.subscribed) {
         await _channel.track({'role': 'student', 'name': widget.studentName});
       }
     });
   }
 
+  // ── Timer ───────────────────────────────────────────────────────────────────
+  void _startTimer(int seconds, String mode) {
+    _cancelTimer();
+    setState(() {
+      _totalSeconds = seconds;
+      _remainingSeconds = seconds;
+      _timesUp = false;
+      _currentTimerMode = mode;
+    });
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) { timer.cancel(); return; }
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _timesUp = true;
+          timer.cancel();
+          // Lock out the student from answering when time's up
+        }
+      });
+    });
+  }
+
+  void _cancelTimer() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+  }
+
+  Color get _timerColor {
+    if (_totalSeconds == 0) return Tailwind.slate400;
+    final ratio = _totalSeconds > 0 ? _remainingSeconds / _totalSeconds : 0.0;
+    if (ratio > 0.4) return const Color(0xFF059669); // green
+    if (ratio > 0.2) return const Color(0xFFD97706); // amber
+    return const Color(0xFFDC2626);                  // red
+  }
+
+  // ── Lifecycle ────────────────────────────────────────────────────────────────
   @override
   void dispose() {
+    _cancelTimer();
     _fillBlankController.dispose();
     supabase.removeChannel(_channel);
     super.dispose();
   }
 
   void _resetQuestionState() {
+    _cancelTimer();
     _hasAnsweredCurrent = false;
     _wasCorrect = false;
     _correctAnswerMsg = '';
+    _timesUp = false;
     _fillBlankController.clear();
   }
 
+  // ── Submit answer ────────────────────────────────────────────────────────────
   Future<void> _submitAnswer(String answer) async {
     if (answer.trim().isEmpty) return;
     setState(() => _isSubmitting = true);
@@ -120,14 +191,13 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
             if (!_wasCorrect) _correctAnswerMsg = data['correct_answer'];
           });
         } else if (res.statusCode == 409) {
-          // Already answered
-          setState(() { _hasAnsweredCurrent = true; });
+          setState(() => _hasAnsweredCurrent = true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${jsonDecode(res.body)['detail'] ?? res.body}')));
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -151,19 +221,14 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
             break;
           }
         }
-        if (mounted) {
-          setState(() {
-            _finalLeaderboard = data;
-            _myRank = rank;
-            _myScore = score;
-          });
-        }
+        if (mounted) setState(() { _finalLeaderboard = data; _myRank = rank; _myScore = score; });
       }
     } catch (e) {
-      debugPrint("Leaderboard error: $e");
+      debugPrint('Leaderboard error: $e');
     }
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     if (_status == 'waiting') return _buildWaitingScreen();
@@ -171,6 +236,7 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     return _buildActiveScreen();
   }
 
+  // ── Waiting screen ────────────────────────────────────────────────────────────
   Widget _buildWaitingScreen() {
     return Scaffold(
       backgroundColor: Tailwind.emerald500,
@@ -194,6 +260,7 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     );
   }
 
+  // ── Completed screen ──────────────────────────────────────────────────────────
   Widget _buildCompletedScreen() {
     return Scaffold(
       backgroundColor: Tailwind.indigo600,
@@ -224,20 +291,16 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Column(
-                        children: [
-                          Text('$_myScore', style: const TextStyle(color: Tailwind.indigo600, fontSize: 32, fontWeight: FontWeight.bold)),
-                          const Text('CORRECT', style: TextStyle(color: Tailwind.slate400, fontSize: 12, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text('${widget.questions.length}', style: const TextStyle(color: Tailwind.slate800, fontSize: 32, fontWeight: FontWeight.bold)),
-                          const Text('TOTAL', style: TextStyle(color: Tailwind.slate400, fontSize: 12, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
+                      Column(children: [
+                        Text('$_myScore', style: const TextStyle(color: Tailwind.indigo600, fontSize: 32, fontWeight: FontWeight.bold)),
+                        const Text('SCORE', style: TextStyle(color: Tailwind.slate400, fontSize: 12, fontWeight: FontWeight.bold)),
+                      ]),
+                      Column(children: [
+                        Text('${widget.questions.length}', style: const TextStyle(color: Tailwind.slate800, fontSize: 32, fontWeight: FontWeight.bold)),
+                        const Text('TOTAL', style: TextStyle(color: Tailwind.slate400, fontSize: 12, fontWeight: FontWeight.bold)),
+                      ]),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -253,21 +316,28 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
                 ),
                 child: const Text('Return to Home', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
+  // ── Active quiz screen ────────────────────────────────────────────────────────
   Widget _buildActiveScreen() {
     final q = widget.questions[_currentIndex];
+    final bool canAnswer = !_hasAnsweredCurrent && !_timesUp && !_isSubmitting;
 
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        backgroundColor: Tailwind.white, elevation: 0, automaticallyImplyLeading: false,
-        title: Text('${widget.title} — Q${_currentIndex + 1}/${widget.questions.length}', style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold)),
+        backgroundColor: Tailwind.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          '${widget.title} — Q${_currentIndex + 1}/${widget.questions.length}',
+          style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         actions: [
           Center(
             child: Padding(
@@ -278,12 +348,13 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
                 child: Text(widget.studentName, style: const TextStyle(color: Tailwind.indigo600, fontWeight: FontWeight.bold)),
               ),
             ),
-          )
+          ),
         ],
       ),
       body: SafeArea(
         child: Column(
           children: [
+            // Progress bar
             LinearProgressIndicator(
               value: (_currentIndex + 1) / widget.questions.length,
               backgroundColor: Tailwind.slate200,
@@ -295,18 +366,41 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // ── Timer ring ─────────────────────────────────────────
+                    Center(child: _buildTimerRing()),
+                    const SizedBox(height: 20),
+                    // ── Question card ──────────────────────────────────────
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(color: Tailwind.white, borderRadius: Tailwind.rounded3Xl, boxShadow: Tailwind.shadowMd),
                       child: Text(q['question_text'], textAlign: TextAlign.center, style: const TextStyle(color: Tailwind.slate800, fontSize: 20, fontWeight: FontWeight.bold)),
                     ),
-                    const SizedBox(height: 32),
-                    if (_hasAnsweredCurrent)
+                    const SizedBox(height: 24),
+                    // ── Time's up banner (when expired and not yet answered)
+                    if (_timesUp && !_hasAnsweredCurrent)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: Tailwind.rounded2Xl,
+                          border: Border.all(color: const Color(0xFFFCA5A5)),
+                        ),
+                        child: const Column(
+                          children: [
+                            Icon(Icons.timer_off_rounded, color: Color(0xFFDC2626), size: 36),
+                            SizedBox(height: 8),
+                            Text("Time's up!", style: TextStyle(color: Color(0xFFDC2626), fontSize: 18, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 4),
+                            Text('Waiting for teacher...', style: TextStyle(color: Tailwind.slate500, fontSize: 13)),
+                          ],
+                        ),
+                      )
+                    else if (_hasAnsweredCurrent)
                       _buildFeedback()
                     else if (q['question_type'] == 'mcq')
-                      _buildMcqOptions(q['options'])
+                      _buildMcqOptions(q['options'], canAnswer)
                     else
-                      _buildFillBlankInput(),
+                      _buildFillBlankInput(canAnswer),
                   ],
                 ),
               ),
@@ -317,6 +411,51 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     );
   }
 
+  // ── Timer ring widget ─────────────────────────────────────────────────────────
+  Widget _buildTimerRing() {
+    if (_timesUp) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFFCA5A5)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.timer_off_rounded, color: Color(0xFFDC2626), size: 16),
+            SizedBox(width: 6),
+            Text("Time's up!", style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold, fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: 80, height: 80,
+          child: CircularProgressIndicator(
+            value: _totalSeconds > 0 ? _remainingSeconds / _totalSeconds : 0.0,
+            backgroundColor: Tailwind.slate100,
+            valueColor: AlwaysStoppedAnimation<Color>(_timerColor),
+            strokeWidth: 5,
+          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$_remainingSeconds', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: _timerColor)),
+            Text('SEC', style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: _timerColor, letterSpacing: 1)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Answer widgets ────────────────────────────────────────────────────────────
   Widget _buildFeedback() {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -327,9 +466,11 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
       ),
       child: Column(
         children: [
-          Icon(_wasCorrect ? Icons.check_circle_outline : Icons.cancel_outlined, color: _wasCorrect ? const Color(0xFF059669) : const Color(0xFFDC2626), size: 64),
+          Icon(_wasCorrect ? Icons.check_circle_outline : Icons.cancel_outlined,
+              color: _wasCorrect ? const Color(0xFF059669) : const Color(0xFFDC2626), size: 64),
           const SizedBox(height: 16),
-          Text(_wasCorrect ? 'Correct!' : 'Incorrect', style: TextStyle(color: _wasCorrect ? const Color(0xFF065F46) : const Color(0xFF991B1B), fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(_wasCorrect ? 'Correct!' : 'Incorrect',
+              style: TextStyle(color: _wasCorrect ? const Color(0xFF065F46) : const Color(0xFF991B1B), fontSize: 24, fontWeight: FontWeight.bold)),
           if (!_wasCorrect && _correctAnswerMsg.isNotEmpty) ...[
             const SizedBox(height: 16),
             const Text('Correct Answer:', style: TextStyle(color: Tailwind.slate500, fontSize: 13)),
@@ -345,12 +486,12 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     );
   }
 
-  Widget _buildMcqOptions(List<dynamic> options) {
+  Widget _buildMcqOptions(List<dynamic> options, bool canAnswer) {
     final colors = [
-      const Color(0xFFE23636), // Red
-      const Color(0xFF1368CE), // Blue
-      const Color(0xFFD89E00), // Yellow
-      const Color(0xFF26890C), // Green
+      const Color(0xFFE23636),
+      const Color(0xFF1368CE),
+      const Color(0xFFD89E00),
+      const Color(0xFF26890C),
     ];
 
     return GridView.builder(
@@ -365,9 +506,9 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
       itemCount: options.length,
       itemBuilder: (context, i) {
         return ElevatedButton(
-          onPressed: _isSubmitting ? null : () => _submitAnswer(options[i]),
+          onPressed: canAnswer ? () => _submitAnswer(options[i]) : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: colors[i % colors.length],
+            backgroundColor: canAnswer ? colors[i % colors.length] : Tailwind.slate300,
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
             padding: const EdgeInsets.all(16),
@@ -378,28 +519,29 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
     );
   }
 
-  Widget _buildFillBlankInput() {
+  Widget _buildFillBlankInput(bool canAnswer) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
           controller: _fillBlankController,
-          enabled: !_isSubmitting,
+          enabled: canAnswer,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Tailwind.slate800),
           decoration: InputDecoration(
-            hintText: 'Type your answer here',
+            hintText: canAnswer ? 'Type your answer here' : 'Time\'s up — no submission',
             filled: true, fillColor: Tailwind.white,
-            border: OutlineInputBorder(borderRadius: Tailwind.roundedXl, borderSide: BorderSide(color: Tailwind.slate200)),
-            enabledBorder: OutlineInputBorder(borderRadius: Tailwind.roundedXl, borderSide: BorderSide(color: Tailwind.slate200)),
+            border: OutlineInputBorder(borderRadius: Tailwind.roundedXl, borderSide: const BorderSide(color: Tailwind.slate200)),
+            enabledBorder: OutlineInputBorder(borderRadius: Tailwind.roundedXl, borderSide: const BorderSide(color: Tailwind.slate200)),
             focusedBorder: OutlineInputBorder(borderRadius: Tailwind.roundedXl, borderSide: const BorderSide(color: Tailwind.indigo600, width: 2)),
             contentPadding: const EdgeInsets.all(20),
           ),
         ),
         const SizedBox(height: 24),
         ElevatedButton(
-          onPressed: _isSubmitting ? null : () => _submitAnswer(_fillBlankController.text),
+          onPressed: canAnswer ? () => _submitAnswer(_fillBlankController.text) : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Tailwind.indigo600, foregroundColor: Colors.white,
+            backgroundColor: canAnswer ? Tailwind.indigo600 : Tailwind.slate300,
+            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 20),
             shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
           ),

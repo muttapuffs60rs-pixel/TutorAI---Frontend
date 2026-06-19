@@ -83,7 +83,22 @@ class AkkaApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/chat': (context) => const ChatScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),
-        '/live-quiz': (context) => const LiveQuizEntryScreen(),
+        '/live-quiz': (context) => StreamBuilder<AuthState>(
+          stream: supabase.auth.onAuthStateChange,
+          builder: (context, snapshot) {
+            final session = snapshot.data?.session ?? supabase.auth.currentSession;
+            if (session != null) {
+              return const LiveQuizEntryScreen();
+            }
+            // Not logged in — redirect to login, then come back
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(context, '/login');
+            });
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          },
+        ),
         
         // STEP 2: Handle routing session validation explicitly post-splash completion
         '/auth_gate': (context) => StreamBuilder<AuthState>(

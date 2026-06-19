@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -33,29 +34,41 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
   List<dynamic> _leaderboard = [];
   bool _showLeaderboard = false;
 
+  // ── Timer state ─────────────────────────────────────────────────────────────
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
+  int _totalSeconds = 60;
+  bool _timesUp = false;
+  String _currentTimerMode = 'auto';
+
+  late final RealtimeChannel _responsesChannel;
+
   @override
   void initState() {
     super.initState();
     _setupRealtime();
     _countStudents();
     _loadLeaderboard();
+    _startTimer();
   }
 
+  // ── Presence ────────────────────────────────────────────────────────────────
   void _countStudents() {
     final state = widget.channel.presenceState();
     int count = 0;
-    state.forEach((key, value) {
-      for (var item in value) {
-        if (item['role'] == 'student') count++;
+    for (final entry in state) {
+      for (final p in entry.presences) {
+        if (p.payload['role'] == 'student') count++;
       }
-    });
+    }
     setState(() => _totalStudents = count);
   }
 
+  // ── Realtime ─────────────────────────────────────────────────────────────────
   void _setupRealtime() {
-    // Listen to new answers
-    supabase
-      .channel('public:quiz_responses')
+    // Use a unique channel name to avoid collisions
+    _responsesChannel = supabase.channel('teacher_responses:${widget.sessionId}');
+    _responsesChannel
       .onPostgresChanges(
         event: PostgresChangeEvent.insert,
         schema: 'public',
@@ -66,28 +79,71 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
           value: widget.sessionId,
         ),
         callback: (payload) {
-          final qId = payload.newRecord['question_id'];
-          final currentQId = widget.questions[_currentIndex]['id'];
-          if (qId == currentQId && mounted) {
-            setState(() => _answersReceived++);
-          }
+          // Count every new response — teacher just wants to see X/N answered
+          if (mounted) setState(() => _answersReceived++);
         },
       )
       .subscribe();
 
-    // Re-bind presence in case students drop/join
-    widget.channel.onPresenceSync((payload) {
-      _countStudents();
+    widget.channel.onPresenceSync((payload) => _countStudents());
+  }
+
+  // ── Timer ───────────────────────────────────────────────────────────────────
+  void _startTimer() {
+    _cancelTimer();
+    if (_currentIndex >= widget.questions.length) return;
+
+    final q = widget.questions[_currentIndex];
+    final seconds = (q['timer_seconds'] as int?) ?? 60;
+    final mode = (q['timer_mode'] as String?) ?? 'auto';
+
+    setState(() {
+      _totalSeconds = seconds;
+      _remainingSeconds = seconds;
+      _timesUp = false;
+      _currentTimerMode = mode;
+    });
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) { timer.cancel(); return; }
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _timesUp = true;
+          timer.cancel();
+          // Auto-advance to leaderboard when timer expires
+          if (_currentTimerMode == 'auto' && !_showLeaderboard && !_isLoading) {
+            _nextStep();
+          }
+        }
+      });
     });
   }
 
+  void _cancelTimer() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+  }
+
+  Color get _timerColor {
+    if (_totalSeconds == 0) return Tailwind.slate400;
+    final ratio = _remainingSeconds / _totalSeconds;
+    if (ratio > 0.4) return const Color(0xFF059669); // green
+    if (ratio > 0.2) return const Color(0xFFD97706); // amber
+    return const Color(0xFFDC2626);                  // red
+  }
+
+  // ── Lifecycle ────────────────────────────────────────────────────────────────
   @override
   void dispose() {
-    supabase.removeChannel(supabase.channel('public:quiz_responses'));
-    widget.channel.unsubscribe(); // also cleans up presence
+    _cancelTimer();
+    supabase.removeChannel(_responsesChannel);
+    widget.channel.unsubscribe();
     super.dispose();
   }
 
+  // ── Data ─────────────────────────────────────────────────────────────────────
   Future<void> _loadLeaderboard() async {
     try {
       final token = supabase.auth.currentSession?.accessToken ?? '';
@@ -99,47 +155,59 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
         if (mounted) setState(() => _leaderboard = jsonDecode(res.body)['leaderboard']);
       }
     } catch (e) {
-      debugPrint("Leaderboard error: $e");
+      debugPrint('Leaderboard error: $e');
     }
   }
 
   Future<void> _nextStep() async {
     setState(() => _isLoading = true);
-
     try {
       final token = supabase.auth.currentSession?.accessToken ?? '';
-      
-      if (_showLeaderboard) {
-        // We are currently showing leaderboard. Let's move to next question or complete.
-        final res = await http.post(
-          Uri.parse('https://akka-tutor-backend.onrender.com/live-quiz/${widget.sessionCode}/next'),
-          headers: {'Content-Type': 'application/json', if (token.isNotEmpty) 'Authorization': 'Bearer $token'},
-        );
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          if (data['status'] == 'completed') {
-            await widget.channel.sendBroadcastMessage(event: 'quiz_end', payload: {});
-            if (mounted) _showCompletionDialog();
-          } else {
-            await widget.channel.sendBroadcastMessage(event: 'next_question', payload: {'index': data['current_question_index']});
-            if (mounted) {
-              setState(() {
-                _currentIndex = data['current_question_index'];
-                _showLeaderboard = false;
-                _answersReceived = 0;
-              });
-            }
+
+      // Always advance to next question directly
+      _cancelTimer();
+
+      final res = await http.post(
+        Uri.parse('https://akka-tutor-backend.onrender.com/live-quiz/${widget.sessionCode}/next'),
+        headers: {'Content-Type': 'application/json', if (token.isNotEmpty) 'Authorization': 'Bearer $token'},
+      );
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['status'] == 'completed') {
+          await widget.channel.sendBroadcastMessage(event: 'quiz_end', payload: {});
+          
+          // Quiz finished! Fetch leaderboard and show it
+          await _loadLeaderboard();
+          if (mounted) {
+            setState(() {
+              _showLeaderboard = true;
+            });
+            _showCompletionDialog();
           }
-        }
-      } else {
-        // We are showing a question. Show leaderboard now.
-        await _loadLeaderboard();
-        if (mounted) {
-          setState(() { _showLeaderboard = true; });
+        } else {
+          final nextIdx = data['current_question_index'] as int;
+          final nextQ = widget.questions[nextIdx];
+          // Broadcast next question WITH its timer data so students sync up
+          await widget.channel.sendBroadcastMessage(
+            event: 'next_question',
+            payload: {
+              'index': nextIdx,
+              'timer_seconds': (nextQ['timer_seconds'] as int?) ?? 60,
+              'timer_mode': (nextQ['timer_mode'] as String?) ?? 'auto',
+            },
+          );
+          if (mounted) {
+            setState(() {
+              _currentIndex = nextIdx;
+              _showLeaderboard = false;
+              _answersReceived = 0;
+            });
+            _startTimer();
+          }
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -154,38 +222,119 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
         content: const Text('All questions are done. The final leaderboard is updated.'),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(c); // close dialog
-              Navigator.pop(context); // leave active screen
-            },
+            onPressed: () { Navigator.pop(c); Navigator.pop(context); },
             child: const Text('Return to Home', style: TextStyle(color: Tailwind.slate600)),
-          )
+          ),
         ],
       ),
     );
   }
 
+  // ── Build ────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     if (_showLeaderboard) return _buildLeaderboardView();
     return _buildQuestionView();
   }
 
+  // Circular countdown ring shared between teacher and student views
+  Widget _buildTimerRing() {
+    if (_timesUp) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFFCA5A5)),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.timer_off_rounded, color: Color(0xFFDC2626), size: 16),
+            SizedBox(width: 6),
+            Text("Time's up!", style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.bold, fontSize: 13)),
+          ],
+        ),
+      );
+    }
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: 88, height: 88,
+          child: CircularProgressIndicator(
+            value: _totalSeconds > 0 ? _remainingSeconds / _totalSeconds : 0.0,
+            backgroundColor: Tailwind.slate100,
+            valueColor: AlwaysStoppedAnimation<Color>(_timerColor),
+            strokeWidth: 6,
+          ),
+        ),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$_remainingSeconds',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: _timerColor),
+            ),
+            Text(
+              'SEC',
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: _timerColor, letterSpacing: 1),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildQuestionView() {
     final q = widget.questions[_currentIndex];
-    final isLast = _currentIndex == widget.questions.length - 1;
 
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        backgroundColor: Tailwind.white, elevation: 0,
+        backgroundColor: Tailwind.white,
+        elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text('${widget.title} — Q${_currentIndex + 1}/${widget.questions.length}', style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold)),
+        title: Text(
+          '${widget.title} — Q${_currentIndex + 1}/${widget.questions.length}',
+          style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          // Mode badge (Auto / Manual)
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _currentTimerMode == 'auto' ? const Color(0xFFEEF2FF) : const Color(0xFFF0FDF4),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _currentTimerMode == 'auto' ? Icons.timer_rounded : Icons.touch_app_rounded,
+                  size: 13,
+                  color: _currentTimerMode == 'auto' ? const Color(0xFF4F46E5) : const Color(0xFF059669),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _currentTimerMode == 'auto' ? 'Auto' : 'Manual',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: _currentTimerMode == 'auto' ? const Color(0xFF4F46E5) : const Color(0xFF059669),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // Progress Bar
+            // Progress bar
             LinearProgressIndicator(
               value: (_currentIndex + 1) / widget.questions.length,
               backgroundColor: Tailwind.slate200,
@@ -197,6 +346,7 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    // Question card
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(color: Tailwind.white, borderRadius: Tailwind.rounded3Xl, boxShadow: Tailwind.shadowLg),
@@ -208,7 +358,11 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
+                    // ── Countdown ring ───────────────────────────────────────
+                    _buildTimerRing(),
+                    const SizedBox(height: 32),
+                    // Stats
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -220,6 +374,7 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
                 ),
               ),
             ),
+            // Bottom button
             Container(
               padding: const EdgeInsets.all(24),
               decoration: const BoxDecoration(color: Tailwind.white, border: Border(top: BorderSide(color: Tailwind.slate200))),
@@ -228,14 +383,15 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _nextStep,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Tailwind.indigo600, foregroundColor: Colors.white,
+                    backgroundColor: Tailwind.indigo600,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     minimumSize: const Size(double.infinity, 56),
                     shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
                   ),
                   child: _isLoading
                       ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
-                      : const Text('Show Leaderboard', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : Text(_currentIndex >= widget.questions.length - 1 ? 'Finish Quiz' : 'Next Question', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
@@ -251,10 +407,12 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        backgroundColor: Tailwind.white, elevation: 0, automaticallyImplyLeading: false,
+        backgroundColor: Tailwind.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
         title: const Text('Live Leaderboard 🏆', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh, color: Tailwind.slate500), onPressed: _loadLeaderboard)
+          IconButton(icon: const Icon(Icons.refresh, color: Tailwind.slate500), onPressed: _loadLeaderboard),
         ],
       ),
       body: SafeArea(
@@ -262,7 +420,7 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
           children: [
             Expanded(
               child: _leaderboard.isEmpty
-                ? const Center(child: Text("No scores yet.", style: TextStyle(color: Tailwind.slate500, fontSize: 16)))
+                ? const Center(child: Text('No scores yet.', style: TextStyle(color: Tailwind.slate500, fontSize: 16)))
                 : ListView.builder(
                     padding: const EdgeInsets.all(24),
                     itemCount: _leaderboard.length,
@@ -286,7 +444,7 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(color: Tailwind.indigo600, borderRadius: BorderRadius.circular(20)),
                               child: Text('${item['total_score']} pts', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                            )
+                            ),
                           ],
                         ),
                       );
@@ -320,6 +478,7 @@ class _TeacherActiveScreenState extends State<TeacherActiveScreen> {
   }
 }
 
+// ─── Stat box widget ──────────────────────────────────────────────────────────
 class _StatBox extends StatelessWidget {
   final String title;
   final String value;

@@ -41,12 +41,11 @@ class _TeacherLobbyScreenState extends State<TeacherLobbyScreen> {
       .onPresenceSync((payload) {
         final state = _channel.presenceState();
         int count = 0;
-        state.forEach((key, value) {
-          // Count only students, assuming teacher is also present
-          for (var item in value) {
-            if (item['role'] == 'student') count++;
+        for (final entry in state) {
+          for (final p in entry.presences) {
+            if (p.payload['role'] == 'student') count++;
           }
-        });
+        }
         if (mounted) setState(() => _studentCount = count);
       })
       .subscribe((status, error) async {
@@ -88,8 +87,15 @@ class _TeacherLobbyScreenState extends State<TeacherLobbyScreen> {
 
       if (!mounted) return;
       if (res.statusCode == 200) {
-        // Send a custom broadcast event so students start immediately
-        await _channel.sendBroadcastMessage(event: 'quiz_start', payload: {});
+        // Broadcast quiz start WITH Q0 timer data so students sync their countdown
+        final firstQ = widget.questions.isNotEmpty ? widget.questions[0] : <String, dynamic>{};
+        await _channel.sendBroadcastMessage(
+          event: 'quiz_start',
+          payload: {
+            'timer_seconds': (firstQ['timer_seconds'] as int?) ?? 60,
+            'timer_mode': (firstQ['timer_mode'] as String?) ?? 'auto',
+          },
+        );
 
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => TeacherActiveScreen(
           sessionCode: widget.sessionCode,
