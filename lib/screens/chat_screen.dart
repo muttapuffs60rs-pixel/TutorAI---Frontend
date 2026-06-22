@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -47,6 +46,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late String _selectedSubject;
   int _questionsAsked = 0;
   String _subscriptionTier = 'free';
+  String? _subscriptionStartDate;
+  String? _subscriptionExpiresAt;
   String? _currentSessionId;
 
   @override
@@ -392,7 +393,7 @@ class _ChatScreenState extends State<ChatScreen> {
       // Create a placeholder bot message for the incoming stream
       final botMessageIndex = messages.length;
       setState(() {
-        messages.add(ChatMessage(text: "", isUser: false));
+        messages.add(ChatMessage(text: "Tutor is thinking...", isUser: false));
       });
 
       final session = supabase.auth.currentSession;
@@ -452,7 +453,11 @@ class _ChatScreenState extends State<ChatScreen> {
       _controller.text = originalText;
       if (!mounted) return;
       setState(() {
-        messages.add(ChatMessage(text: 'Connection Error! Please try again.', isUser: false));
+        if (messages.isNotEmpty && messages.last.text == "Tutor is thinking...") {
+          messages[messages.length - 1] = ChatMessage(text: 'Connection Error! Please try again.', isUser: false);
+        } else {
+          messages.add(ChatMessage(text: 'Connection Error! Please try again.', isUser: false));
+        }
       });
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -506,6 +511,8 @@ class _ChatScreenState extends State<ChatScreen> {
           setState(() {
             _questionsAsked = chatsToday;
             _subscriptionTier = subTier;
+            _subscriptionStartDate = profile['subscription_start_date'];
+            _subscriptionExpiresAt = profile['subscription_expires_at'];
             // Only update grade if it's the very first load or somehow missing
             if (_selectedGrade == 10 && profile['grade_level'] != null) {
               _selectedGrade = profile['grade_level'];
@@ -546,9 +553,17 @@ class _ChatScreenState extends State<ChatScreen> {
         questionsLeft: questionsLeft,
         maxLimit: maxLimit,
         subscriptionTier: _subscriptionTier,
+        subscriptionStartDate: _subscriptionStartDate,
+        subscriptionExpiresAt: _subscriptionExpiresAt,
         onSessionSelected: (sessionId) {
           Navigator.pop(context);
           _loadChatHistory(sessionId);
+        },
+        onSessionDeleted: (sessionId) {
+          if (_currentSessionId == sessionId) {
+            Navigator.pop(context); // Close the drawer on active session deletion
+            _startNewChat();
+          }
         },
       ),
       body: SafeArea(
@@ -653,22 +668,45 @@ class _ChatScreenState extends State<ChatScreen> {
                 boxShadow: Tailwind.shadowSm,
                 border: message.isUser ? null : Border.all(color: Tailwind.slate200),
               ),
-              child: MarkdownBody(
-                data: displayText,
-                styleSheet: MarkdownStyleSheet( 
-                  p: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate800, fontSize: 16, height: 1.5),
-                  h1: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate900, fontSize: 20, fontWeight: FontWeight.bold),
-                  strong: TextStyle(fontWeight: FontWeight.bold, color: message.isUser ? Tailwind.indigo50 : Tailwind.indigo600),
-                  listBullet: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate800, fontSize: 16),
-                  code: TextStyle(backgroundColor: Tailwind.slate100, color: Tailwind.rose500, fontFamily: 'monospace', fontSize: 14),
-                  blockquoteDecoration: BoxDecoration(
-                    color: Tailwind.slate50,
-                    borderRadius: Tailwind.roundedMd,
-                    border: const Border(left: BorderSide(color: Tailwind.indigo500, width: 4)),
-                  ),
-                  blockquote: const TextStyle(color: Tailwind.slate700, fontSize: 15, fontStyle: FontStyle.italic),
-                ),
-              ),
+              child: displayText == "Tutor is thinking..."
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Tailwind.indigo500),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Tutor is thinking...",
+                          style: TextStyle(
+                            color: Tailwind.slate500,
+                            fontSize: 15,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    )
+                  : MarkdownBody(
+                      data: displayText,
+                      styleSheet: MarkdownStyleSheet( 
+                        p: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate800, fontSize: 16, height: 1.5),
+                        h1: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate900, fontSize: 20, fontWeight: FontWeight.bold),
+                        strong: TextStyle(fontWeight: FontWeight.bold, color: message.isUser ? Tailwind.indigo50 : Tailwind.indigo600),
+                        listBullet: TextStyle(color: message.isUser ? Tailwind.white : Tailwind.slate800, fontSize: 16),
+                        code: TextStyle(backgroundColor: Tailwind.slate100, color: Tailwind.rose500, fontFamily: 'monospace', fontSize: 14),
+                        blockquoteDecoration: BoxDecoration(
+                          color: Tailwind.slate50,
+                          borderRadius: Tailwind.roundedMd,
+                          border: const Border(left: BorderSide(color: Tailwind.indigo500, width: 4)),
+                        ),
+                        blockquote: const TextStyle(color: Tailwind.slate700, fontSize: 15, fontStyle: FontStyle.italic),
+                      ),
+                    ),
             ),
           ),
         if (isPaywall)

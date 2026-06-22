@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart'; 
 import '../theme/tailwind_theme.dart';
-import 'chat_screen.dart';
-import 'subject_selection_screen.dart';
+import 'home_selection_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -65,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const SubjectSelectionScreen()));
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeSelectionScreen()));
       }
     } on AuthException catch (e) {
       if (mounted) _showCustomSnackBar(e.message);
@@ -238,7 +237,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               Future.delayed(Duration.zero, () {
                                 if (mounted) {
                                   Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (_) => const SubjectSelectionScreen()), 
+                                    MaterialPageRoute(builder: (_) => const HomeSelectionScreen()), 
                                     (route) => false
                                   );
                                 }

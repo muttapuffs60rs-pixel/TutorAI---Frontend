@@ -8,14 +8,20 @@ class CustomDrawer extends StatefulWidget {
   final int questionsLeft;
   final int maxLimit;
   final String subscriptionTier;
+  final String? subscriptionStartDate;
+  final String? subscriptionExpiresAt;
   final Function(String) onSessionSelected; 
+  final Function(String) onSessionDeleted;
 
   const CustomDrawer({
     super.key,
     required this.questionsLeft,
     required this.maxLimit,
     required this.subscriptionTier,
+    this.subscriptionStartDate,
+    this.subscriptionExpiresAt,
     required this.onSessionSelected,
+    required this.onSessionDeleted,
   });
 
   @override
@@ -53,6 +59,44 @@ class _CustomDrawerState extends State<CustomDrawer> {
     } catch (e) {
       debugPrint('Error fetching sessions: $e');
       if (mounted) setState(() => _isLoadingSessions = false);
+    }
+  }
+
+  void _confirmDeleteSession(BuildContext context, String sessionId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Tailwind.white,
+          shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
+          title: const Text("Delete Chat", style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+          content: const Text("Are you sure you want to delete this chat history? This cannot be undone.", style: TextStyle(color: Tailwind.slate600)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _deleteSession(sessionId);
+              },
+              child: const Text("Delete", style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteSession(String sessionId) async {
+    try {
+      await supabase.from('chat_messages').delete().eq('session_id', sessionId);
+      await supabase.from('chat_sessions').delete().eq('id', sessionId);
+      _fetchChatSessions();
+      widget.onSessionDeleted(sessionId);
+    } catch (e) {
+      debugPrint("Error deleting session: $e");
     }
   }
 
@@ -98,9 +142,29 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     '${widget.questionsLeft} / ${widget.maxLimit} Questions Left',
                     style: const TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(
-                    'Current Plan: ${widget.subscriptionTier.toUpperCase()}',
-                    style: const TextStyle(color: Tailwind.slate500, fontWeight: FontWeight.w500),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 2),
+                      Text(
+                        'Current Plan: ${widget.subscriptionTier.toUpperCase()}',
+                        style: const TextStyle(color: Tailwind.slate500, fontWeight: FontWeight.w600),
+                      ),
+                      if (widget.subscriptionStartDate != null && widget.subscriptionTier != 'free') ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Started: ${_formatDate(widget.subscriptionStartDate)}',
+                          style: const TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                      if (widget.subscriptionExpiresAt != null && widget.subscriptionTier != 'free') ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Expires: ${_formatDate(widget.subscriptionExpiresAt)}',
+                          style: const TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 
@@ -176,6 +240,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline, color: Tailwind.rose400, size: 20),
+                      onPressed: () => _confirmDeleteSession(context, session['id']),
+                    ),
                     onTap: () {
                       widget.onSessionSelected(session['id']); 
                       // Removed Navigator.pop here because it is handled in ChatScreen's callback
@@ -225,5 +293,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
         ],
       ),
     );
+  }
+
+  String _formatDate(String? isoString) {
+    if (isoString == null || isoString.isEmpty) return 'N/A';
+    try {
+      final dateTime = DateTime.parse(isoString);
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year}';
+    } catch (e) {
+      return isoString;
+    }
   }
 }
