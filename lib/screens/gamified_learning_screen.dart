@@ -40,7 +40,7 @@ class GamifiedLearningScreen extends StatefulWidget {
     this.initialGame,
     this.lessonId,
     this.topicTitle      = 'Simulation',
-    this.engineBaseUrl   = 'http://localhost:5176',
+    this.engineBaseUrl   = 'https://tutor-gamified.onrender.com',
     this.progressService,
     this.xpService,
   });
