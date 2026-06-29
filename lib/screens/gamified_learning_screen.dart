@@ -95,8 +95,8 @@ class _GamifiedLearningScreenState extends State<GamifiedLearningScreen> {
   // ─── WebView construction ────────────────────────────────────────────────
   void _buildController() {
     final gameId = (widget.initialGame?.isNotEmpty == true)
-        ? widget.initialGame!
-        : 'INERTIA_BUS';
+        ? widget.initialGame
+        : null;
 
     // Fix for Android emulator networking
     String base = widget.engineBaseUrl;
@@ -108,9 +108,13 @@ class _GamifiedLearningScreenState extends State<GamifiedLearningScreen> {
     final engineUri = Uri.parse(base);
 
     var url = base;
-    url += '/?embed=true&game=$gameId&theme=light';
-    if (widget.lessonId?.isNotEmpty == true) {
-      url += '&lesson=${widget.lessonId}';
+    if (gameId != null) {
+      url += '/?embed=true&game=$gameId&theme=light';
+      if (widget.lessonId?.isNotEmpty == true) {
+        url += '&lesson=${widget.lessonId}';
+      }
+    } else {
+      url += '/?theme=light';
     }
 
     _controller = WebViewController();
