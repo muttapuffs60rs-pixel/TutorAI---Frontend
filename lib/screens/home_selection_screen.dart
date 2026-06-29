@@ -3,6 +3,7 @@ import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
+import 'gamified_learning_screen.dart';
 
 class HomeSelectionScreen extends StatefulWidget {
   const HomeSelectionScreen({super.key});
@@ -128,6 +129,22 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const LiveQuizEntryScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              
+              _MenuOptionCard(
+                title: "Interactive Simulations",
+                subtitle: "Play gamified physics simulations and learn through interactive experiences.",
+                icon: Icons.science_rounded,
+                gradientColors: const [Color(0xFFD97706), Color(0xFFF59E0B)], // Amber Gradient
+                iconBgColor: const Color(0xFFFEF3C7), // Amber light
+                iconColor: Tailwind.amber600,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const GamifiedLearningScreen()),
                   );
                 },
               ),
