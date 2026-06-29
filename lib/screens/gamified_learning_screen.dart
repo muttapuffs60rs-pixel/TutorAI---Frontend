@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -97,10 +98,16 @@ class _GamifiedLearningScreenState extends State<GamifiedLearningScreen> {
         ? widget.initialGame!
         : 'INERTIA_BUS';
 
-    // Item 8: whitelist only our engine domain by parsing the base URL.
-    final engineUri = Uri.parse(widget.engineBaseUrl);
+    // Fix for Android emulator networking
+    String base = widget.engineBaseUrl;
+    if (base == 'http://localhost:5176' && !kIsWeb && Platform.isAndroid) {
+      base = 'http://10.0.2.2:5176';
+    }
 
-    var url = widget.engineBaseUrl;
+    // Item 8: whitelist only our engine domain by parsing the base URL.
+    final engineUri = Uri.parse(base);
+
+    var url = base;
     url += '/?embed=true&game=$gameId&theme=light';
     if (widget.lessonId?.isNotEmpty == true) {
       url += '&lesson=${widget.lessonId}';
