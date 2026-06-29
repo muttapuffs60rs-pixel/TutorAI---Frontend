@@ -4,6 +4,7 @@ import '../theme/tailwind_theme.dart';
 import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
 import 'gamified_learning_screen.dart';
+import '../widgets/custom_drawer.dart';
 
 class HomeSelectionScreen extends StatefulWidget {
   const HomeSelectionScreen({super.key});
@@ -13,43 +14,6 @@ class HomeSelectionScreen extends StatefulWidget {
 }
 
 class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
-  void _showLogoutConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Tailwind.white,
-          shape: RoundedRectangleBorder(borderRadius: Tailwind.rounded2Xl),
-          title: const Text(
-            "Logout", 
-            style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)
-          ),
-          content: const Text(
-            "Are you sure you want to log out of your session?", 
-            style: TextStyle(color: Tailwind.slate600)
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
-            ),
-            TextButton(
-              onPressed: () async {
-                await supabase.auth.signOut();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                }
-              },
-              child: const Text(
-                "Logout", 
-                style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,18 +26,14 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
       appBar: AppBar(
         backgroundColor: Tailwind.white,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Tailwind.slate800),
         title: const Text(
           'Tutor Preethi', 
           style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Tailwind.slate500),
-            onPressed: () => _showLogoutConfirmation(context),
-          )
-        ],
       ),
+      drawer: const CustomDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),

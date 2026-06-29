@@ -3,25 +3,26 @@ import '../main.dart';
 import '../screens/login_screen.dart';
 import '../screens/subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
+import '../screens/chat_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
-  final int questionsLeft;
-  final int maxLimit;
-  final String subscriptionTier;
+  final int? questionsLeft;
+  final int? maxLimit;
+  final String? subscriptionTier;
   final String? subscriptionStartDate;
   final String? subscriptionExpiresAt;
-  final Function(String) onSessionSelected; 
-  final Function(String) onSessionDeleted;
+  final Function(String)? onSessionSelected; 
+  final Function(String)? onSessionDeleted;
 
   const CustomDrawer({
     super.key,
-    required this.questionsLeft,
-    required this.maxLimit,
-    required this.subscriptionTier,
+    this.questionsLeft,
+    this.maxLimit,
+    this.subscriptionTier,
     this.subscriptionStartDate,
     this.subscriptionExpiresAt,
-    required this.onSessionSelected,
-    required this.onSessionDeleted,
+    this.onSessionSelected,
+    this.onSessionDeleted,
   });
 
   @override
@@ -31,11 +32,55 @@ class CustomDrawer extends StatefulWidget {
 class _CustomDrawerState extends State<CustomDrawer> {
   List<Map<String, dynamic>> _sessions = [];
   bool _isLoadingSessions = true;
+  bool _isLoadingProfile = true;
+
+  int _questionsLeft = 0;
+  int _maxLimit = 5;
+  String _subscriptionTier = 'free';
+  String? _subscriptionStartDate;
+  String? _subscriptionExpiresAt;
 
   @override
   void initState() {
     super.initState();
     _fetchChatSessions();
+    if (widget.questionsLeft != null) {
+      _questionsLeft = widget.questionsLeft!;
+      _maxLimit = widget.maxLimit ?? 5;
+      _subscriptionTier = widget.subscriptionTier ?? 'free';
+      _subscriptionStartDate = widget.subscriptionStartDate;
+      _subscriptionExpiresAt = widget.subscriptionExpiresAt;
+      _isLoadingProfile = false;
+    } else {
+      _fetchProfileData();
+    }
+  }
+
+  Future<void> _fetchProfileData() async {
+    final user = supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final data = await supabase.from('profiles').select().eq('id', user.id);
+      if (data.isNotEmpty) {
+        final profile = data[0];
+        int chatsToday = profile['chats_today'] ?? 0;
+        String subTier = profile['subscription_tier'] ?? 'free';
+        int limit = (subTier == 'pro') ? 50 : 5;
+        if (mounted) {
+          setState(() {
+            _subscriptionTier = subTier;
+            _maxLimit = limit;
+            _questionsLeft = (limit - chatsToday) > 0 ? (limit - chatsToday) : 0;
+            _subscriptionStartDate = profile['subscription_start_date'];
+            _subscriptionExpiresAt = profile['subscription_expires_at'];
+            _isLoadingProfile = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading profile data: $e");
+      if (mounted) setState(() => _isLoadingProfile = false);
+    }
   }
 
   Future<void> _fetchChatSessions() async {
@@ -94,7 +139,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
       await supabase.from('chat_messages').delete().eq('session_id', sessionId);
       await supabase.from('chat_sessions').delete().eq('id', sessionId);
       _fetchChatSessions();
-      widget.onSessionDeleted(sessionId);
+      if (widget.onSessionDeleted != null) {
+        widget.onSessionDeleted!(sessionId);
+      }
     } catch (e) {
       debugPrint("Error deleting session: $e");
     }
@@ -136,31 +183,35 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 ListTile(
                   leading: Icon(
                     Icons.bolt, 
-                    color: widget.questionsLeft > 0 ? Tailwind.amber500 : Tailwind.rose500
+                    color: _questionsLeft > 0 ? Tailwind.amber500 : Tailwind.rose500
                   ),
-                  title: Text(
-                    '${widget.questionsLeft} / ${widget.maxLimit} Questions Left',
-                    style: const TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Column(
+                  title: _isLoadingProfile 
+                      ? const Text('Loading...', style: TextStyle(color: Tailwind.slate500, fontSize: 12))
+                      : Text(
+                          '$_questionsLeft / $_maxLimit Questions Left',
+                          style: const TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold),
+                        ),
+                  subtitle: _isLoadingProfile 
+                    ? null 
+                    : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 2),
                       Text(
-                        'Current Plan: ${widget.subscriptionTier.toUpperCase()}',
+                        'Current Plan: ${_subscriptionTier.toUpperCase()}',
                         style: const TextStyle(color: Tailwind.slate500, fontWeight: FontWeight.w600),
                       ),
-                      if (widget.subscriptionStartDate != null && widget.subscriptionTier != 'free') ...[
+                      if (_subscriptionStartDate != null && _subscriptionTier != 'free') ...[
                         const SizedBox(height: 4),
                         Text(
-                          'Started: ${_formatDate(widget.subscriptionStartDate)}',
+                          'Started: ${_formatDate(_subscriptionStartDate)}',
                           style: const TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w500),
                         ),
                       ],
-                      if (widget.subscriptionExpiresAt != null && widget.subscriptionTier != 'free') ...[
+                      if (_subscriptionExpiresAt != null && _subscriptionTier != 'free') ...[
                         const SizedBox(height: 2),
                         Text(
-                          'Expires: ${_formatDate(widget.subscriptionExpiresAt)}',
+                          'Expires: ${_formatDate(_subscriptionExpiresAt)}',
                           style: const TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w500),
                         ),
                       ],
@@ -245,8 +296,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       onPressed: () => _confirmDeleteSession(context, session['id']),
                     ),
                     onTap: () {
-                      widget.onSessionSelected(session['id']); 
-                      // Removed Navigator.pop here because it is handled in ChatScreen's callback
+                      if (widget.onSessionSelected != null) {
+                        widget.onSessionSelected!(session['id']); 
+                      } else {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(initialSessionId: session['id']),
+                          ),
+                        );
+                      }
                     },
                   )),
               ],

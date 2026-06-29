@@ -27,7 +27,8 @@ class ChatMessage {
 class ChatScreen extends StatefulWidget {
   final String? initialSubject;
   final int? initialGradeLevel;
-  const ChatScreen({super.key, this.initialSubject, this.initialGradeLevel});
+  final String? initialSessionId;
+  const ChatScreen({super.key, this.initialSubject, this.initialGradeLevel, this.initialSessionId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -59,6 +60,14 @@ class _ChatScreenState extends State<ChatScreen> {
     messages = [
       ChatMessage(text: "Vanakkam! Iniku enna padikalam? 😊", isUser: false),
     ];
+
+    if (widget.initialSessionId != null) {
+      // Defer loading until after initial build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadChatHistory(widget.initialSessionId!);
+      });
+    }
+
     _loadProfileData();
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialChat());
   }
