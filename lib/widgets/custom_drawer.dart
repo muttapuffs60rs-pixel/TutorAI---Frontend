@@ -4,6 +4,8 @@ import '../screens/login_screen.dart';
 import '../screens/subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
 import '../screens/chat_screen.dart';
+import '../services/profile_service.dart';
+import '../screens/answer_library_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
   final int? questionsLeft;
@@ -60,22 +62,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
     final user = supabase.auth.currentUser;
     if (user == null) return;
     try {
-      final data = await supabase.from('profiles').select().eq('id', user.id);
-      if (data.isNotEmpty) {
-        final profile = data[0];
-        int chatsToday = profile['chats_today'] ?? 0;
-        String subTier = profile['subscription_tier'] ?? 'free';
-        int limit = (subTier == 'pro') ? 50 : 5;
-        if (mounted) {
-          setState(() {
-            _subscriptionTier = subTier;
-            _maxLimit = limit;
-            _questionsLeft = (limit - chatsToday) > 0 ? (limit - chatsToday) : 0;
-            _subscriptionStartDate = profile['subscription_start_date'];
-            _subscriptionExpiresAt = profile['subscription_expires_at'];
-            _isLoadingProfile = false;
-          });
-        }
+      final profile = await fetchDailyProfile();
+      int chatsToday = profile['chats_today'] ?? 0;
+      String subTier = profile['subscription_tier'] ?? 'free';
+      int limit = (subTier == 'pro') ? 50 : 5;
+      if (mounted) {
+        setState(() {
+          _subscriptionTier = subTier;
+          _maxLimit = limit;
+          _questionsLeft = (limit - chatsToday) > 0 ? (limit - chatsToday) : 0;
+          _subscriptionStartDate = profile['subscription_start_date'];
+          _subscriptionExpiresAt = profile['subscription_expires_at'];
+          _isLoadingProfile = false;
+        });
       }
     } catch (e) {
       debugPrint("Error loading profile data: $e");
@@ -221,6 +220,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 
                 const Divider(color: Tailwind.slate200),
 
+                if (_subscriptionTier == 'admin')
+                  ListTile(
+                    leading: const Icon(Icons.fact_check_outlined),
+                    title: const Text('Answer library'),
+                    onTap: () {
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      navigator.push(MaterialPageRoute(builder: (_) => const AnswerLibraryScreen()));
+                    },
+                  ),
                 ListTile(
                   leading: const Icon(Icons.upgrade, color: Tailwind.emerald500),
                   title: const Text('Upgrade Plan', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w600)),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../../main.dart';
 import '../../theme/tailwind_theme.dart';
@@ -49,7 +50,7 @@ class _TeacherLobbyScreenState extends State<TeacherLobbyScreen> {
         if (mounted) setState(() => _studentCount = count);
       })
       .subscribe((status, error) async {
-        if (status == 'SUBSCRIBED') {
+        if (status == RealtimeSubscribeStatus.subscribed) {
           await _channel.track({'role': 'teacher'});
         }
       });

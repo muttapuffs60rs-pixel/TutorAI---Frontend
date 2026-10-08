@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/tailwind_theme.dart';
 
 class ActiveQuizScreen extends StatefulWidget {
   final List<dynamic> questions;
@@ -48,7 +49,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1F20),
+        backgroundColor: Tailwind.white,
         title: const Text('Quiz Complete! 🎉', textAlign: TextAlign.center),
         content: Text(
           'You scored $_score out of ${widget.questions.length}!',
@@ -81,6 +82,10 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
     }
 
     final currentQ = widget.questions[_currentIndex];
+    final options = (currentQ['options'] as List<dynamic>?) ?? [
+      currentQ['option_a'], currentQ['option_b'],
+      currentQ['option_c'], currentQ['option_d'],
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -96,7 +101,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF282A2C),
+                color: Tailwind.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
               ),
@@ -108,10 +113,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
             const SizedBox(height: 24),
 
             // The Options
-            _buildOptionCard(currentQ['option_a']),
-            _buildOptionCard(currentQ['option_b']),
-            _buildOptionCard(currentQ['option_c']),
-            _buildOptionCard(currentQ['option_d']),
+            ...options.whereType<String>().map(_buildOptionCard),
             
             const SizedBox(height: 24),
 
@@ -142,14 +144,14 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
                         fontSize: 18, 
                         fontWeight: FontWeight.bold,
                         color: _selectedOption!.trim() == currentQ['correct_answer'].toString().trim() 
-                            ? Colors.greenAccent 
-                            : Colors.redAccent,
+                            ? Tailwind.emerald600
+                            : Colors.red.shade700,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Akka says: ${currentQ['explanation']}',
-                      style: const TextStyle(fontSize: 16, color: Colors.white70),
+                      style: const TextStyle(fontSize: 16, color: Tailwind.slate800),
                     ),
                   ],
                 ),
@@ -187,8 +189,8 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
     bool isSelected = cleanSelected == cleanOption;
     bool isCorrectAnswer = cleanCorrect == cleanOption;
     
-    Color borderColor = Colors.grey.shade800;
-    Color bgColor = const Color(0xFF1E1F20);
+    Color borderColor = Tailwind.slate200;
+    Color bgColor = Tailwind.white;
 
     // If answer has been checked, highlight right/wrong
     if (_isAnswerChecked) {

@@ -112,7 +112,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

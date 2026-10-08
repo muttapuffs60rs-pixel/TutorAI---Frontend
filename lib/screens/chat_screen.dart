@@ -5,22 +5,27 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 // INTEGRATED: Crop functionality core engine
 import '../main.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/subject_picker_sheet.dart';
 import 'subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
+import '../services/profile_service.dart';
+import '../services/answer_library_service.dart';
 
 class ChatMessage {
   final String text;
   final bool isUser;
   final String? imageUrl;
+  final String? answerCacheId;
 
   ChatMessage({
     required this.text,
     required this.isUser,
     this.imageUrl,
+    this.answerCacheId,
   });
 }
 
@@ -41,9 +46,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<ChatMessage> messages = [];
   bool isLoading = false;
+  bool _serverSessionLimitReached = false;
+  final Set<String> _reportedAnswers = {};
+  final Set<String> _reportingAnswers = {};
   String? _pendingImageUrl; 
   
   int _selectedGrade = 10;
+  bool _gradeResolved = false;
   late String _selectedSubject;
   int _questionsAsked = 0;
   String _subscriptionTier = 'free';
@@ -55,6 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _selectedGrade = widget.initialGradeLevel ?? 10;
+    _gradeResolved = widget.initialGradeLevel != null;
     _selectedSubject = widget.initialSubject ?? 'Science'; 
 
     messages = [
@@ -69,7 +79,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     _loadProfileData();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialChat());
+    if (widget.initialSessionId == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialChat());
+    }
   }
 
   @override
@@ -149,6 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _startNewChat() async {
+    if (isLoading) return;
     final user = supabase.auth.currentUser;
     if (user == null) return;
     try {
@@ -159,6 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       setState(() {
         _currentSessionId = newSession[0]['id'];
+        _serverSessionLimitReached = false;
         messages = [
           ChatMessage(text: "Vanakkam! Iniku enna padikalam? 😊", isUser: false),
         ];
@@ -169,6 +183,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _loadChatHistory(String sessionId) async {
+    if (isLoading) return;
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
@@ -181,11 +196,13 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       setState(() {
         _currentSessionId = sessionId;
+        _serverSessionLimitReached = false;
         messages = List<ChatMessage>.from(
           (data as List).map((row) => ChatMessage(
             text: row['message'] ?? '',
             isUser: row['is_user'] ?? false,
             imageUrl: row['image_url'],
+            answerCacheId: row['answer_cache_id'],
           )),
         );
 
@@ -201,7 +218,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _saveMessage(String text, bool isUser) async {
+  Future<void> _saveMessage(String text, bool isUser, {String? answerCacheId}) async {
     final user = supabase.auth.currentUser;
     if (user == null || _currentSessionId == null) return;
 
@@ -211,6 +228,7 @@ class _ChatScreenState extends State<ChatScreen> {
         'session_id': _currentSessionId,
         'message': text,
         'is_user': isUser,
+        'answer_cache_id': answerCacheId,
       });
       final session = await supabase
           .from('chat_sessions')
@@ -248,6 +266,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<CroppedFile?> _cropImage(XFile imageFile) async {
     return await ImageCropper().cropImage(
       sourcePath: imageFile.path,
+      compressFormat: ImageCompressFormat.jpg,
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Your Question',
@@ -293,7 +312,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (croppedFile == null) return; 
 
       final Uint8List bytes = await croppedFile.readAsBytes();
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}_${pickedFile.name}';
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
 
       final imageUrl = await _uploadImageToSupabase(fileName, bytes);
       if (imageUrl == null || imageUrl.isEmpty) {
@@ -319,7 +338,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<String?> _uploadImageToSupabase(String fileName, Uint8List bytes) async {
     try {
       final path = 'chat_uploads/$fileName';
-      await supabase.storage.from('chat-images').uploadBinary(path, bytes);
+      await supabase.storage.from('chat-images').uploadBinary(
+        path, bytes, fileOptions: const FileOptions(contentType: 'image/jpeg'),
+      );
       
       return supabase.storage.from('chat-images').getPublicUrl(path);
     } catch (e) {
@@ -365,17 +386,25 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     final int userQuestionsCount = messages.where((m) => m.isUser).length;
-    if (_subscriptionTier != 'admin' && userQuestionsCount >= 20) {
+    if (_serverSessionLimitReached || userQuestionsCount >= 10) {
       return;
     }
 
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
+    if (_currentSessionId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please wait for the conversation to load.')));
+      return;
+    }
+    if (msg.length > 2000) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please keep your question within 2,000 characters.')));
+      return;
+    }
     final String originalText = _controller.text;
 
     // Build lightweight history map BEFORE appending the new user message to prevent loop duplication
-    final recentMessages = messages.length > 12 ? messages.sublist(messages.length - 12) : messages;
+    final recentMessages = messages.length > 6 ? messages.sublist(messages.length - 6) : messages;
     final List<Map<String, String>> historyPayload = recentMessages.map((m) {
       return {
         'role': m.isUser ? 'user' : 'assistant',
@@ -392,6 +421,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _scrollToBottom();
 
+    final client = http.Client();
     try {
       if (finalImageUrl != null && finalImageUrl.isNotEmpty) {
         await _saveMessageWithImage(msg, true, finalImageUrl);
@@ -414,6 +444,7 @@ class _ChatScreenState extends State<ChatScreen> {
         request.headers['Authorization'] = 'Bearer $token';
       }
       request.body = jsonEncode({
+        'session_id': _currentSessionId,
         'question': msg.isEmpty ? "Explain this image." : msg,
         'image_url': finalImageUrl,
         'grade_level': _selectedGrade,
@@ -421,16 +452,16 @@ class _ChatScreenState extends State<ChatScreen> {
         'history': historyPayload, 
       });
 
-      final client = http.Client();
       final streamedResponse = await client.send(request).timeout(const Duration(seconds: 60));
 
       if (streamedResponse.statusCode == 200) {
+        final answerCacheId = streamedResponse.headers['x-answer-source'] == 'cache'
+            ? streamedResponse.headers['x-answer-id'] : null;
         String fullAnswer = "";
         bool showPaywall = false;
 
         // Listen to the byte stream in real-time
-        await for (var chunkBytes in streamedResponse.stream) {
-          final chunkString = utf8.decode(chunkBytes, allowMalformed: true);
+        await for (final chunkString in streamedResponse.stream.transform(utf8.decoder)) {
           
           if (chunkString.contains("__PAYWALL__")) {
              showPaywall = true;
@@ -442,20 +473,28 @@ class _ChatScreenState extends State<ChatScreen> {
           if (!mounted) return;
           setState(() {
             // Update the existing message in real-time for the "typing" effect
-            messages[botMessageIndex] = ChatMessage(text: fullAnswer + (showPaywall ? " [PAYWALL]" : ""), isUser: false);
+            messages[botMessageIndex] = ChatMessage(text: fullAnswer + (showPaywall ? " [PAYWALL]" : ""), isUser: false, answerCacheId: answerCacheId);
           });
           _scrollToBottom();
         }
 
         // Save the final completed message
-        await _saveMessage(fullAnswer + (showPaywall ? " [PAYWALL]" : ""), false);
+        await _saveMessage(fullAnswer + (showPaywall ? " [PAYWALL]" : ""), false, answerCacheId: answerCacheId);
         await _loadProfileData();
 
-        if (messages.where((m) => m.isUser).length >= 20) {
+        if (mounted && messages.where((m) => m.isUser).length >= 10) {
           FocusScope.of(context).unfocus();
         }
       } else {
-        throw Exception('API Error');
+        final body = jsonDecode(await streamedResponse.stream.bytesToString());
+        final detail = body['detail'];
+        if (!mounted) return;
+        setState(() {
+          _serverSessionLimitReached = streamedResponse.statusCode == 409;
+          messages[botMessageIndex] = ChatMessage(
+            text: detail is String ? detail : 'Please check your question and try again.', isUser: false);
+        });
+        await _loadProfileData();
       }
     } catch (e) {
       debugPrint("Send message error: $e");
@@ -469,6 +508,7 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       });
     } finally {
+      client.close();
       if (mounted) setState(() => isLoading = false);
       _scrollToBottom();
     }
@@ -478,56 +518,23 @@ class _ChatScreenState extends State<ChatScreen> {
     final user = supabase.auth.currentUser;
     if (user == null) return;
     try {
-      final data = await supabase.from('profiles').select().eq('id', user.id);
-      if (data.isNotEmpty) {
-        final profile = data[0];
-        
-        int chatsToday = profile['chats_today'] ?? 0;
-        String subTier = profile['subscription_tier'] ?? 'free';
-        String? prevTier = profile['previous_tier'];
-        String? lastActive = profile['last_active_date'];
+      final profile = await fetchDailyProfile();
+      int chatsToday = profile['chats_today'] ?? 0;
+      String subTier = profile['subscription_tier'] ?? 'free';
 
-        // Get local date string 'YYYY-MM-DD'
-        final todayStr = DateTime.now().toIso8601String().split('T')[0];
-
-        bool needsUpdate = false;
-        
-        // LAZY RESET LOGIC
-        if (lastActive != todayStr) {
-          chatsToday = 0;
-          // Revert Exam Booster access on the next day
-          if (subTier == 'tier_49_daily') {
-            subTier = prevTier ?? 'free';
-            prevTier = null;
+      if (mounted) {
+        setState(() {
+          _questionsAsked = chatsToday;
+          _subscriptionTier = subTier;
+          _subscriptionStartDate = profile['subscription_start_date'];
+          _subscriptionExpiresAt = profile['subscription_expires_at'];
+          // Resolve the profile grade once; never overwrite an explicit selection.
+          final grade = profile['grade_level'];
+          if (!_gradeResolved && grade is int && grade >= 6 && grade <= 12) {
+            _selectedGrade = grade;
+            _gradeResolved = true;
           }
-          needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-          try {
-            await supabase.from('profiles').update({
-              'chats_today': chatsToday,
-              'subscription_tier': subTier,
-              'previous_tier': prevTier,
-              'last_active_date': todayStr,
-            }).eq('id', user.id);
-          } catch (e) {
-            debugPrint("Failed to update daily reset columns. Did you add previous_tier and last_active_date to Supabase? $e");
-          }
-        }
-
-        if (mounted) {
-          setState(() {
-            _questionsAsked = chatsToday;
-            _subscriptionTier = subTier;
-            _subscriptionStartDate = profile['subscription_start_date'];
-            _subscriptionExpiresAt = profile['subscription_expires_at'];
-            // Only update grade if it's the very first load or somehow missing
-            if (_selectedGrade == 10 && profile['grade_level'] != null) {
-              _selectedGrade = profile['grade_level'];
-            }
-          });
-        }
+        });
       }
     } catch (e) {
       debugPrint("Error loading profile: $e");
@@ -634,6 +641,7 @@ class _ChatScreenState extends State<ChatScreen> {
           onSubjectSelected: (grade, subject) {
             setState(() {
               _selectedGrade = grade;
+              _gradeResolved = true;
               _selectedSubject = subject;
             });
             _startNewChat();
@@ -641,6 +649,21 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
+  }
+
+  Future<void> _reportAnswer(String id) async {
+    if (_reportedAnswers.contains(id) || _reportingAnswers.contains(id)) return;
+    setState(() => _reportingAnswers.add(id));
+    try {
+      await AnswerLibraryService().report(id);
+      if (!mounted) return;
+      setState(() => _reportedAnswers.add(id));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thank you. This answer has been sent for review.')));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not report the answer. Please try again.')));
+    } finally {
+      if (mounted) setState(() => _reportingAnswers.remove(id));
+    }
   }
 
   Widget _buildChatBubble(ChatMessage message) {
@@ -718,6 +741,16 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
             ),
           ),
+        if (!message.isUser && message.answerCacheId != null)
+          Wrap(spacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            const Text('Reviewed answer', style: TextStyle(color: Tailwind.slate500, fontSize: 12)),
+            TextButton.icon(
+              onPressed: _reportedAnswers.contains(message.answerCacheId) || _reportingAnswers.contains(message.answerCacheId)
+                ? null : () => _reportAnswer(message.answerCacheId!),
+              icon: const Icon(Icons.flag_outlined, size: 16),
+              label: Text(_reportedAnswers.contains(message.answerCacheId) ? 'Reported' : 'Report answer'),
+            ),
+          ]),
         if (isPaywall)
           Padding(
             padding: const EdgeInsets.only(top: 4, bottom: 12),
@@ -740,13 +773,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildInputArea(Color fillColor) {
     final int userQuestionsCount = messages.where((m) => m.isUser).length;
-    final bool isSessionLimitReached = _subscriptionTier != 'admin' && userQuestionsCount >= 20;
+    final bool isSessionLimitReached = _serverSessionLimitReached || userQuestionsCount >= 10;
     
     final bool isSubscriptionLimitReached = _subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _subscriptionTier != 'tier_49_daily' && _questionsAsked >= _getMaxQuestions();
     final bool blockInput = isSessionLimitReached || isSubscriptionLimitReached;
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text('${userQuestionsCount.clamp(0, 10)} / 10 questions in this chat',
+            style: const TextStyle(color: Tailwind.slate500, fontSize: 12)),
+        ),
         if (_pendingImageUrl != null && !blockInput)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -811,7 +849,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       label: Text(
                         isSubscriptionLimitReached 
                           ? "Your limit per day is over! Upgrade to Pro" 
-                          : "Session Limit Reached! Start New Chat",
+                          : "10-question limit reached. Start a new chat",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),

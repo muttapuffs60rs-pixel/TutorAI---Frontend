@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../theme/tailwind_theme.dart';
 import 'teacher_create_quiz_screen.dart';
 import 'student_join_screen.dart';
+import '../quiz_setup_screen.dart';
 
 class LiveQuizEntryScreen extends StatelessWidget {
   const LiveQuizEntryScreen({super.key});
@@ -56,7 +57,7 @@ class LiveQuizEntryScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               const Text(
-                'CHOOSE YOUR ROLE',
+                'CHOOSE A QUIZ MODE',
                 style: TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2),
               ),
               const SizedBox(height: 16),
@@ -76,6 +77,15 @@ class LiveQuizEntryScreen extends StatelessWidget {
                 color: const Color(0xFF059669),
                 lightColor: const Color(0xFFECFDF5),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentJoinScreen())),
+              ),
+              const SizedBox(height: 16),
+              _RoleCard(
+                icon: Icons.menu_book_rounded,
+                title: 'Practice on my own',
+                subtitle: 'Generate a textbook quiz and review explanations',
+                color: Tailwind.amber600,
+                lightColor: Tailwind.amber50,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizSetupScreen())),
               ),
               const SizedBox(height: 32),
               Container(
