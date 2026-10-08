@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 import '../main.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/subject_picker_sheet.dart';
+import '../widgets/tamil_keyboard.dart';
 import 'subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
 import '../services/profile_service.dart';
@@ -909,6 +910,25 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             onSubmitted: (val) => sendMessage(text: val),
                           ),
+                        ),
+                        IconButton(
+                          tooltip: 'Tamil keyboard / தமிழ் விசைப்பலகை',
+                          icon: const Text('அ', style: TextStyle(fontSize: 22, color: Tailwind.indigo600, fontWeight: FontWeight.bold)),
+                          onPressed: isLoading ? null : () {
+                            FocusScope.of(context).unfocus();
+                            showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              builder: (sheetContext) => FractionallySizedBox(
+                                heightFactor: 0.85,
+                                child: SafeArea(child: TamilKeyboard(
+                                  controller: _controller,
+                                  onDone: () => Navigator.pop(sheetContext),
+                                )),
+                              ),
+                            );
+                          },
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 6.0),
