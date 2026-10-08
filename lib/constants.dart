@@ -52,12 +52,54 @@ final List<Map<String, dynamic>> class12Subjects = [
 ];
 
 
+
+final List<Map<String, dynamic>> class11Subjects = [
+  {'name': 'Accountancy', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Advance Tamil', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Basic Automobile Engineering', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Basic Civil Engineering', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Basic Electrical Engineering', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Basic Electronics Engineering', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Bio Chemistry', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Bio Zoology', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Botany Volume 1', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Business Mathematics and Statistics', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Chemistry Volume 1', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Chemistry Volume 2', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Commerce', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Communicative English', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Computer Applications', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Computer Science', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Economics', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Employability Skills', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'English', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Food Service Management', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'General Nursing', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Geography', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'History', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Home Science', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Mathematics Volume 1', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Mathematics Volume 2', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Micro Biology', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Nutrition and Dietetics', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Office Management & Typography', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Physics Volume 1', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Physics Volume 2', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Political Science', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Statistics', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Tamil', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Textiles and Dress Designing', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+  {'name': 'Zoology', 'icon': Icons.menu_book, 'color': Tailwind.indigo500},
+];
+
 const supportedGrades = [6, 7, 8, 9, 10, 11, 12];
 
-bool gradeHasTextbooks(int grade) => const [6, 10, 12].contains(grade);
+bool gradeHasTextbooks(int grade) => supportedGrades.contains(grade);
 
 String? gradeContentNotice(int grade) {
   if (grade == 6) return 'Terms 1, 2 and 3 textbooks are available.';
+  if (grade == 7) return 'Terms 1, 2 and 3 textbooks are available.';
+  if (grade == 11) return 'Choose from the available Class 11 books. More subjects and volumes can be added.';
   if (!gradeHasTextbooks(grade)) return 'Class $grade textbooks are coming soon. Tutoring and quizzes will open when the books are ready.';
   return null;
 }
@@ -74,6 +116,6 @@ List<Map<String, dynamic>> subjectsForGrade(int grade) {
   if (grade >= 6 && grade <= 9) return List.of(middleSchoolSubjects);
   if (grade == 10) return List.of(class10Subjects);
   if (grade == 12) return List.of(class12Subjects);
-  // Class 11's subject catalogue will come from its own textbooks.
+  if (grade == 11) return List.of(class11Subjects);
   return [];
 }

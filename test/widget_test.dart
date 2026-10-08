@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tutor_preethi/widgets/subject_picker_sheet.dart';
+import 'package:tutor_preethi/constants.dart';
 
 void main() {
   testWidgets('Class 6 selection sends its own grade and subject', (tester) async {
@@ -16,23 +17,29 @@ void main() {
     expect(subject, 'Tamil');
   });
 
-  testWidgets('Unloaded grades cannot open tutoring or inherit Class 12 subjects', (tester) async {
-    var selected = false;
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SubjectPickerSheet(
-      initialGrade: 6, onSubjectSelected: (_, _) => selected = true,
-    ))));
+  testWidgets('New middle grades send their own grade and subject', (tester) async {
+    int? selectedGrade;
+    String? selectedSubject;
     for (final grade in [7, 8, 9]) {
-      await tester.tap(find.text('Class $grade'));
+      await tester.pumpWidget(MaterialApp(key: ValueKey(grade), home: Scaffold(body: SubjectPickerSheet(
+        initialGrade: grade, onSubjectSelected: (g, s) { selectedGrade = g; selectedSubject = s; },
+      ))));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Class $grade textbooks are coming soon'), findsOneWidget);
-      expect(tester.widget<ListTile>(find.widgetWithText(ListTile, 'Tamil')).enabled, false);
+      expect(tester.widget<ListTile>(find.widgetWithText(ListTile, 'Tamil')).enabled, true);
       await tester.tap(find.text('Tamil'));
-      expect(selected, false);
+      expect(selectedGrade, grade);
+      expect(selectedSubject, 'Tamil');
     }
-    await tester.tap(find.text('Class 11'));
-    await tester.pumpAndSettle();
-    expect(find.text('Chemistry Volume 1'), findsNothing);
-    expect(find.text('Textbooks coming soon'), findsOneWidget);
+  });
+
+  test('Class 11 uses its verified catalogue, not Class 12 subjects', () {
+    final names = subjectsForGrade(11).map((s) => s['name']).toList();
+    expect(names, containsAll(['Zoology', 'Basic Electronics Engineering', 'Botany Volume 1', 'Communicative English']));
+    expect(names, isNot(contains('Basic Mechanical Engineering')));
+    expect(names, isNot(contains('Bio Botany')));
+    expect(names, isNot(contains('Auditing')));
+    expect(names.toSet().length, names.length);
+    expect(gradeHasTextbooks(11), true);
   });
 
   testWidgets('All seven grade choices fit a phone width', (tester) async {
