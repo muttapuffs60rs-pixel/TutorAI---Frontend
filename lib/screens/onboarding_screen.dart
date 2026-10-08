@@ -1,9 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-// REMOVED: Internal screen imports that caused path errors
+import '../widgets/grade_selector.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -16,11 +14,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _nameController = TextEditingController();
   final supabase = Supabase.instance.client;
   bool _isLoading = false;
+  int _selectedGrade = 10;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   Future<void> _completeOnboarding() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your name, Kanna!")),
+        const SnackBar(content: Text("Please enter your name.")),
       );
       return;
     }
@@ -30,22 +35,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     try {
       final user = supabase.auth.currentUser;
       
-      // Replace '192.168.1.5' with your actual IPv4 address
-      final response = await http.post(
-        Uri.parse('https://akka-tutor-backend.onrender.com'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'user_id': user?.id,
-          'full_name': _nameController.text.trim(),
-          'grade_level': 10, // Hardcoded for 10th Standard Launch
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        if (mounted) Navigator.pushReplacementNamed(context, '/chat');
-      } else {
-        throw Exception("Failed to save profile");
-      }
+      if (user == null) throw StateError('Please sign in again');
+      await supabase.from('profiles').update({
+        'full_name': _nameController.text.trim(),
+        'grade_level': _selectedGrade,
+      }).eq('id', user.id);
+      if (mounted) Navigator.pushReplacementNamed(context, '/auth_gate');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -73,14 +68,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 10),
               const Text(
-                "Let's get you ready for your 10th Standard Public Exams.",
+                "Choose your class and start learning at your level.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.white70),
+                style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
               const SizedBox(height: 40),
               TextField(
                 controller: _nameController,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.black87),
                 decoration: InputDecoration(
                   labelText: "What is your name?",
                   labelStyle: const TextStyle(color: Colors.orangeAccent),
@@ -96,6 +91,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              GradeSelector(value: _selectedGrade, onChanged: (grade) => setState(() => _selectedGrade = grade)),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -108,7 +105,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   child: _isLoading 
                     ? const CircularProgressIndicator(color: Colors.black) 
-                    : const Text("Start 10th Standard Revision", 
+                    : const Text("Start learning",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),

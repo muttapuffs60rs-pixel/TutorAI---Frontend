@@ -28,7 +28,7 @@ void main() {
     await tester.tap(find.text('Check Answer'));
     await tester.pump();
     expect(find.text('✅ Correct!'), findsOneWidget);
-    expect(find.text('Akka says: Mars is a planet.'), findsOneWidget);
+    expect(find.text('Preethi says: Mars is a planet.'), findsOneWidget);
     await tester.ensureVisible(find.text('Next Question'));
     await tester.tap(find.text('Next Question'));
     await tester.pumpAndSettle();

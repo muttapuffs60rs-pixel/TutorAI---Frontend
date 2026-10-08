@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../constants.dart';
 import '../main.dart'; // To access Supabase user
 import 'active_quiz_screen.dart';
 
@@ -20,7 +21,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   bool _isLoading = false; // <-- The magic loading variable!
 
   final List<int> _grades = [6, 7, 8, 9, 10, 11, 12];
-  final List<String> _subjects = ['Science', 'Maths', 'Social', 'English', 'Tamil'];
+  List<String> get _subjects => subjectsForGrade(_selectedGrade).map((s) => s['name'] as String).toList();
   final List<int> _questionCounts = [10, 25];
 
   final List<String> _availableUnits = ['Unit 1', 'Unit 2', 'Unit 3', 'Unit 4', 'Unit 5'];
@@ -49,6 +50,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
 
   // THE NEW, CONNECTED FUNCTION
   Future<void> _startTest() async {
+    if (!gradeHasTextbooks(_selectedGrade)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(gradeContentNotice(_selectedGrade)!)));
+      return;
+    }
     if (_selectedUnits.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select at least one unit!')),
@@ -145,7 +150,12 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                     icon: Icons.school,
                     value: _selectedGrade,
                     items: _grades.map((g) => DropdownMenuItem(value: g, child: Text('Class $g'))).toList(),
-                    onChanged: (val) => setState(() => _selectedGrade = val as int),
+                    onChanged: (val) => setState(() {
+                      _selectedGrade = val as int;
+                      _selectedSubject = _subjects.isEmpty ? '' : _subjects.first;
+                      _selectedUnits = [];
+                      _selectedSection = 'All Sections';
+                    }),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -153,7 +163,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                   child: _buildDropdown(
                     label: 'Subject',
                     icon: Icons.menu_book,
-                    value: _selectedSubject,
+                    value: _selectedSubject.isEmpty ? null : _selectedSubject,
                     items: _subjects.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
                     onChanged: (val) => setState(() => _selectedSubject = val as String),
                   ),
@@ -162,6 +172,8 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
             ),
             const SizedBox(height: 24),
 
+            if (gradeContentNotice(_selectedGrade) != null)
+              Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(gradeContentNotice(_selectedGrade)!)),
             const Text('Select Units', style: TextStyle(color: Colors.grey, fontSize: 14)),
             const SizedBox(height: 8),
             InkWell(
@@ -216,7 +228,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
               const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
             else
               ElevatedButton(
-                onPressed: _startTest,
+                onPressed: gradeHasTextbooks(_selectedGrade) ? _startTest : null,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Colors.blueAccent,

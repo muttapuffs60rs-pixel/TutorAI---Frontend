@@ -50,3 +50,30 @@ final List<Map<String, dynamic>> class12Subjects = [
   {'name': 'Textiles and Dress Designing', 'icon': Icons.checkroom, 'color': Tailwind.pink400},
   {'name': 'Zoology', 'icon': Icons.pets, 'color': Tailwind.green700},
 ];
+
+
+const supportedGrades = [6, 7, 8, 9, 10, 11, 12];
+
+bool gradeHasTextbooks(int grade) => const [6, 10, 12].contains(grade);
+
+String? gradeContentNotice(int grade) {
+  if (grade == 6) return 'Terms 1, 2 and 3 textbooks are available.';
+  if (!gradeHasTextbooks(grade)) return 'Class $grade textbooks are coming soon. Tutoring and quizzes will open when the books are ready.';
+  return null;
+}
+
+final List<Map<String, dynamic>> middleSchoolSubjects = [
+  {'name': 'Tamil', 'icon': Icons.language, 'color': Tailwind.rose500},
+  {'name': 'English', 'icon': Icons.language, 'color': Tailwind.blue500},
+  {'name': 'Maths', 'icon': Icons.calculate, 'color': Tailwind.indigo500},
+  {'name': 'Science', 'icon': Icons.science, 'color': Tailwind.emerald500},
+  {'name': 'Social', 'icon': Icons.public, 'color': Tailwind.amber500},
+];
+
+List<Map<String, dynamic>> subjectsForGrade(int grade) {
+  if (grade >= 6 && grade <= 9) return List.of(middleSchoolSubjects);
+  if (grade == 10) return List.of(class10Subjects);
+  if (grade == 12) return List.of(class12Subjects);
+  // Class 11's subject catalogue will come from its own textbooks.
+  return [];
+}

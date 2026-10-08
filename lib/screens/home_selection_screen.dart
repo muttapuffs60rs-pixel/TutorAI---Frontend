@@ -63,7 +63,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
               // Menu Selection Cards
               _MenuOptionCard(
                 title: "Tuition",
-                subtitle: "Learn Class 10 & 12 subjects, ask doubts to Preethi, and review past chats.",
+                subtitle: "Explore Classes 6–12, ask Preethi about available textbooks, and review past chats.",
                 icon: Icons.school_rounded,
                 gradientColors: const [Color(0xFF4F46E5), Color(0xFF6366F1)], // Indigo Gradient
                 iconBgColor: Tailwind.indigo100,

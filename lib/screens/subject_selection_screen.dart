@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart'; 
 import '../theme/tailwind_theme.dart';
 import '../constants.dart';
+import '../widgets/grade_selector.dart';
 import 'chat_screen.dart';
 
 class SubjectSelectionScreen extends StatefulWidget {
@@ -53,7 +54,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> activeList = _selectedGrade == 10 ? class10Subjects : class12Subjects;
+    List<Map<String, dynamic>> activeList = subjectsForGrade(_selectedGrade);
     if (_searchQuery.isNotEmpty) {
       activeList = activeList.where((s) => s['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     }
@@ -78,72 +79,19 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Standard Selection Toggle
-              Container(
-                decoration: BoxDecoration(
-                  color: Tailwind.slate200,
-                  borderRadius: Tailwind.roundedXl,
+              GradeSelector(
+                  value: _selectedGrade,
+                  onChanged: (grade) => setState(() {
+                    _selectedGrade = grade;
+                    _searchController.clear();
+                    _searchQuery = '';
+                  }),
                 ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedGrade = 10;
-                          _searchController.clear();
-                          _searchQuery = '';
-                        }),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: _selectedGrade == 10 ? Tailwind.white : Colors.transparent,
-                            borderRadius: Tailwind.roundedLg,
-                            boxShadow: _selectedGrade == 10 ? Tailwind.shadowSm : null,
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Class 10",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _selectedGrade == 10 ? Tailwind.indigo600 : Tailwind.slate500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedGrade = 12;
-                          _searchController.clear();
-                          _searchQuery = '';
-                        }),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: _selectedGrade == 12 ? Tailwind.white : Colors.transparent,
-                            borderRadius: Tailwind.roundedLg,
-                            boxShadow: _selectedGrade == 12 ? Tailwind.shadowSm : null,
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Class 12",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _selectedGrade == 12 ? Tailwind.indigo600 : Tailwind.slate500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                if (gradeContentNotice(_selectedGrade) != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(gradeContentNotice(_selectedGrade)!, style: const TextStyle(color: Tailwind.slate600)),
+                  ),
               const SizedBox(height: 24),
               
               const Text(
@@ -176,7 +124,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
               // Subject Grid
               Expanded(
                 child: activeList.isEmpty
-                    ? Center(child: Text("No subjects found", style: TextStyle(color: Tailwind.slate500)))
+                    ? Center(child: Text(gradeHasTextbooks(_selectedGrade) ? "No subjects found" : "Textbooks coming soon", style: TextStyle(color: Tailwind.slate500)))
                     : GridView.builder(
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
@@ -188,7 +136,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                         itemBuilder: (context, index) {
                           final subject = activeList[index];
                           return GestureDetector(
-                            onTap: () {
+                            onTap: !gradeHasTextbooks(_selectedGrade) ? null : () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
