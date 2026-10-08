@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'theme/tailwind_theme.dart';
 
 final List<Map<String, dynamic>> class10Subjects = [
+  {'name': 'Tamil', 'icon': Icons.menu_book, 'color': Tailwind.rose500},
   {'name': 'Science', 'icon': Icons.science, 'color': Tailwind.emerald500},
   {'name': 'Maths', 'icon': Icons.calculate, 'color': Tailwind.indigo500},
   {'name': 'Social', 'icon': Icons.public, 'color': Tailwind.amber500},
