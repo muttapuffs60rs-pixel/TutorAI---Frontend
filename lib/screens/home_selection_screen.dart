@@ -3,7 +3,6 @@ import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
-import 'gamified_learning_screen.dart';
 import '../widgets/custom_drawer.dart';
 
 class HomeSelectionScreen extends StatefulWidget {
@@ -28,7 +27,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Tailwind.slate800),
         title: const Text(
-          'Tutor Preethi', 
+          'Arivora',
           style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)
         ),
         centerTitle: true,
@@ -64,7 +63,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
               // Menu Selection Cards
               _MenuOptionCard(
                 title: "Tuition",
-                subtitle: "Learn Class 10 & 12 subjects, ask doubts to Akka tutor, and review past chats.",
+                subtitle: "Learn Class 10 & 12 subjects, ask doubts to Preethi, and review past chats.",
                 icon: Icons.school_rounded,
                 gradientColors: const [Color(0xFF4F46E5), Color(0xFF6366F1)], // Indigo Gradient
                 iconBgColor: Tailwind.indigo100,
@@ -96,17 +95,12 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
               
               _MenuOptionCard(
                 title: "Interactive Simulations",
-                subtitle: "Play gamified physics simulations and learn through interactive experiences.",
-                icon: Icons.science_rounded,
-                gradientColors: const [Color(0xFFD97706), Color(0xFFF59E0B)], // Amber Gradient
+                subtitle: "Coming soon",
+                icon: Icons.lock_outline_rounded,
+                gradientColors: const [Color(0xFF64748B), Color(0xFF94A3B8)],
                 iconBgColor: const Color(0xFFFEF3C7), // Amber light
                 iconColor: Tailwind.amber600,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const GamifiedLearningScreen()),
-                  );
-                },
+                onTap: null,
               ),
             ],
           ),
@@ -123,7 +117,7 @@ class _MenuOptionCard extends StatefulWidget {
   final List<Color> gradientColors;
   final Color iconBgColor;
   final Color iconColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _MenuOptionCard({
     required this.title,
@@ -145,7 +139,7 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
+      onEnter: widget.onTap == null ? null : (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         onTap: widget.onTap,
@@ -207,8 +201,8 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
+                Icon(
+                  widget.onTap == null ? Icons.lock_outline_rounded : Icons.arrow_forward_ios_rounded,
                   color: Colors.white70,
                   size: 20,
                 ),

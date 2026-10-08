@@ -38,15 +38,15 @@ flutter:
 
   assets:
     - assets/images/logo.png
-    - assets/images/app_icon.png
+    - assets/images/arivora_icon.png
 
 flutter_launcher_icons:
   android: true
   ios: false
   web:
     generate: true
-    image_path: "assets/images/app_icon.png"
+    image_path: "assets/images/arivora_icon.png"
     background_color: "#ffffff"
     theme_color: "#ffffff"
-  image_path: "assets/images/app_icon.png"
+  image_path: "assets/images/arivora_icon.png"
   min_sdk_android: 21

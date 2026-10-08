@@ -59,7 +59,7 @@ class AkkaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Akka AI Tutor',
+      title: 'Arivora',
       debugShowCheckedModeBanner: false,
       // LIGHT TAILWIND THEME
       theme: ThemeData(

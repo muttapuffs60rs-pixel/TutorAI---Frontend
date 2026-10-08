@@ -63,7 +63,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
       appBar: AppBar(
         backgroundColor: Tailwind.white,
         elevation: 0,
-        title: const Text('Tutor Preethi', style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)),
+        title: const Text('Arivora', style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)),
         centerTitle: true,
         actions: [
           IconButton(

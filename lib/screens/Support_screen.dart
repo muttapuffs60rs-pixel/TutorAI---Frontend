@@ -23,7 +23,7 @@ class SupportScreen extends StatelessWidget {
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
       path: 'support@yourdomain.com', // Replace with your support email
-      query: 'subject=Support Request: Akka AI Tutor&body=User ID: $userId\n\nIssue Description:',
+      query: 'subject=Support Request: Arivora&body=User ID: $userId\n\nIssue Description:',
     );
 
     if (!await launchUrl(emailLaunchUri)) {

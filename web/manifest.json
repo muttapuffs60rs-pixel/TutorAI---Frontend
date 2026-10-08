@@ -1,11 +1,11 @@
 {
-    "name": "akka_tutor",
-    "short_name": "akka_tutor",
+    "name": "Arivora",
+    "short_name": "Arivora",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
-    "description": "A new Flutter project.",
+    "description": "Arivora — Understand deeply.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -150,7 +150,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Akka says: ${currentQ['explanation']}',
+                      'Preethi says: ${currentQ['explanation']}',
                       style: const TextStyle(fontSize: 16, color: Tailwind.slate800),
                     ),
                   ],

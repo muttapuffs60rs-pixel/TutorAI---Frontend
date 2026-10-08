@@ -68,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Text(
-                "Welcome to Akka! ✨",
+                "Welcome to Arivora! ✨",
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
               ),
               const SizedBox(height: 10),

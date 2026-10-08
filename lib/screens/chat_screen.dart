@@ -552,7 +552,7 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
         backgroundColor: Tailwind.white,
-        title: const Text('Tutor Preethi', style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)),
+        title: const Text('Arivora', style: TextStyle(fontWeight: FontWeight.bold, color: Tailwind.slate800)),
         centerTitle: true,
         elevation: 0,
         iconTheme: const IconThemeData(color: Tailwind.slate800),
@@ -757,7 +757,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen())),
               icon: const Icon(Icons.star, color: Tailwind.white, size: 18),
-              label: const Text('Upgrade to Preethi Pro', style: TextStyle(color: Tailwind.white, fontWeight: FontWeight.bold)),
+              label: const Text('Upgrade to Arivora Pro', style: TextStyle(color: Tailwind.white, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Tailwind.amber500,
                 elevation: 0,

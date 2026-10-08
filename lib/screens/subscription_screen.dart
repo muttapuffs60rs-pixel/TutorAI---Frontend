@@ -124,7 +124,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         var options = {
           'key': 'rzp_test_T0Hp0QiGT8OyLh',
           'amount': amount * 100,
-          'name': 'Tutor Preethi',
+          'name': 'Arivora',
           'description': 'Subscription: $tierName',
           'order_id': orderData['id'],
           'prefill': {
@@ -151,7 +151,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        title: const Text('Upgrade to Preethi Pro', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+        title: const Text('Upgrade to Arivora Pro', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
         backgroundColor: Tailwind.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Tailwind.slate800),

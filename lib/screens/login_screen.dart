@@ -92,17 +92,19 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Image.asset(
-                  'assets/images/app_icon.png',
+                  'assets/images/arivora_icon.png',
                   height: 100,
                   errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, size: 80, color: Tailwind.indigo500),
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Welcome to Tutor Preethi', 
+                  'Welcome to Arivora',
                   textAlign: TextAlign.center, 
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Tailwind.slate800)
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 8),
+                const Text('Understand deeply.', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Tailwind.slate500)),
+                const SizedBox(height: 32),
                 _buildTextField(_identifierController, 'Email or Mobile Number', Icons.person_outline),
                 const SizedBox(height: 16),
                 _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
@@ -191,7 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             List<Widget> _slides = [
               _buildSlide(
                 "Hello $name!",
-                "Welcome to Tutor Preethi! Idhu unnoda mobile tuition. Entha nerathulayum, enga irunthum nee doubts ketkalaam. Help panna ready!",
+                "Welcome to Arivora! Idhu unnoda mobile tuition. Entha nerathulayum, enga irunthum nee doubts ketkalaam. Help panna ready!",
                 Icons.sentiment_very_satisfied,
               ),
               _buildSlide(

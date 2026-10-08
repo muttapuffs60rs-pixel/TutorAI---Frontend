@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/images/logo.png',
+                  'assets/images/arivora_icon.png',
                   height: 160,
                   width: 160,
                   fit: BoxFit.contain,
@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 const SizedBox(height: 32),
                 // Company Name branding Typography
                 const Text(
-                  'AuxiumSoft',
+                  'Arivora',
                   style: TextStyle(
                     color: Tailwind.slate800,
                     fontSize: 34,
@@ -85,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Architecting the Digital Future',
+                  'Understand deeply.',
                     style: TextStyle(
                     color: Tailwind.slate500,
                     fontSize: 14,
