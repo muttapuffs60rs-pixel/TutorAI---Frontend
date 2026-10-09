@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
-import '../constants.dart';
 import '../theme/tailwind_theme.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/learning_mascot.dart';
@@ -140,62 +139,6 @@ class HomeSelectionScreen extends StatelessWidget {
                         ],
                       );
                     },
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Explore your subjects',
-                    style: TextStyle(
-                      fontSize: 23,
-                      fontWeight: FontWeight.w800,
-                      color: Tailwind.slate800,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Tailwind.slate200),
-                      borderRadius: Tailwind.roundedXl,
-                      boxShadow: Tailwind.shadowSm,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Classes 6–12',
-                          style: TextStyle(
-                            color: Tailwind.indigo600,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 19,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Your textbooks. Your next discovery.',
-                          style: TextStyle(
-                            color: Tailwind.slate700,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: supportedGrades
-                              .map(
-                                (grade) => OutlinedButton(
-                                  onPressed: () => open(
-                                    SubjectSelectionScreen(initialGrade: grade),
-                                  ),
-                                  child: Text('Class $grade'),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),
