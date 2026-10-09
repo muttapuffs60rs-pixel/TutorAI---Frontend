@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     // Automatically trigger navigation flow after a 3-second delay
     Timer(const Duration(seconds: 3), () {
-      if (mounted) {
+      if (mounted && ModalRoute.of(context)?.isCurrent == true) {
         Navigator.pushReplacementNamed(context, '/auth_gate');
       }
     });

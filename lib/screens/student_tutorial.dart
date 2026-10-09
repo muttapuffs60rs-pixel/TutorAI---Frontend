@@ -6,7 +6,7 @@ import '../widgets/learning_mascot.dart';
 class StudentTutorial extends StatefulWidget {
   const StudentTutorial({super.key});
 
-  static String storageKey(String userId) => 'student_tutorial_v1_$userId';
+  static String storageKey(String userId) => 'student_tutorial_v2_$userId';
 
   static Future<void> show(BuildContext context) => showDialog<void>(
     context: context,
