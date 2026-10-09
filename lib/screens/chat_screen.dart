@@ -15,6 +15,7 @@ import 'subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
 import '../services/profile_service.dart';
 import '../services/answer_library_service.dart';
+import '../services/chat_transport.dart';
 
 class ChatMessage {
   final String text;
@@ -386,8 +387,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    final int userQuestionsCount = messages.where((m) => m.isUser).length;
-    if (_serverSessionLimitReached || userQuestionsCount >= 10) {
+    if (_serverSessionLimitReached) {
       return;
     }
 
@@ -433,29 +433,27 @@ class _ChatScreenState extends State<ChatScreen> {
       // Create a placeholder bot message for the incoming stream
       final botMessageIndex = messages.length;
       setState(() {
-        messages.add(ChatMessage(text: "Tutor is thinking...", isUser: false));
+        messages.add(ChatMessage(text: "Waiting for the tutor… Busy requests may wait briefly.", isUser: false));
       });
 
       final session = supabase.auth.currentSession;
       final String token = session?.accessToken ?? '';
 
-      final request = http.Request('POST', Uri.parse('https://akka-tutor-backend.onrender.com/ask'));
-      request.headers['Content-Type'] = 'application/json';
-      if (token.isNotEmpty) {
-        request.headers['Authorization'] = 'Bearer $token';
-      }
-      request.body = jsonEncode({
+      final payload = <String, dynamic>{
+        'client_request_id': newChatRequestId(),
         'session_id': _currentSessionId,
         'question': msg.isEmpty ? "Explain this image." : msg,
         'image_url': finalImageUrl,
         'grade_level': _selectedGrade,
         'subject': _selectedSubject,
         'history': historyPayload, 
-      });
-
-      final streamedResponse = await client.send(request).timeout(const Duration(seconds: 60));
+      };
+      final streamedResponse = await sendChatWithRetry(client: client,
+          endpoint: Uri.parse('https://akka-tutor-backend.onrender.com/ask'),
+          token: token, payload: payload);
 
       if (streamedResponse.statusCode == 200) {
+        _serverSessionLimitReached = (int.tryParse(streamedResponse.headers['x-chat-turns-used'] ?? '') ?? 0) >= 10;
         final answerCacheId = streamedResponse.headers['x-answer-source'] == 'cache'
             ? streamedResponse.headers['x-answer-id'] : null;
         String fullAnswer = "";
@@ -483,15 +481,18 @@ class _ChatScreenState extends State<ChatScreen> {
         await _saveMessage(fullAnswer + (showPaywall ? " [PAYWALL]" : ""), false, answerCacheId: answerCacheId);
         await _loadProfileData();
 
-        if (mounted && messages.where((m) => m.isUser).length >= 10) {
+        if (mounted && _serverSessionLimitReached) {
           FocusScope.of(context).unfocus();
         }
       } else {
-        final body = jsonDecode(await streamedResponse.stream.bytesToString());
-        final detail = body['detail'];
+        final rawBody = await streamedResponse.stream.bytesToString();
+        dynamic detail;
+        try { detail = jsonDecode(rawBody)['detail']; } catch (_) {
+          detail = 'The tutor is temporarily unavailable. Please try again shortly.';
+        }
         if (!mounted) return;
         setState(() {
-          _serverSessionLimitReached = streamedResponse.statusCode == 409;
+          _serverSessionLimitReached = streamedResponse.headers['x-chat-error'] == 'conversation_limit';
           messages[botMessageIndex] = ChatMessage(
             text: detail is String ? detail : 'Please check your question and try again.', isUser: false);
         });
@@ -502,7 +503,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _controller.text = originalText;
       if (!mounted) return;
       setState(() {
-        if (messages.isNotEmpty && messages.last.text == "Tutor is thinking...") {
+        if (messages.isNotEmpty && messages.last.text.startsWith('Waiting for the tutor')) {
           messages[messages.length - 1] = ChatMessage(text: 'Connection Error! Please try again.', isUser: false);
         } else {
           messages.add(ChatMessage(text: 'Connection Error! Please try again.', isUser: false));
@@ -774,7 +775,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildInputArea(Color fillColor) {
     final int userQuestionsCount = messages.where((m) => m.isUser).length;
-    final bool isSessionLimitReached = _serverSessionLimitReached || userQuestionsCount >= 10;
+    final bool isSessionLimitReached = _serverSessionLimitReached;
     
     final bool isSubscriptionLimitReached = _subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _subscriptionTier != 'tier_49_daily' && _questionsAsked >= _getMaxQuestions();
     final bool blockInput = isSessionLimitReached || isSubscriptionLimitReached;
