@@ -16,6 +16,7 @@ class HomeSelectionScreen extends StatefulWidget {
 }
 
 class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
+  bool _showIntroduction = false;
   @override
   void initState() {
     super.initState();
@@ -29,9 +30,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
       final needed = await StudentTutorial.needsIntroduction(userId);
       if (!mounted || !needed || supabase.auth.currentUser?.id != userId)
         return;
-      if (ModalRoute.of(context)?.isCurrent != true) return;
-      await StudentTutorial.show(context);
-      await StudentTutorial.remember(userId);
+      setState(() => _showIntroduction = true);
     } catch (error) {
       debugPrint('Tutorial preference unavailable: $error');
     }
@@ -39,6 +38,17 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showIntroduction) {
+      return Scaffold(
+        body: StudentTutorial(
+          onClose: () {
+            setState(() => _showIntroduction = false);
+            final id = supabase.auth.currentUser?.id;
+            if (id != null) StudentTutorial.remember(id);
+          },
+        ),
+      );
+    }
     final user = supabase.auth.currentUser;
     final name =
         user?.userMetadata?['full_name'] ??

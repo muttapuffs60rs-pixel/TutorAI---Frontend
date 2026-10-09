@@ -4,7 +4,8 @@ import '../theme/tailwind_theme.dart';
 import '../widgets/learning_mascot.dart';
 
 class StudentTutorial extends StatefulWidget {
-  const StudentTutorial({super.key});
+  final VoidCallback? onClose;
+  const StudentTutorial({super.key, this.onClose});
 
   static String storageKey(String userId) => 'student_tutorial_v2_$userId';
 
@@ -85,7 +86,8 @@ class _StudentTutorialState extends State<StudentTutorial> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () =>
+                        (widget.onClose ?? () => Navigator.pop(context))(),
                     child: const Text('Skip tour'),
                   ),
                 ],
@@ -150,7 +152,7 @@ class _StudentTutorialState extends State<StudentTutorial> {
                   ElevatedButton(
                     onPressed: () {
                       if (step == steps.length - 1) {
-                        Navigator.pop(context);
+                        (widget.onClose ?? () => Navigator.pop(context))();
                       } else {
                         setState(() => step++);
                       }
