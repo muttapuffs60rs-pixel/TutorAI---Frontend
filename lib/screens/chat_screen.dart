@@ -1,3 +1,4 @@
+import '../widgets/voice_input_dialog.dart';
 import '../widgets/learning_mascot.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -881,6 +882,18 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             onSubmitted: (val) => sendMessage(text: val),
                           ),
+                        ),
+                        IconButton(
+                          tooltip: 'Voice input',
+                          icon: const Icon(Icons.mic, color: Tailwind.indigo600),
+                          onPressed: isLoading ? null : () async {
+                            FocusScope.of(context).unfocus();
+                            final words = await showDialog<String>(context: context, builder: (_) => const VoiceInputDialog());
+                            if (!mounted || words == null || words.isEmpty) return;
+                            final prefix = _controller.text.trimRight();
+                            final value = [prefix, words].where((s) => s.isNotEmpty).join(' ');
+                            _controller.value = TextEditingValue(text: value, selection: TextSelection.collapsed(offset: value.length));
+                          },
                         ),
                         IconButton(
                           tooltip: 'Tamil keyboard / தமிழ் விசைப்பலகை',

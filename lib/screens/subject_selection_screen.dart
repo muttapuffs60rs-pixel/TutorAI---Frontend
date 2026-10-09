@@ -3,19 +3,18 @@ import '../widgets/learning_mascot.dart';
 import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import '../constants.dart';
-import '../widgets/grade_selector.dart';
 import 'chat_screen.dart';
 
 class SubjectSelectionScreen extends StatefulWidget {
-  final int initialGrade;
-  const SubjectSelectionScreen({super.key, this.initialGrade = 10});
+  final int? initialGrade;
+  const SubjectSelectionScreen({super.key, this.initialGrade});
 
   @override
   State<SubjectSelectionScreen> createState() => _SubjectSelectionScreenState();
 }
 
 class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
-  late int _selectedGrade = widget.initialGrade;
+  late int? _selectedGrade = widget.initialGrade;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -75,7 +74,9 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> activeList = subjectsForGrade(_selectedGrade);
+    List<Map<String, dynamic>> activeList = _selectedGrade == null
+        ? []
+        : subjectsForGrade(_selectedGrade!);
     if (_searchQuery.isNotEmpty) {
       activeList = activeList
           .where(
@@ -112,19 +113,31 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GradeSelector(
-                value: _selectedGrade,
+              DropdownButtonFormField<int>(
+                initialValue: _selectedGrade,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: "Class"),
+                hint: const Text("Select class"),
+                items: supportedGrades
+                    .map(
+                      (grade) => DropdownMenuItem(
+                        value: grade,
+                        child: Text("Class $grade"),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (grade) => setState(() {
                   _selectedGrade = grade;
                   _searchController.clear();
                   _searchQuery = '';
                 }),
               ),
-              if (gradeContentNotice(_selectedGrade) != null)
+              if (_selectedGrade != null &&
+                  gradeContentNotice(_selectedGrade!) != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Text(
-                    gradeContentNotice(_selectedGrade)!,
+                    gradeContentNotice(_selectedGrade!)!,
                     style: const TextStyle(color: Tailwind.slate600),
                   ),
                 ),
@@ -158,6 +171,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                 ),
                 child: TextField(
                   controller: _searchController,
+                  enabled: _selectedGrade != null,
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: const InputDecoration(
                     hintText: "Search subjects...",
@@ -170,10 +184,20 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
               // Subject Grid
               Expanded(
-                child: activeList.isEmpty
+                child: _selectedGrade == null
+                    ? const Center(
+                        child: Text(
+                          "Select class first",
+                          style: TextStyle(
+                            color: Tailwind.slate600,
+                            fontSize: 18,
+                          ),
+                        ),
+                      )
+                    : activeList.isEmpty
                     ? Center(
                         child: Text(
-                          gradeHasTextbooks(_selectedGrade)
+                          gradeHasTextbooks(_selectedGrade!)
                               ? "No subjects found"
                               : "Textbooks coming soon",
                           style: TextStyle(color: Tailwind.slate500),
@@ -194,7 +218,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                         itemBuilder: (context, index) {
                           final subject = activeList[index];
                           return GestureDetector(
-                            onTap: !gradeHasTextbooks(_selectedGrade)
+                            onTap: !gradeHasTextbooks(_selectedGrade!)
                                 ? null
                                 : () {
                                     Navigator.push(

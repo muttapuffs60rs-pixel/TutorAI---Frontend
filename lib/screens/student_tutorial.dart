@@ -38,12 +38,12 @@ class _StudentTutorialState extends State<StudentTutorial> {
     ),
     (
       'Find your subject',
-      'On Home, tap Start learning or Tuition. Choose your class, then select a subject. Use Search subjects to find one quickly.',
+      'On Home, tap Start learning or Tuition. Select a class from the dropdown, then select a subject. Use Search subjects to find one quickly.',
       Icons.auto_stories_outlined,
     ),
     (
       'Ask Preethi a question',
-      'Type your question in the chat and tap Send. You can also attach a picture of a question. Use the subject selector at the top to change your class or subject.',
+      'Type your question or tap the microphone to speak in Tamil or English. Review and add the text, then tap Send. You can also attach a picture of a question. Use the subject selector at the top to change your class or subject.',
       Icons.chat_bubble_outline,
     ),
     (

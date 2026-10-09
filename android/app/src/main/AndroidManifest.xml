@@ -2,6 +2,8 @@
     
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:label="Arivora"
         android:name="${applicationName}"
@@ -39,6 +41,7 @@
     </application>
 
     <queries>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
