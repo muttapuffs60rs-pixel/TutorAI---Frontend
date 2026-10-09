@@ -6,10 +6,9 @@ import '../theme/tailwind_theme.dart';
 import '../screens/chat_screen.dart';
 import '../services/profile_service.dart';
 import '../screens/answer_library_screen.dart';
+import 'usage_meter.dart';
 
 class CustomDrawer extends StatefulWidget {
-  final int? questionsLeft;
-  final int? maxLimit;
   final String? subscriptionTier;
   final String? subscriptionStartDate;
   final String? subscriptionExpiresAt;
@@ -18,8 +17,6 @@ class CustomDrawer extends StatefulWidget {
 
   const CustomDrawer({
     super.key,
-    this.questionsLeft,
-    this.maxLimit,
     this.subscriptionTier,
     this.subscriptionStartDate,
     this.subscriptionExpiresAt,
@@ -36,8 +33,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
   bool _isLoadingSessions = true;
   bool _isLoadingProfile = true;
 
-  int _questionsLeft = 0;
-  int _maxLimit = 5;
   String _subscriptionTier = 'free';
   String? _subscriptionStartDate;
   String? _subscriptionExpiresAt;
@@ -46,9 +41,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   void initState() {
     super.initState();
     _fetchChatSessions();
-    if (widget.questionsLeft != null) {
-      _questionsLeft = widget.questionsLeft!;
-      _maxLimit = widget.maxLimit ?? 5;
+    if (widget.subscriptionTier != null) {
       _subscriptionTier = widget.subscriptionTier ?? 'free';
       _subscriptionStartDate = widget.subscriptionStartDate;
       _subscriptionExpiresAt = widget.subscriptionExpiresAt;
@@ -63,14 +56,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
     if (user == null) return;
     try {
       final profile = await fetchDailyProfile();
-      int chatsToday = profile['chats_today'] ?? 0;
       String subTier = profile['subscription_tier'] ?? 'free';
-      int limit = (subTier == 'pro') ? 50 : 5;
       if (mounted) {
         setState(() {
           _subscriptionTier = subTier;
-          _maxLimit = limit;
-          _questionsLeft = (limit - chatsToday) > 0 ? (limit - chatsToday) : 0;
           _subscriptionStartDate = profile['subscription_start_date'];
           _subscriptionExpiresAt = profile['subscription_expires_at'];
           _isLoadingProfile = false;
@@ -179,15 +168,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                 ),
                 
+                const UsageMeter(),
                 ListTile(
                   leading: Icon(
                     Icons.bolt, 
-                    color: _questionsLeft > 0 ? Tailwind.amber500 : Tailwind.rose500
+                    color: Tailwind.indigo600
                   ),
                   title: _isLoadingProfile 
                       ? const Text('Loading...', style: TextStyle(color: Tailwind.slate500, fontSize: 12))
                       : Text(
-                          '$_questionsLeft / $_maxLimit Questions Left',
+                          '${_subscriptionTier == 'free' ? 'Free' : _subscriptionTier == 'tier_199' ? 'Standard' : _subscriptionTier == 'tier_499' ? 'Syllabus Master' : _subscriptionTier == 'tier_999' ? 'Premium' : _subscriptionTier == 'admin' ? 'Admin' : 'Learning'} plan',
                           style: const TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold),
                         ),
                   subtitle: _isLoadingProfile 

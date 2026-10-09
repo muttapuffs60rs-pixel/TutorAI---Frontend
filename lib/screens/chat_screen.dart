@@ -56,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int _selectedGrade = 10;
   bool _gradeResolved = false;
   late String _selectedSubject;
-  int _questionsAsked = 0;
+  int _usageRevision = 0;
   String _subscriptionTier = 'free';
   String? _subscriptionStartDate;
   String? _subscriptionExpiresAt;
@@ -351,13 +351,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  int _getMaxQuestions() {
-    if (_subscriptionTier == 'tier_199') return 50;
-    if (_subscriptionTier == 'tier_499') return 150;
-    if (_subscriptionTier == 'tier_49' || _subscriptionTier == 'tier_49_daily' || _subscriptionTier == 'admin') return 999999;
-    return 5;
-  }
-
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -376,14 +369,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final msg = text?.trim() ?? _controller.text.trim();
 
     if ((msg.isEmpty && (finalImageUrl == null || finalImageUrl.isEmpty)) || isLoading) {
-      return;
-    }
-
-    // Evaluate tier constraints dynamically
-    if (_subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _subscriptionTier != 'tier_49_daily' && _questionsAsked >= _getMaxQuestions()) {
-      setState(() {
-        messages.add(ChatMessage(text: "Your limit per day is over. Upgrade plan to ask more questions!", isUser: false));
-      });
       return;
     }
 
@@ -521,12 +506,11 @@ class _ChatScreenState extends State<ChatScreen> {
     if (user == null) return;
     try {
       final profile = await fetchDailyProfile();
-      int chatsToday = profile['chats_today'] ?? 0;
       String subTier = profile['subscription_tier'] ?? 'free';
 
       if (mounted) {
         setState(() {
-          _questionsAsked = chatsToday;
+          _usageRevision++;
           _subscriptionTier = subTier;
           _subscriptionStartDate = profile['subscription_start_date'];
           _subscriptionExpiresAt = profile['subscription_expires_at'];
@@ -545,11 +529,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    int maxLimit = _getMaxQuestions();
-    int questionsLeft = _subscriptionTier == 'tier_49' || _subscriptionTier == 'tier_49_daily' || _subscriptionTier == 'admin' 
-        ? 9999 
-        : (maxLimit - _questionsAsked).clamp(0, maxLimit);
-        
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
@@ -566,10 +545,11 @@ class _ChatScreenState extends State<ChatScreen> {
           )
         ],
       ),
+      onDrawerChanged: (open) {
+        if (open) setState(() => _usageRevision++);
+      },
       drawer: CustomDrawer(
-        key: ValueKey<int>(_questionsAsked),
-        questionsLeft: questionsLeft,
-        maxLimit: maxLimit,
+        key: ValueKey<int>(_usageRevision),
         subscriptionTier: _subscriptionTier,
         subscriptionStartDate: _subscriptionStartDate,
         subscriptionExpiresAt: _subscriptionExpiresAt,
@@ -774,19 +754,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputArea(Color fillColor) {
-    final int userQuestionsCount = messages.where((m) => m.isUser).length;
     final bool isSessionLimitReached = _serverSessionLimitReached;
     
-    final bool isSubscriptionLimitReached = _subscriptionTier != 'admin' && _subscriptionTier != 'tier_49' && _subscriptionTier != 'tier_49_daily' && _questionsAsked >= _getMaxQuestions();
-    final bool blockInput = isSessionLimitReached || isSubscriptionLimitReached;
+    final bool blockInput = isSessionLimitReached;
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text('${userQuestionsCount.clamp(0, 10)} / 10 questions in this chat',
-            style: const TextStyle(color: Tailwind.slate500, fontSize: 12)),
-        ),
         if (_pendingImageUrl != null && !blockInput)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -837,21 +810,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     height: 54,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isSubscriptionLimitReached ? Tailwind.indigo600 : Tailwind.amber500,
-                        foregroundColor: isSubscriptionLimitReached ? Tailwind.white : Tailwind.slate900,
+                        backgroundColor: Tailwind.amber500,
+                        foregroundColor: Tailwind.slate900,
                         shape: RoundedRectangleBorder(
                           borderRadius: Tailwind.roundedFull,
                         ),
                         elevation: 0,
                       ),
-                      onPressed: isSubscriptionLimitReached 
-                        ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen()))
-                        : _startNewChat,
-                      icon: Icon(isSubscriptionLimitReached ? Icons.star : Icons.refresh, fontWeight: FontWeight.bold),
-                      label: Text(
-                        isSubscriptionLimitReached 
-                          ? "Your limit per day is over! Upgrade to Pro" 
-                          : "10-question limit reached. Start a new chat",
+                      onPressed: _startNewChat,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text(
+                        "Start a new chat to continue",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                     ),
