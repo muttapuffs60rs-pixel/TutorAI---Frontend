@@ -47,8 +47,8 @@ class _StudentTutorialState extends State<StudentTutorial> {
       Icons.chat_bubble_outline,
     ),
     (
-      'Practise with quizzes',
-      'Choose Practice quizzes on Home to create a textbook quiz. To join a classroom quiz, choose Live classroom, then I’m a Student, and enter the code from your teacher.',
+      'Join your live classroom',
+      'Choose Live classroom on Home, then I’m a Student. Enter the 6-digit code from your teacher to join the quiz and answer questions with your class.',
       Icons.emoji_events_outlined,
     ),
     (

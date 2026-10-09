@@ -3,12 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tutor_preethi/screens/live_quiz/live_quiz_entry_screen.dart';
 
 void main() {
-  testWidgets('practice quiz is reachable from quiz modes', (tester) async {
+  testWidgets('live classroom keeps teacher and student entry points', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: LiveQuizEntryScreen()));
-    await tester.ensureVisible(find.text('Practice on my own'));
-    await tester.tap(find.text('Practice on my own'));
-    await tester.pumpAndSettle();
-    expect(find.text('Custom Quiz'), findsOneWidget);
+    expect(find.text("I'm a Teacher"), findsOneWidget);
+    expect(find.text("I'm a Student"), findsOneWidget);
+    expect(find.text('Practice on my own'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

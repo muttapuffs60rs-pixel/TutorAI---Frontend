@@ -6,7 +6,6 @@ import '../widgets/custom_drawer.dart';
 import '../widgets/learning_mascot.dart';
 import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
-import 'quiz_setup_screen.dart';
 
 class HomeSelectionScreen extends StatefulWidget {
   const HomeSelectionScreen({super.key});
@@ -132,7 +131,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final columns = constraints.maxWidth >= 750
-                          ? 4
+                          ? 3
                           : constraints.maxWidth >= 330
                           ? 2
                           : 1;
@@ -149,14 +148,6 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                             icon: Icons.auto_stories_outlined,
                             color: Tailwind.pastels[0],
                             onTap: () => open(const SubjectSelectionScreen()),
-                          ),
-                          _LearningCard(
-                            width: width,
-                            title: 'Practice quizzes',
-                            subtitle: 'Learn at your own pace',
-                            icon: Icons.emoji_events_outlined,
-                            color: Tailwind.pastels[1],
-                            onTap: () => open(const QuizSetupScreen()),
                           ),
                           _LearningCard(
                             width: width,

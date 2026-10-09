@@ -3,7 +3,6 @@ import '../../widgets/learning_mascot.dart';
 import '../../theme/tailwind_theme.dart';
 import 'teacher_create_quiz_screen.dart';
 import 'student_join_screen.dart';
-import '../quiz_setup_screen.dart';
 
 class LiveQuizEntryScreen extends StatelessWidget {
   const LiveQuizEntryScreen({super.key});
@@ -80,14 +79,6 @@ class LiveQuizEntryScreen extends StatelessWidget {
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentJoinScreen())),
               ),
               const SizedBox(height: 16),
-              _RoleCard(
-                icon: Icons.menu_book_rounded,
-                title: 'Practice on my own',
-                subtitle: 'Generate a textbook quiz and review explanations',
-                color: Tailwind.amber600,
-                lightColor: Tailwind.amber50,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuizSetupScreen())),
-              ),
               const SizedBox(height: 32),
               Container(
                 padding: const EdgeInsets.all(16),
