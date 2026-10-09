@@ -1,3 +1,4 @@
+import '../widgets/learning_mascot.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -598,7 +599,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
+              child: messages.isEmpty ? const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [LearningMascot(size: 110), SizedBox(height: 12), Text("Ready when you are. Ask Preethi a question!", textAlign: TextAlign.center)])) : ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(16),
                 itemCount: messages.length,

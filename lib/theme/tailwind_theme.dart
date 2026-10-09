@@ -1,37 +1,45 @@
 import 'package:flutter/material.dart';
 
 class Tailwind {
-  // Playful learning palette. Legacy names keep existing screen references compatible.
-  // Purple primary actions, pastel surfaces, and readable plum text.
-  static const Color indigo50 = Color(0xFFf3edfc);
-  static const Color indigo100 = Color(0xFFeee2ff);
-  static const Color indigo200 = Color(0xFFd7c4f3);
-  static const Color indigo500 = Color(0xFF8051c8);
-  static const Color indigo600 = Color(0xFF7142c1);
-  static const Color indigo900 = Color(0xFF302a49);
-  
+  // Pastel learning palette. Legacy names keep existing screen references compatible.
+  // Orange primary actions, white surfaces, and readable navy text.
+  static const Color indigo50 = Color(0xFFfff3ed);
+  static const Color indigo100 = Color(0xFFffe5d9);
+  static const Color indigo200 = Color(0xFFffc4ab);
+  static const Color indigo500 = Color(0xFFdc481d);
+  static const Color indigo600 = Color(0xFFc83c15);
+  static const Color indigo900 = Color(0xFF102f3a);
+
+  static const Color sunshine = Color(0xFFFFDF48);
+  static const List<Color> pastels = [
+    Color(0xFFE8DEFF),
+    Color(0xFFFFF0C9),
+    Color(0xFFB9F9E4),
+    Color(0xFFFBE3EC),
+  ];
+
   // Neutrals / Slates
   static const Color white = Color(0xFFffffff);
-  static const Color slate50 = Color(0xFFfbf7ff);
-  static const Color slate100 = Color(0xFFf4eff9);
-  static const Color slate200 = Color(0xFFe6dff0);
-  static const Color slate300 = Color(0xFFd4c9e1);
-  static const Color slate400 = Color(0xFF887895);
-  static const Color slate500 = Color(0xFF6c607b);
-  static const Color slate600 = Color(0xFF5d506e);
-  static const Color slate700 = Color(0xFF493b5b);
-  static const Color slate800 = Color(0xFF302a49);
-  static const Color slate900 = Color(0xFF251d35);
-  
+  static const Color slate50 = Color(0xFFffffff);
+  static const Color slate100 = Color(0xFFf7f8fa);
+  static const Color slate200 = Color(0xFFe7e9ec);
+  static const Color slate300 = Color(0xFFcdd4d8);
+  static const Color slate400 = Color(0xFF74828a);
+  static const Color slate500 = Color(0xFF52656e);
+  static const Color slate600 = Color(0xFF455a64);
+  static const Color slate700 = Color(0xFF304b57);
+  static const Color slate800 = Color(0xFF102f3a);
+  static const Color slate900 = Color(0xFF08232e);
+
   // Status / Alerts
   static const Color rose400 = Color(0xFFfb7185);
   static const Color rose500 = Color(0xFFf43f5e);
   static const Color rose600 = Color(0xFFe11d48);
-  
+
   static const Color emerald400 = Color(0xFF34d399);
   static const Color emerald500 = Color(0xFF10b981);
   static const Color emerald600 = Color(0xFF059669);
-  
+
   static const Color amber50 = Color(0xFFfffbeb);
   static const Color amber200 = Color(0xFFfde68a);
   static const Color amber500 = Color(0xFFf59e0b);
@@ -40,38 +48,38 @@ class Tailwind {
 
   // Additional Subject Colors
   static const Color blue400 = Color(0xFF60a5fa);
-  static const Color blue500 = Color(0xFF8051c8);
-  static const Color blue600 = Color(0xFF7142c1);
-  
+  static const Color blue500 = Color(0xFFdc481d);
+  static const Color blue600 = Color(0xFFc83c15);
+
   static const Color teal500 = Color(0xFF14b8a6);
   static const Color teal600 = Color(0xFF0d9488);
-  
+
   static const Color orange400 = Color(0xFFfb923c);
   static const Color orange500 = Color(0xFFf97316);
   static const Color orange600 = Color(0xFFea580c);
-  
+
   static const Color yellow500 = Color(0xFFeab308);
   static const Color yellow600 = Color(0xFFca8a04);
   static const Color yellow700 = Color(0xFFa16207);
-  
+
   static const Color cyan500 = Color(0xFF06b6d4);
   static const Color cyan600 = Color(0xFF0891b2);
   static const Color cyan700 = Color(0xFF0e7490);
-  
+
   static const Color green500 = Color(0xFF22c55e);
   static const Color green600 = Color(0xFF16a34a);
   static const Color green700 = Color(0xFF15803d);
-  
-  static const Color indigo400 = Color(0xFFa27bd8);
-  
+
+  static const Color indigo400 = Color(0xFFf58a62);
+
   static const Color purple500 = Color(0xFF925bd0);
-  static const Color purple600 = Color(0xFF7142c1);
-  
+  static const Color purple600 = Color(0xFFc83c15);
+
   static const Color red500 = Color(0xFFef4444);
-  
+
   static const Color pink400 = Color(0xFFf472b6);
   static const Color pink500 = Color(0xFFec4899);
-  
+
   static const Color blueGrey = Color(0xFF607d8b);
 
   // Shadows

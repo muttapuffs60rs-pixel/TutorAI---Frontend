@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/learning_mascot.dart';
 import '../../theme/tailwind_theme.dart';
 import 'teacher_create_quiz_screen.dart';
 import 'student_join_screen.dart';
@@ -43,7 +44,7 @@ class LiveQuizEntryScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                      child: const Icon(Icons.quiz_rounded, size: 36, color: Colors.white),
+                      child: const LearningMascot(size: 80),
                     ),
                     const SizedBox(height: 16),
                     const Text('Live Classroom Quiz', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),

@@ -1,0 +1,5 @@
+Arivora mascot — generated with the built-in image generation tool.
+
+Prompt: Create one polished cute cartoon mascot for Arivora, an educational app for students ages 11–18. A friendly small orange book character with a cream page face, expressive dark navy eyes, warm smile, tiny arms, wearing a lilac backpack and holding a mint green pencil. Full body, three quarter view, waving welcomingly. Flat editorial cartoon illustration with clean dark navy outlines, soft pastel colors, minimal shading, tasteful and not babyish. Isolated centered with generous padding on a genuinely transparent background. No text, letters, logos, watermark or background objects.
+
+Asset: assets/images/learning_mascot.png

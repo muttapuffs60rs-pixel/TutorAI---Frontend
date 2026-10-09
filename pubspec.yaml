@@ -37,6 +37,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/images/learning_mascot.png
     - assets/images/logo.png
     - assets/images/arivora_icon.png
 
