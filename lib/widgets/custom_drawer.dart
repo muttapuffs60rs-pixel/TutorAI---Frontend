@@ -1,3 +1,4 @@
+import '../screens/student_tutorial.dart';
 import 'package:flutter/material.dart';
 import '../main.dart'; 
 import '../screens/login_screen.dart';
@@ -243,6 +244,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
 
+                ListTile(
+                  leading: const Icon(Icons.help_outline, color: Tailwind.indigo600),
+                  title: const Text('Student tutorial'),
+                  onTap: () {
+                    final navigator = Navigator.of(context);
+                    navigator.pop();
+                    StudentTutorial.show(navigator.context);
+                  },
+                ),
                 ListTile(
                 leading: const Icon(Icons.lock_reset, color: Tailwind.slate500),
                 title: const Text('Change Password', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w500)),

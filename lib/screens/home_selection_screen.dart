@@ -1,3 +1,4 @@
+import 'student_tutorial.dart';
 import 'package:flutter/material.dart';
 import '../main.dart';
 import '../theme/tailwind_theme.dart';
@@ -7,8 +8,34 @@ import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
 import 'quiz_setup_screen.dart';
 
-class HomeSelectionScreen extends StatelessWidget {
+class HomeSelectionScreen extends StatefulWidget {
   const HomeSelectionScreen({super.key});
+
+  @override
+  State<HomeSelectionScreen> createState() => _HomeSelectionScreenState();
+}
+
+class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _introduce());
+  }
+
+  Future<void> _introduce() async {
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      final needed = await StudentTutorial.needsIntroduction(userId);
+      if (!mounted || !needed || supabase.auth.currentUser?.id != userId)
+        return;
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      await StudentTutorial.show(context);
+      await StudentTutorial.remember(userId);
+    } catch (error) {
+      debugPrint('Tutorial preference unavailable: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
