@@ -61,7 +61,7 @@ class AkkaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Arivora',
       debugShowCheckedModeBanner: false,
-      // MODERN ACADEMIC THEME
+      // PLAYFUL LEARNING THEME
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Tailwind.slate50, 

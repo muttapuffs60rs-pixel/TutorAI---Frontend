@@ -51,7 +51,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                "Your study space. Choose a learning mode to begin.",
+                "Big ideas start with a curious question. Let’s explore!",
                 style: TextStyle(
                   color: Tailwind.slate500,
                   fontSize: 15,
@@ -65,7 +65,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 title: "Tuition",
                 subtitle: "Explore Classes 6–12, ask Preethi about available textbooks, and review past chats.",
                 icon: Icons.school_rounded,
-                gradientColors: const [Tailwind.indigo600, Tailwind.indigo500], // Indigo Gradient
+                gradientColors: const [Color(0xFFE4DDFC), Color(0xFFF0E9FF)],
                 iconBgColor: Tailwind.indigo100,
                 iconColor: Tailwind.indigo600,
                 onTap: () {
@@ -81,8 +81,8 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 title: "Quiz Game",
                 subtitle: "Join a live classroom quiz with a code or create your own custom quiz.",
                 icon: Icons.sports_esports_rounded,
-                gradientColors: const [Tailwind.indigo600, Tailwind.indigo500], // Emerald Gradient
-                iconBgColor: Tailwind.indigo50, // Emerald light
+                gradientColors: const [Color(0xFFD8F1E6), Color(0xFFEAF8F1)],
+                iconBgColor: const Color(0xFFBDE4D2),
                 iconColor: Tailwind.indigo600,
                 onTap: () {
                   Navigator.push(
@@ -97,8 +97,8 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 title: "Interactive Simulations",
                 subtitle: "Coming soon",
                 icon: Icons.lock_outline_rounded,
-                gradientColors: const [Color(0xFF64748B), Color(0xFF94A3B8)],
-                iconBgColor: const Color(0xFFFEF3C7), // Amber light
+                gradientColors: const [Color(0xFFFFE1DF), Color(0xFFFFEFEB)],
+                iconBgColor: const Color(0xFFFFF0D5),
                 iconColor: Tailwind.amber600,
                 onTap: null,
               ),
@@ -151,8 +151,9 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Tailwind.white,
-              border: Border.all(color: _isHovered ? widget.gradientColors.first : Tailwind.slate200),
+              gradient: LinearGradient(colors: widget.gradientColors,
+                begin: Alignment.topLeft, end: Alignment.bottomRight),
+              border: Border.all(color: _isHovered ? Tailwind.indigo400 : Colors.transparent),
               borderRadius: Tailwind.rounded2Xl,
               boxShadow: Tailwind.shadowSm,
             ),
