@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 class Tailwind {
-  // Brand / Accents
-  static const Color indigo50 = Color(0xFFeef2ff);
-  static const Color indigo100 = Color(0xFFe0e7ff);
-  static const Color indigo200 = Color(0xFFc7d2fe);
-  static const Color indigo500 = Color(0xFF6366f1);
-  static const Color indigo600 = Color(0xFF4f46e5);
-  static const Color indigo900 = Color(0xFF312e81);
+  // Modern academic palette. Legacy names keep existing screen references compatible.
+  // Navy primary actions, blue-tinted surfaces, and readable neutral text.
+  static const Color indigo50 = Color(0xFFeef3f9);
+  static const Color indigo100 = Color(0xFFe6edf6);
+  static const Color indigo200 = Color(0xFFc4d3e5);
+  static const Color indigo500 = Color(0xFF385b85);
+  static const Color indigo600 = Color(0xFF203e65);
+  static const Color indigo900 = Color(0xFF172c49);
   
   // Neutrals / Slates
   static const Color white = Color(0xFFffffff);
@@ -15,11 +16,11 @@ class Tailwind {
   static const Color slate100 = Color(0xFFf1f5f9);
   static const Color slate200 = Color(0xFFe2e8f0);
   static const Color slate300 = Color(0xFFcbd5e1);
-  static const Color slate400 = Color(0xFF94a3b8);
-  static const Color slate500 = Color(0xFF64748b);
+  static const Color slate400 = Color(0xFF7b8ba0);
+  static const Color slate500 = Color(0xFF5b687b);
   static const Color slate600 = Color(0xFF475569);
   static const Color slate700 = Color(0xFF334155);
-  static const Color slate800 = Color(0xFF1e293b);
+  static const Color slate800 = Color(0xFF172c49);
   static const Color slate900 = Color(0xFF0f172a);
   
   // Status / Alerts
@@ -39,8 +40,8 @@ class Tailwind {
 
   // Additional Subject Colors
   static const Color blue400 = Color(0xFF60a5fa);
-  static const Color blue500 = Color(0xFF3b82f6);
-  static const Color blue600 = Color(0xFF2563eb);
+  static const Color blue500 = Color(0xFF385b85);
+  static const Color blue600 = Color(0xFF203e65);
   
   static const Color teal500 = Color(0xFF14b8a6);
   static const Color teal600 = Color(0xFF0d9488);
@@ -61,10 +62,10 @@ class Tailwind {
   static const Color green600 = Color(0xFF16a34a);
   static const Color green700 = Color(0xFF15803d);
   
-  static const Color indigo400 = Color(0xFF818cf8);
+  static const Color indigo400 = Color(0xFF6683a8);
   
-  static const Color purple500 = Color(0xFFa855f7);
-  static const Color purple600 = Color(0xFF9333ea);
+  static const Color purple500 = Color(0xFF486b95);
+  static const Color purple600 = Color(0xFF203e65);
   
   static const Color red500 = Color(0xFFef4444);
   
@@ -127,8 +128,8 @@ class Tailwind {
   // Border Radius
   static BorderRadius roundedMd = BorderRadius.circular(6);
   static BorderRadius roundedLg = BorderRadius.circular(8);
-  static BorderRadius roundedXl = BorderRadius.circular(12);
-  static BorderRadius rounded2Xl = BorderRadius.circular(16);
-  static BorderRadius rounded3Xl = BorderRadius.circular(24);
+  static BorderRadius roundedXl = BorderRadius.circular(8);
+  static BorderRadius rounded2Xl = BorderRadius.circular(10);
+  static BorderRadius rounded3Xl = BorderRadius.circular(16);
   static BorderRadius roundedFull = BorderRadius.circular(9999);
 }

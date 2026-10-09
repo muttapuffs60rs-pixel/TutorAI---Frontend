@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../main.dart';
+import '../theme/tailwind_theme.dart';
 
 /// Compact account usage card. Monthly figures are tracking targets, not a wallet.
 class UsageMeter extends StatefulWidget {
@@ -79,7 +80,7 @@ class _UsageMeterState extends State<UsageMeter> {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: const Color(0xfff5f5f7), borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(color: Tailwind.indigo50, borderRadius: Tailwind.roundedXl),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Row(children: [Icon(Icons.speed_outlined, size: 20), SizedBox(width: 8),
             Expanded(child: Text('Token usage & credits', style: TextStyle(fontWeight: FontWeight.w600)))]),
@@ -109,12 +110,12 @@ class _UsageMeterState extends State<UsageMeter> {
     final remaining = target == null ? null : (target - used).clamp(0, target);
     final fraction = target == null || target == 0 ? null : (remaining! / target).clamp(0.0, 1.0);
     final percentage = fraction == null ? null : (fraction * 100).floor();
-    final color = fraction != null && fraction <= .2 ? Colors.orange.shade800 : Colors.indigo;
+    final color = fraction != null && fraction <= .2 ? Colors.orange.shade800 : Tailwind.indigo600;
     final end = DateTime.parse(data['period_end'] as String);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: const Color(0xfff5f5f7), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: Tailwind.indigo50, borderRadius: Tailwind.roundedXl),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [const Icon(Icons.speed_outlined, size: 21), const SizedBox(width: 8),
           const Expanded(child: Text('Token usage', style: TextStyle(fontWeight: FontWeight.w600))),

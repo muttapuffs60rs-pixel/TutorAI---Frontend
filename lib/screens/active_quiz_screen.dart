@@ -59,7 +59,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
         actions: [
           Center(
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+              style: ElevatedButton.styleFrom(backgroundColor: Tailwind.indigo600),
               onPressed: () {
                 Navigator.of(context).pop(); // Close Dialog
                 Navigator.of(context).pop(); // Go back to Setup Screen
@@ -103,7 +103,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
               decoration: BoxDecoration(
                 color: Tailwind.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                border: Border.all(color: Tailwind.indigo600.withOpacity(0.3)),
               ),
               child: Text(
                 currentQ['question'],
@@ -166,7 +166,7 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
                   : (_isAnswerChecked ? _nextQuestion : _checkAnswer),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: _isAnswerChecked ? Colors.purpleAccent : Colors.blueAccent,
+                backgroundColor: _isAnswerChecked ? Tailwind.indigo600 : Tailwind.indigo600,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
@@ -203,8 +203,8 @@ class _ActiveQuizScreenState extends State<ActiveQuizScreen> {
       }
     } else if (isSelected) {
       // Just selected, not checked yet
-      borderColor = Colors.blueAccent;
-      bgColor = Colors.blueAccent.withOpacity(0.1);
+      borderColor = Tailwind.indigo600;
+      bgColor = Tailwind.indigo600.withOpacity(0.1);
     }
 
     return Padding(

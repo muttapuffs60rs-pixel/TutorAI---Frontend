@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../constants.dart';
+import '../theme/tailwind_theme.dart';
 import '../main.dart'; // To access Supabase user
 import 'active_quiz_screen.dart';
 
@@ -133,7 +134,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.quiz, size: 80, color: Colors.blueAccent),
+            const Icon(Icons.quiz, size: 80, color: Tailwind.indigo600),
             const SizedBox(height: 16),
             const Text(
               'Test Your Knowledge',
@@ -182,9 +183,9 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF282A2C),
+                  color: Tailwind.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade800),
+                  border: Border.all(color: Tailwind.slate200),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,13 +226,13 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
 
             // DYNAMIC BUTTON / SPINNER
             if (_isLoading)
-              const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+              const Center(child: CircularProgressIndicator(color: Tailwind.indigo600))
             else
               ElevatedButton(
                 onPressed: gradeHasTextbooks(_selectedGrade) ? _startTest : null,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: Tailwind.indigo600,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('Start Test', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
@@ -251,15 +252,15 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF282A2C),
+            color: Tailwind.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade800),
+            border: Border.all(color: Tailwind.slate200),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<dynamic>(
               isExpanded: true,
               value: value,
-              dropdownColor: const Color(0xFF282A2C),
+              dropdownColor: Tailwind.white,
               icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
               items: items,
               onChanged: onChanged,
@@ -293,7 +294,7 @@ class _MultiSelectDialogState extends State<MultiSelectDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E1F20),
+      backgroundColor: Tailwind.white,
       title: const Text('Select Units'),
       content: SingleChildScrollView(
         child: ListBody(
@@ -301,7 +302,7 @@ class _MultiSelectDialogState extends State<MultiSelectDialog> {
             return CheckboxListTile(
               value: _selectedItems.contains(item),
               title: Text(item),
-              activeColor: Colors.blueAccent,
+              activeColor: Tailwind.indigo600,
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (bool? isChecked) {
                 setState(() {
@@ -322,7 +323,7 @@ class _MultiSelectDialogState extends State<MultiSelectDialog> {
           onPressed: () => Navigator.pop(context), 
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+          style: ElevatedButton.styleFrom(backgroundColor: Tailwind.indigo600),
           child: const Text('Confirm', style: TextStyle(color: Colors.white)),
           onPressed: () => Navigator.pop(context, _selectedItems), 
         ),

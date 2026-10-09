@@ -61,11 +61,28 @@ class AkkaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Arivora',
       debugShowCheckedModeBanner: false,
-      // LIGHT TAILWIND THEME
+      // MODERN ACADEMIC THEME
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Tailwind.slate50, 
         primaryColor: Tailwind.indigo600,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Tailwind.indigo600,
+          brightness: Brightness.light,
+        ).copyWith(primary: Tailwind.indigo600, onPrimary: Tailwind.white,
+          secondary: Tailwind.blue500, surface: Tailwind.white,
+          onSurface: Tailwind.slate800),
+        elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
+          backgroundColor: Tailwind.indigo600, foregroundColor: Tailwind.white,
+          elevation: 0, shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedLg))),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true, fillColor: Tailwind.white,
+          border: OutlineInputBorder(borderRadius: Tailwind.roundedLg),
+          enabledBorder: OutlineInputBorder(borderRadius: Tailwind.roundedLg,
+            borderSide: const BorderSide(color: Tailwind.slate200)),
+          focusedBorder: OutlineInputBorder(borderRadius: Tailwind.roundedLg,
+            borderSide: const BorderSide(color: Tailwind.indigo600, width: 2))),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(color: Tailwind.indigo600),
         appBarTheme: const AppBarTheme(
           backgroundColor: Tailwind.white, 
           elevation: 0,

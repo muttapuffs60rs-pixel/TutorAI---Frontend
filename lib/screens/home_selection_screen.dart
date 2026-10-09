@@ -17,7 +17,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
-    final String displayName = user?.userMetadata?['full_name'] ?? 
+    final String displayName = user?.userMetadata?['full_name'] ??
                                user?.userMetadata?['username'] ?? 'Student';
 
     return Scaffold(
@@ -43,17 +43,17 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
               Text(
                 "Hello, $displayName! 👋",
                 style: const TextStyle(
-                  color: Tailwind.slate800, 
-                  fontSize: 28, 
+                  color: Tailwind.slate800,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.5,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
-                "Enna panna poreenga iniku? Choose a learning mode to start.",
+                "Your study space. Choose a learning mode to begin.",
                 style: TextStyle(
-                  color: Tailwind.slate500, 
+                  color: Tailwind.slate500,
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
@@ -65,7 +65,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 title: "Tuition",
                 subtitle: "Explore Classes 6–12, ask Preethi about available textbooks, and review past chats.",
                 icon: Icons.school_rounded,
-                gradientColors: const [Color(0xFF4F46E5), Color(0xFF6366F1)], // Indigo Gradient
+                gradientColors: const [Tailwind.indigo600, Tailwind.indigo500], // Indigo Gradient
                 iconBgColor: Tailwind.indigo100,
                 iconColor: Tailwind.indigo600,
                 onTap: () {
@@ -76,14 +76,14 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              
+
               _MenuOptionCard(
                 title: "Quiz Game",
                 subtitle: "Join a live classroom quiz with a code or create your own custom quiz.",
                 icon: Icons.sports_esports_rounded,
-                gradientColors: const [Color(0xFF059669), Color(0xFF10B981)], // Emerald Gradient
-                iconBgColor: Color(0xFFECFDF5), // Emerald light
-                iconColor: Tailwind.emerald600,
+                gradientColors: const [Tailwind.indigo600, Tailwind.indigo500], // Emerald Gradient
+                iconBgColor: Tailwind.indigo50, // Emerald light
+                iconColor: Tailwind.indigo600,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -92,7 +92,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              
+
               _MenuOptionCard(
                 title: "Interactive Simulations",
                 subtitle: "Coming soon",
@@ -151,13 +151,10 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
             width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: widget.gradientColors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: Tailwind.white,
+              border: Border.all(color: _isHovered ? widget.gradientColors.first : Tailwind.slate200),
               borderRadius: Tailwind.rounded2Xl,
-              boxShadow: _isHovered ? Tailwind.shadowLg : Tailwind.shadowMd,
+              boxShadow: Tailwind.shadowSm,
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,13 +163,13 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: widget.iconBgColor,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
-                    widget.icon, 
-                    color: Colors.white, 
-                    size: 32
+                    widget.icon,
+                    color: widget.iconColor,
+                    size: 28
                   ),
                 ),
                 const SizedBox(width: 20),
@@ -183,8 +180,8 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
                       Text(
                         widget.title,
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
+                          color: Tailwind.slate800,
+                          fontSize: 20,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -192,7 +189,7 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
                       Text(
                         widget.subtitle,
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Tailwind.slate500,
                           fontSize: 13,
                           height: 1.4,
                         ),
@@ -203,7 +200,7 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
                 const SizedBox(width: 8),
                 Icon(
                   widget.onTap == null ? Icons.lock_outline_rounded : Icons.arrow_forward_ios_rounded,
-                  color: Colors.white70,
+                  color: Tailwind.slate500,
                   size: 20,
                 ),
               ],
@@ -214,4 +211,3 @@ class _MenuOptionCardState extends State<_MenuOptionCard> {
     );
   }
 }
-

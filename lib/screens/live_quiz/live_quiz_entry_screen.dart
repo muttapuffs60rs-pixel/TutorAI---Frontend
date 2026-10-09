@@ -30,7 +30,7 @@ class LiveQuizEntryScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                    colors: [Tailwind.indigo600, Tailwind.indigo500],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -65,8 +65,8 @@ class LiveQuizEntryScreen extends StatelessWidget {
                 icon: Icons.school_rounded,
                 title: "I'm a Teacher",
                 subtitle: "Create a quiz, invite students with a code",
-                color: const Color(0xFF4F46E5),
-                lightColor: const Color(0xFFEEF2FF),
+                color: Tailwind.indigo600,
+                lightColor: Tailwind.indigo50,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherCreateQuizScreen())),
               ),
               const SizedBox(height: 16),
