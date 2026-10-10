@@ -40,6 +40,7 @@ flutter:
 
   assets:
     - assets/images/learning_mascot.png
+    - assets/images/arivora_brand.jpg
     - assets/images/logo.png
     - assets/images/arivora_icon.png
 

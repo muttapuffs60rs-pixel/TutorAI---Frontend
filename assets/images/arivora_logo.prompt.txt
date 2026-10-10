@@ -1,0 +1,6 @@
+Launcher icon prepared from the supplied Arivora JPG using the built-in image editing tool.
+
+Prompt: Prepare an app launcher icon from this exact supplied logo. Remove the Arivora word below and all excess margins. Retain only the existing blue and coral-orange alpha-like symbol, preserving its exact shape, colors, overlap and proportions, without redesign. Center the complete symbol on a pure white square with 15% padding on each side so it is safe inside a circular launcher mask. No text, new elements, shadows or rounded-square outline.
+
+Full logo: arivora_brand.jpg (original supplied file)
+Launcher source: arivora_icon.png

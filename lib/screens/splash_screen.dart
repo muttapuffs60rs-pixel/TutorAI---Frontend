@@ -1,3 +1,4 @@
+import '../widgets/arivora_logo.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme/tailwind_theme.dart';
@@ -59,30 +60,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/arivora_icon.png',
-                  height: 160,
-                  width: 160,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
-                      Icons.blur_on_rounded,
-                      size: 72,
-                      color: Tailwind.indigo500,
-                    );
-                  },
-                ),
-                const SizedBox(height: 32),
-                // Company Name branding Typography
-                const Text(
-                  'Arivora',
-                  style: TextStyle(
-                    color: Tailwind.slate800,
-                    fontSize: 34,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.8,
-                  ),
-                ),
+                const ArivoraLogo(height: 260),
                 const SizedBox(height: 8),
                 const Text(
                   'Understand deeply.',

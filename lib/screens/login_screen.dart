@@ -1,3 +1,4 @@
+import '../widgets/arivora_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart'; 
@@ -91,11 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Image.asset(
-                  'assets/images/arivora_icon.png',
-                  height: 100,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, size: 80, color: Tailwind.indigo500),
-                ),
+                const ArivoraLogo(),
                 const SizedBox(height: 24),
                 const Text(
                   'Welcome to Arivora',
