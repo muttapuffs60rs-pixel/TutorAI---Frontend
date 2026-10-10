@@ -1,8 +1,8 @@
 name: tutor_preethi
-description: "A new Flutter project."
+description: "Arivora: textbook tutoring and live classroom quizzes."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.11.4

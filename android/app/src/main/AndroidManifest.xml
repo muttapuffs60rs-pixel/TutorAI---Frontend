@@ -4,11 +4,14 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+
     <application
         android:label="Arivora"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="false"
+        android:allowBackup="false">
         
         <activity
             android:name=".MainActivity"

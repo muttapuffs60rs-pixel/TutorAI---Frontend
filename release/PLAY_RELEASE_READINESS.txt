@@ -1,0 +1,78 @@
+ARIVORA GOOGLE PLAY RELEASE REVIEW
+Reviewed: 2026-10-10
+Status: NOT READY FOR SUBMISSION
+
+Implemented preparation
+- Release builds require android/key.properties and an upload keystore. No debug-key fallback.
+- Example signing configuration supplied; actual secrets and keystores remain ignored by Git.
+- Release version moved to 1.0.1 (version code 2). Confirm Play Console's last version code before upload.
+- Cleartext HTTP disabled in the main Android manifest.
+- Android backup disabled to avoid backing up local authentication/preferences.
+- Microphone marked optional so phones without it can still install the app.
+
+Verified on previous Arivora-logo-d499c2a.apk (not a newly signed Play bundle)
+- Package: com.auxiumsoft.arivora; target SDK 36; minimum SDK 24.
+- All arm64-v8a and x86_64 native ELF LOAD segments align to at least 16 KB.
+- Android zipalign -c -P 16 -v 4 passed.
+- Physical 16 KB device/emulator execution has NOT been tested.
+
+Required product and owner inputs
+1. Billing: keep paid plans with Google Play Billing, or launch without in-app purchases.
+   Current digital-plan purchase flow uses Razorpay. Do not submit it unchanged unless the
+   developer is eligible and enrolled in an applicable Play alternative-billing program.
+2. Public support email and legal developer/company name.
+3. Whether the package already exists in Play Console and whether an upload key exists.
+   Do not create a replacement key for an existing listing without checking its registered certificate.
+4. Target ages and countries. Classes 6-12 include children; a 13+ label alone does not resolve
+   the existing audience, imagery, and service-provider eligibility requirements.
+
+Functional release blockers
+- Publish an accurate privacy policy and make it available inside the app before signup.
+- Provide an in-app account-deletion request path and a public website deletion resource.
+  Deletion must cover chats, uploads, profile, quiz and usage records, and third-party retention.
+  An email request route is possible only with a working monitored contact and fulfillment process.
+- Add reporting for ALL AI-generated responses. Current reporting covers cached answers only.
+  Provide a moderation process and test restricted-content handling, including child safety.
+- Resolve billing and test purchase validation, pending payments, restore, refund/revocation,
+  and subscription cancellation if Play subscriptions will be sold.
+- Review third-party SDK and AI provider eligibility for the actual age groups.
+- Re-audit NFC and READ_BASIC_PHONE_STATE permissions introduced by payment dependencies.
+- Verify backend TLS: main.py currently disables Razorpay certificate verification.
+- Review uploaded-image access and storage retention before making privacy claims.
+
+Data safety inventory to verify (not a submitted declaration)
+- Account email, name/username, optional or required phone metadata, authentication identifiers.
+- Student questions, conversation history, uploaded homework images and generated answers.
+- Class/subject choices, live quiz participation, answers, scores and participant names.
+- Token/credit usage and payment/order records.
+- Voice input uses platform speech services that may process audio remotely; recognition text
+  enters chats only after review. Do not claim the whole recognition process is offline.
+- Services observed: Supabase, Render backend, DeepSeek, Google Gemini, Razorpay, platform speech.
+- Verify service-provider retention, sharing classifications, encryption and deletion before
+  completing Play Console. Do not state that no data is collected.
+
+Play Console tasks after code and operational blockers are resolved
+- Developer identity verification and package registration.
+- Play App Signing enrollment; safely back up upload key and passwords outside Git.
+- Signed Android App Bundle, not the debug-signed test APK.
+- Privacy URL, deletion URL, accurate Data safety and target-audience declarations.
+- Content rating, app-access instructions and a dedicated working reviewer account.
+- Store description, phone screenshots, 512px icon, 1024x500 feature graphic.
+- Internal testing, pre-launch report, device tests including voice denial and account deletion.
+- Complete any closed-testing/production-access requirements shown for this developer account.
+
+Build after signing is configured and feature blockers are resolved
+  flutter build appbundle --release
+  Output: build/app/outputs/bundle/release/app-release.aab
+  If local certificate trust is broken, repair the JDK trust configuration or use cached
+  dependencies with Gradle offline mode. Never disable certificate checks to make a release.
+
+Sources
+https://support.google.com/googleplay/android-developer/answer/11926878
+https://developer.android.com/guide/practices/page-sizes
+https://support.google.com/googleplay/android-developer/answer/9858738
+https://support.google.com/googleplay/android-developer/answer/13327111
+https://support.google.com/googleplay/android-developer/answer/13985936
+https://support.google.com/googleplay/android-developer/answer/9893335
+
+Google Play approval requires review; a successful build does not certify acceptance.
