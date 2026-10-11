@@ -91,7 +91,7 @@ class _BoardSelectionScreenState extends State<BoardSelectionScreen> {
                     const Padding(
                       padding: EdgeInsets.only(top: 16),
                       child: Text(
-                        'CBSE textbooks are coming soon. Tuition content is not available yet.',
+                        'English-medium NCERT textbooks for Classes 6–12.',
                       ),
                     ),
                   if (_error != null)

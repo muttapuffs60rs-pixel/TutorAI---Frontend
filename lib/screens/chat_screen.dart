@@ -34,10 +34,11 @@ class ChatMessage {
 }
 
 class ChatScreen extends StatefulWidget {
+  final String initialBoard;
   final String? initialSubject;
   final int? initialGradeLevel;
   final String? initialSessionId;
-  const ChatScreen({super.key, this.initialSubject, this.initialGradeLevel, this.initialSessionId});
+  const ChatScreen({super.key, this.initialBoard = "tn", this.initialSubject, this.initialGradeLevel, this.initialSessionId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -55,6 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final Set<String> _reportingAnswers = {};
   String? _pendingImageUrl; 
   
+  late String _selectedBoard;
   int _selectedGrade = 10;
   bool _gradeResolved = false;
   late String _selectedSubject;
@@ -67,6 +69,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedBoard = widget.initialBoard;
     _selectedGrade = widget.initialGradeLevel ?? 10;
     _gradeResolved = widget.initialGradeLevel != null;
     _selectedSubject = widget.initialSubject ?? 'Science'; 
@@ -172,6 +175,9 @@ class _ChatScreenState extends State<ChatScreen> {
       final newSession = await supabase.from('chat_sessions').insert({
         'user_id': user.id,
         'title': 'New Chat',
+        'board': _selectedBoard,
+        'grade_level': _selectedGrade,
+        'subject': _selectedSubject,
       }).select();
       if (!mounted) return;
       setState(() {
@@ -192,6 +198,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (user == null) return;
 
     try {
+      final curriculum = await supabase.from('chat_sessions').select('board,grade_level,subject').eq('id', sessionId).eq('user_id', user.id).single();
       final data = await supabase
           .from('chat_messages')
           .select()
@@ -199,6 +206,10 @@ class _ChatScreenState extends State<ChatScreen> {
           .order('created_at', ascending: true);
       if (!mounted) return;
       setState(() {
+        _selectedBoard = curriculum['board'] ?? 'tn';
+        _selectedGrade = curriculum['grade_level'] ?? 10;
+        _gradeResolved = true;
+        _selectedSubject = curriculum['subject'] ?? 'Science';
         _currentSessionId = sessionId;
         _serverSessionLimitReached = false;
         messages = List<ChatMessage>.from(
@@ -433,6 +444,7 @@ class _ChatScreenState extends State<ChatScreen> {
         'image_url': finalImageUrl,
         'grade_level': _selectedGrade,
         'subject': _selectedSubject,
+        'board': _selectedBoard,
         'history': historyPayload, 
       };
       final streamedResponse = await sendChatWithRetry(client: client,
@@ -576,7 +588,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 boxShadow: Tailwind.shadowSm,
               ),
               child: GestureDetector(
-                onTap: _showSubjectPicker,
+                onTap: _gradeResolved ? _showSubjectPicker : null,
                 child: Row(
                   children: [
                     Container(
@@ -589,8 +601,8 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Class $_selectedGrade', style: const TextStyle(color: Tailwind.slate500, fontSize: 12, fontWeight: FontWeight.bold)),
-                          Text(_selectedSubject, style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(_gradeResolved ? '${_selectedBoard == 'cbse' ? 'CBSE' : 'State Board'} · Class $_selectedGrade' : 'Loading conversation…', style: const TextStyle(color: Tailwind.slate500, fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text(_gradeResolved ? _selectedSubject : '', style: const TextStyle(color: Tailwind.slate800, fontSize: 16, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
@@ -622,6 +634,7 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context) {
         return SubjectPickerSheet(
           initialGrade: _selectedGrade,
+          board: _selectedBoard,
           onSubjectSelected: (grade, subject) {
             setState(() {
               _selectedGrade = grade;

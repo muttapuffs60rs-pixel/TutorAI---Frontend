@@ -47,7 +47,7 @@ void main() {
     expect(attempts, 2);
   });
 
-  testWidgets('Change board preselects saved value and warns about CBSE', (
+  testWidgets('Change board preselects saved value and explains CBSE medium', (
     tester,
   ) async {
     String? saved;
@@ -64,7 +64,7 @@ void main() {
     );
     expect(find.text('CBSE'), findsOneWidget);
     expect(
-      find.textContaining('CBSE textbooks are coming soon'),
+      find.textContaining('English-medium NCERT textbooks'),
       findsOneWidget,
     );
     await tester.tap(find.text('Continue to Home'));

@@ -120,3 +120,106 @@ List<Map<String, dynamic>> subjectsForGrade(int grade) {
   if (grade == 11) return List.of(class11Subjects);
   return [];
 }
+
+// NCERT English-medium subjects, kept separate from the State Board catalogue.
+const cbseSubjects = <int, List<String>>{
+  6: [
+    "Arts",
+    "English",
+    "Mathematics",
+    "Physical Education and Well Being",
+    "Science",
+    "Social Science",
+    "Vocational Education",
+  ],
+  7: [
+    "Arts",
+    "English",
+    "Mathematics",
+    "Physical Education and Well Being",
+    "Science",
+    "Social Science",
+    "Vocational Education",
+  ],
+  8: [
+    "Arts",
+    "English",
+    "Mathematics",
+    "Physical Education and Well Being",
+    "Science",
+    "Social Science",
+    "Vocational Education",
+  ],
+  9: [
+    "Arts",
+    "English",
+    "Mathematics",
+    "Physical Education and Well Being",
+    "Science",
+    "Skill Education",
+    "Social Science",
+  ],
+  10: [
+    "English",
+    "Health and Physical Education",
+    "Mathematics",
+    "Science",
+    "Social Science",
+  ],
+  11: [
+    "Accountancy",
+    "Biology",
+    "Biotechnology",
+    "Business Studies",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "Fine Art",
+    "Geography",
+    "Health and Physical Education",
+    "History",
+    "Home Science",
+    "Informatics Practices",
+    "Knowledge Traditions Practices of India",
+    "Mathematics",
+    "Physics",
+    "Political Science",
+    "Psychology",
+    "Sociology",
+  ],
+  12: [
+    "Accountancy",
+    "Biology",
+    "Biotechnology",
+    "Business Studies",
+    "Chemistry",
+    "Computer Science",
+    "Economics",
+    "English",
+    "Fine Art",
+    "Geography",
+    "History",
+    "Home Science",
+    "Informatics Practices",
+    "Mathematics",
+    "Physics",
+    "Political Science",
+    "Psychology",
+    "Sociology",
+  ],
+};
+
+List<Map<String, dynamic>> subjectsForBoard(String board, int grade) {
+  if (board == "tn") return subjectsForGrade(grade);
+  if (board != "cbse") return [];
+  return (cbseSubjects[grade] ?? [])
+      .map(
+        (name) => <String, dynamic>{
+          "name": name,
+          "icon": Icons.menu_book_outlined,
+          "color": Colors.indigo,
+        },
+      )
+      .toList();
+}

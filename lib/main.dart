@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Screens
 import 'screens/login_screen.dart';
-import 'screens/chat_screen.dart';
 import 'screens/change_password_screen.dart'; 
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
 import 'screens/live_quiz/live_quiz_entry_screen.dart';
@@ -98,7 +97,7 @@ class AkkaApp extends StatelessWidget {
       home: const SplashScreen(),
       routes: {
         '/login': (context) => const LoginScreen(),
-        '/chat': (context) => const ChatScreen(),
+        '/chat': (context) => const HomeSelectionScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),
         '/live-quiz': (context) => StreamBuilder<AuthState>(
           stream: supabase.auth.onAuthStateChange,

@@ -76,10 +76,9 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> activeList =
-        _selectedBoard != 'tn' || _selectedGrade == null
+    List<Map<String, dynamic>> activeList = _selectedGrade == null
         ? []
-        : subjectsForGrade(_selectedGrade!);
+        : subjectsForBoard(widget.board, _selectedGrade!);
     if (_searchQuery.isNotEmpty) {
       activeList = activeList
           .where(
@@ -181,7 +180,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                 ),
                 child: TextField(
                   controller: _searchController,
-                  enabled: _selectedBoard == 'tn' && _selectedGrade != null,
+                  enabled: _selectedGrade != null,
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: const InputDecoration(
                     hintText: "Search subjects...",
@@ -207,9 +206,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                     : activeList.isEmpty
                     ? Center(
                         child: Text(
-                          _selectedBoard == 'cbse'
-                              ? "CBSE textbooks coming soon"
-                              : gradeHasTextbooks(_selectedGrade!)
+                          gradeHasTextbooks(_selectedGrade!)
                               ? "No subjects found"
                               : "Textbooks coming soon",
                           style: TextStyle(color: Tailwind.slate500),
@@ -238,6 +235,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                                       MaterialPageRoute(
                                         builder: (context) => ChatScreen(
                                           initialSubject: subject['name'],
+                                          initialBoard: widget.board,
                                           initialGradeLevel: _selectedGrade,
                                         ),
                                       ),
