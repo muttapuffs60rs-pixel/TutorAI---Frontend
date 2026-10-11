@@ -33,15 +33,15 @@ void main() {
   });
   testWidgets('Paid meter deducts saved-answer credits despite zero API tokens', (tester) async {
     await show(tester, () async => {...usage(used: 0), 'monthly_credits_used': 3000});
-    expect(find.text('3000 / 1000000 learning credits used'), findsOneWidget);
-    expect(find.text('99% left'), findsOneWidget);
+    expect(find.text('0.3% used'), findsOneWidget);
+    expect(find.text('99.7% left'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
   testWidgets('Trial shows lifetime allowance without monthly reset', (tester) async {
     await show(tester, () async => {...usage(used: 10000),
       'token_target': 50000, 'token_period': 'lifetime'});
     expect(find.text('80% left'), findsOneWidget);
-    expect(find.textContaining('no monthly reset'), findsOneWidget);
+    expect(find.textContaining('No monthly reset'), findsOneWidget);
     expect(find.textContaining('New period:'), findsNothing);
     await tester.pumpWidget(const SizedBox());
   });
@@ -50,9 +50,12 @@ void main() {
       'daily_remaining': 3000, 'welcome_remaining': 46000,
       'active': false, 'completion_overrun': 0,
     }});
-    expect(find.text('Token usage & credits'), findsOneWidget);
-    expect(find.text('20% of daily credits left'), findsOneWidget);
-    expect(find.text('46000 welcome credits remaining'), findsOneWidget);
+    expect(find.text('Token usage'), findsOneWidget);
+    expect(find.text('20% left today'), findsOneWidget);
+    expect(find.text('80% used today'), findsOneWidget);
+    expect(find.textContaining('3000 /'), findsNothing);
+    expect(find.textContaining('46000'), findsNothing);
+    expect(find.text('Welcome allowance: 92% left'), findsOneWidget);
     expect(find.textContaining('Saved answer:'), findsNothing);
     expect(find.textContaining('tracking only'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -62,7 +65,7 @@ void main() {
     await show(tester, () async => usage(target: null));
     expect(find.text('Tracking'), findsOneWidget);
     expect(find.textContaining('questions left'), findsNothing);
-    expect(find.text('610000 tokens used'), findsOneWidget);
+    expect(find.text('Percentage unavailable without an allowance.'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
   testWidgets('Failure is unavailable, retry recovers without fake zero', (tester) async {
