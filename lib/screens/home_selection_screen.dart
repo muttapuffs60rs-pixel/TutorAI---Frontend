@@ -1,3 +1,5 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'board_selection_screen.dart';
 import 'student_tutorial.dart';
 import 'package:flutter/material.dart';
 import '../main.dart';
@@ -24,7 +26,9 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
 
   Future<void> _introduce() async {
     final userId = supabase.auth.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null ||
+        savedBoard(supabase.auth.currentUser?.userMetadata) == null)
+      return;
     try {
       final needed = await StudentTutorial.needsIntroduction(userId);
       if (!mounted || !needed || supabase.auth.currentUser?.id != userId)
@@ -37,6 +41,19 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final board = savedBoard(supabase.auth.currentUser?.userMetadata);
+    if (board == null) {
+      return BoardSelectionScreen(
+        onSave: (value) async {
+          await supabase.auth.updateUser(
+            UserAttributes(data: {'education_board': value}),
+          );
+          if (!mounted) return;
+          setState(() {});
+          await _introduce();
+        },
+      );
+    }
     if (_showIntroduction) {
       return Scaffold(
         body: StudentTutorial(
@@ -98,7 +115,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () =>
-                                    open(const SubjectSelectionScreen()),
+                                    open(SubjectSelectionScreen(board: board)),
                                 child: const Text('Start learning'),
                               ),
                             ],
@@ -147,7 +164,8 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                             subtitle: 'Ask, understand, explore',
                             icon: Icons.auto_stories_outlined,
                             color: Tailwind.pastels[0],
-                            onTap: () => open(const SubjectSelectionScreen()),
+                            onTap: () =>
+                                open(SubjectSelectionScreen(board: board)),
                           ),
                           _LearningCard(
                             width: width,

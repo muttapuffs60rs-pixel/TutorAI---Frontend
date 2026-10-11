@@ -38,7 +38,7 @@ class _StudentTutorialState extends State<StudentTutorial> {
     ),
     (
       'Find your subject',
-      'On Home, tap Start learning or Tuition. Select your board first, then your class, then a subject. Use Search subjects to find one quickly.',
+      'Tap Tuition on Home, then choose your class and subject. Your board is saved. To switch boards, use Change board in the menu.',
       Icons.auto_stories_outlined,
     ),
     (

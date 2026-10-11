@@ -1,3 +1,6 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../screens/board_selection_screen.dart';
+import '../screens/home_selection_screen.dart';
 import '../screens/student_tutorial.dart';
 import 'package:flutter/material.dart';
 import '../main.dart'; 
@@ -169,6 +172,24 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                 ),
                 
+                ListTile(
+                  leading: const Icon(Icons.school_outlined),
+                  title: const Text('Change board'),
+                  subtitle: Text(boardNames[savedBoard(user?.userMetadata)] ?? 'Select your board'),
+                  onTap: () {
+                    final navigator = Navigator.of(context);
+                    navigator.pop();
+                    navigator.push(MaterialPageRoute(builder: (_) => BoardSelectionScreen(
+                      changing: true,
+                      initialBoard: savedBoard(user?.userMetadata),
+                      onSave: (board) async {
+                        await supabase.auth.updateUser(UserAttributes(data: {'education_board': board}));
+                        if (!navigator.mounted) return;
+                        navigator.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const HomeSelectionScreen()), (route) => false);
+                      },
+                    )));
+                  },
+                ),
                 const UsageMeter(),
                 ListTile(
                   leading: Icon(

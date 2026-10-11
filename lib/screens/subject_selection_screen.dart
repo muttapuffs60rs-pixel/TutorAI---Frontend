@@ -1,3 +1,4 @@
+import 'board_selection_screen.dart';
 import 'package:flutter/material.dart';
 import '../widgets/learning_mascot.dart';
 import '../main.dart';
@@ -6,14 +7,15 @@ import '../constants.dart';
 import 'chat_screen.dart';
 
 class SubjectSelectionScreen extends StatefulWidget {
-  const SubjectSelectionScreen({super.key});
+  final String board;
+  const SubjectSelectionScreen({super.key, required this.board});
 
   @override
   State<SubjectSelectionScreen> createState() => _SubjectSelectionScreenState();
 }
 
 class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
-  String? _selectedBoard;
+  String get _selectedBoard => widget.board;
   int? _selectedGrade;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -114,27 +116,9 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DropdownButtonFormField<String>(
-                initialValue: _selectedBoard,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Board'),
-                hint: const Text('Select board'),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'tn',
-                    child: Text('Tamil Nadu State Board'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'cbse',
-                    child: Text('CBSE (content coming soon)'),
-                  ),
-                ],
-                onChanged: (board) => setState(() {
-                  _selectedBoard = board;
-                  _selectedGrade = null;
-                  _searchController.clear();
-                  _searchQuery = '';
-                }),
+              Text(
+                boardNames[widget.board] ?? 'Board',
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
@@ -151,13 +135,11 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                       ),
                     )
                     .toList(),
-                onChanged: _selectedBoard == null
-                    ? null
-                    : (grade) => setState(() {
-                        _selectedGrade = grade;
-                        _searchController.clear();
-                        _searchQuery = '';
-                      }),
+                onChanged: (grade) => setState(() {
+                  _selectedGrade = grade;
+                  _searchController.clear();
+                  _searchQuery = '';
+                }),
               ),
               if (_selectedBoard == 'tn' &&
                   _selectedGrade != null &&
@@ -212,12 +194,10 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
 
               // Subject Grid
               Expanded(
-                child: _selectedBoard == null || _selectedGrade == null
+                child: _selectedGrade == null
                     ? Center(
                         child: Text(
-                          _selectedBoard == null
-                              ? "Select board first"
-                              : "Select class first",
+                          "Select class first",
                           style: const TextStyle(
                             color: Tailwind.slate600,
                             fontSize: 18,
