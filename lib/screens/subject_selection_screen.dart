@@ -221,7 +221,7 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                               : 5,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
-                          mainAxisExtent: 170,
+                          mainAxisExtent: 120,
                         ),
                         itemCount: activeList.length,
                         itemBuilder: (context, index) {
@@ -254,14 +254,14 @@ class _SubjectSelectionScreenState extends State<SubjectSelectionScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(12),
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: subject['color'].withOpacity(0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       subject['icon'],
-                                      size: 28,
+                                      size: 24,
                                       color: subject['color'],
                                     ),
                                   ),
