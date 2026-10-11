@@ -2,7 +2,7 @@ name: tutor_preethi
 description: "Arivora: textbook tutoring and live classroom quizzes."
 publish_to: 'none'
 
-version: 1.0.1+2
+version: 1.0.2+4
 
 environment:
   sdk: ^3.11.4

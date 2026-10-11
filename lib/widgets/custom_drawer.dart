@@ -172,7 +172,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                 ),
                 
-                ListTile(
+                _menuAction(
                   leading: const Icon(Icons.school_outlined),
                   title: const Text('Change board'),
                   subtitle: Text(boardNames[savedBoard(user?.userMetadata)] ?? 'Select your board'),
@@ -233,7 +233,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 const Divider(color: Tailwind.slate200),
 
                 if (_subscriptionTier == 'admin')
-                  ListTile(
+                  _menuAction(
                     leading: const Icon(Icons.fact_check_outlined),
                     title: const Text('Answer library'),
                     onTap: () {
@@ -242,7 +242,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       navigator.push(MaterialPageRoute(builder: (_) => const AnswerLibraryScreen()));
                     },
                   ),
-                ListTile(
+                _menuAction(
                   leading: const Icon(Icons.upgrade, color: Tailwind.emerald500),
                   title: const Text('Upgrade Plan', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w600)),
                   trailing: Container(
@@ -265,27 +265,30 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   },
                 ),
 
-                ListTile(
+                _menuAction(
                   leading: const Icon(Icons.help_outline, color: Tailwind.indigo600),
                   title: const Text('Student tutorial'),
+                  subtitle: const Text('Take a quick tour'),
                   onTap: () {
                     final navigator = Navigator.of(context);
                     navigator.pop();
                     StudentTutorial.show(navigator.context);
                   },
                 ),
-                ListTile(
+                _menuAction(
                 leading: const Icon(Icons.lock_reset, color: Tailwind.slate500),
                 title: const Text('Change Password', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w500)),
+                subtitle: const Text('Update your account password'),
                 onTap: () {
                   Navigator.pop(context); // Close drawer
                   Navigator.pushNamed(context, '/change-password'); // Push screen
                   },
                 ),
 
-                ListTile(
+                _menuAction(
                   leading: const Icon(Icons.gamepad_rounded, color: Tailwind.indigo500),
-                  title: const Text('Live Quiz 🎮', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+                  title: const Text('Live classroom', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Join or host a live quiz'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.pushNamed(context, '/live-quiz');
@@ -313,7 +316,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     child: Text("No history yet.", style: TextStyle(color: Tailwind.slate400, fontSize: 14)),
                   )
                 else
-                  ..._sessions.map((session) => ListTile(
+                  ..._sessions.map((session) => _menuAction(
                     leading: const Icon(Icons.chat_bubble_outline, color: Tailwind.slate400, size: 20),
                     title: Text(
                       session['title'] ?? 'New Chat',
@@ -322,6 +325,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: IconButton(
+                      tooltip: 'Delete chat',
                       icon: const Icon(Icons.delete_outline, color: Tailwind.rose400, size: 20),
                       onPressed: () => _confirmDeleteSession(context, session['id']),
                     ),
@@ -344,7 +348,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ),
 
           const Divider(color: Tailwind.slate200),
-          ListTile(
+          _menuAction(
             leading: const Icon(Icons.logout, color: Tailwind.rose500),
             title: const Text('Log Out', style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.w600)),
             onTap: () {
@@ -381,6 +385,51 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ),
           const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  Widget _menuAction({
+    required Widget leading,
+    required Widget title,
+    Widget? subtitle,
+    Widget? trailing,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Material(
+        color: Tailwind.slate50,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Tailwind.slate200),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          onTap: onTap,
+          mouseCursor: SystemMouseCursors.click,
+          hoverColor: Tailwind.indigo100,
+          focusColor: Tailwind.indigo100,
+          splashColor: Tailwind.indigo100,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          leading: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Tailwind.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(child: leading),
+          ),
+          title: title,
+          subtitle: subtitle,
+          titleTextStyle: const TextStyle(color: Tailwind.slate800, fontSize: 14, fontWeight: FontWeight.w600),
+          subtitleTextStyle: const TextStyle(color: Tailwind.slate500, fontSize: 12),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (trailing != null) trailing,
+            const Icon(Icons.chevron_right_rounded, color: Tailwind.indigo600, size: 20),
+          ]),
+        ),
       ),
     );
   }
