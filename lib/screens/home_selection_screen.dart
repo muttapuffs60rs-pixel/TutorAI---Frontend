@@ -85,6 +85,48 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Tailwind.pastels[0],
+                      borderRadius: Tailwind.roundedXl,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Your board', style: TextStyle(color: Tailwind.slate600)),
+                        const SizedBox(height: 4),
+                        Text(
+                          boardNames[board]!,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Tailwind.slate800),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text('Choose the board you study to see the right subjects.'),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.swap_horiz),
+                          label: const Text('Change board'),
+                          onPressed: () {
+                            final navigator = Navigator.of(context);
+                            open(BoardSelectionScreen(
+                              changing: true,
+                              initialBoard: board,
+                              onSave: (value) async {
+                                await supabase.auth.updateUser(
+                                  UserAttributes(data: {'education_board': value}),
+                                );
+                                if (!mounted || !navigator.mounted) return;
+                                setState(() {});
+                                navigator.pop();
+                              },
+                            ));
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Tailwind.pastels[1],

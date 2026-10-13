@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
 
   # UI and Icons
-  speech_to_text: ^7.4.0
   shared_preferences: ^2.5.5
   cupertino_icons: ^1.0.8
   flutter_markdown: ^0.7.5
@@ -46,7 +45,8 @@ flutter:
 
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
+  remove_alpha_ios: true
   web:
     generate: true
     image_path: "assets/images/arivora_icon.png"

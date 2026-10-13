@@ -1,0 +1,34 @@
+Arivora iOS build
+
+Bundle identifier: com.auxiumsoft.arivora
+Flutter SDK: 3.41.6 (matches the current development environment)
+
+On a Mac with Xcode, its command-line tools and CocoaPods installed:
+  flutter pub get
+  flutter test --no-pub
+  flutter build ios --release --no-codesign
+
+The output is build/ios/iphoneos/Runner.app. This is an unsigned device
+application bundle, not an installable IPA or a TestFlight release.
+
+The manually triggered GitHub Actions workflow "iOS unsigned build" performs
+these steps on macOS and saves Arivora-ios-unsigned.zip as a build artifact.
+It does not publish to the App Store or require signing credentials.
+GitHub-hosted macOS runner availability and usage charges depend on the account.
+
+For local simulator testing on a Mac:
+  flutter build ios --simulator --debug
+Use a simulator supported by the installed native plugins. The unsigned device
+artifact cannot run in Simulator; build the simulator target separately.
+
+For installation on an iPhone, open ios/Runner.xcworkspace in Xcode and configure
+the appropriate development signing team and provisioning. Personal-device
+development signing may be possible with a personal Apple ID, subject to Apple
+limitations. TestFlight/App Store distribution requires Developer Program
+membership, App Store Connect setup and distribution signing.
+
+Before release: test speech recognition (Tamil and English), denied permissions,
+photo selection/cropping, authentication, board selection, chat and live classroom
+on iPhone; audit payment routing, privacy declarations, account deletion and
+policies. Existing Razorpay integration is not evidence of App Store payment
+compliance. No iOS binary has been validated until the macOS build succeeds.

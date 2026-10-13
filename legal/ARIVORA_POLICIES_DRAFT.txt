@@ -1,0 +1,153 @@
+ARIVORA — TERMS AND CONDITIONS, CANCELLATION POLICY AND REFUND POLICY
+Version: Draft 1 — prepared 11 October 2026
+Status: For business and legal review. Not yet effective or published in the app.
+
+OWNER DECISIONS REQUIRED BEFORE PUBLICATION
+Owner confirmed: Auxiumsoft; application name Arivora; contact arivora_support@auxiumsoft.com; no voluntary refunds, with access through the purchased validity period. Replace remaining bracketed fields and confirm operational response times. Application name confirmed as Arivora. Support email confirmed as arivora_support@auxiumsoft.com. Confirm that payment, account deletion, parental consent and complaint processes actually support the final wording. Obtain Indian legal review before adoption, particularly because the service is used by children.
+
+Operator: Auxiumsoft [confirm full registered legal name and legal form]
+Trading name: Arivora
+Business address: 36/59, Sree Rangan Street Number 4, Dhadhagapatti, Salem 636006, Tamil Nadu, India
+Customer support: arivora_support@auxiumsoft.com | [Support telephone]
+Grievance contact: Dineshraj S
+Grievance correspondence address: 36/59, Sree Rangan Street Number 4, Dhadhagapatti, Salem 636006, Tamil Nadu, India
+Grievance email: arivora_support@auxiumsoft.com (address correspondence to Dineshraj S)
+Grievance telephone: [Contact telephone]
+Effective date: [Date of publication]
+Privacy Policy: [Public URL]
+Account deletion instructions: [Public URL or working in-app path]
+
+============================================================
+1. TERMS AND CONDITIONS
+============================================================
+
+1.1 About these terms
+These terms govern your use of the Arivora mobile application, website and related learning services provided by the operator identified above ("Arivora", "we", "us"). Please read them together with our Privacy Policy, Cancellation Policy, Refund Policy and the specific information shown before a purchase. Mandatory consumer rights remain available regardless of these terms. If a purchase description gives you a more favourable express benefit, we will honour it.
+
+1.2 Students and parent or guardian involvement
+Arivora supports school learning. If you are under 18, a parent or legal guardian must review and accept these terms on your behalf and authorise purchases. You should use the service with their knowledge and appropriate supervision. An adult purchasing for a child confirms that they have authority to do so. Teachers and schools must obtain any permissions required for student participation; a teacher's invitation does not automatically substitute for legally required parental consent. Acceptance of these terms is separate from any consent required to process personal data.
+
+1.3 Account information and security
+Provide accurate account information and keep your login credentials secure. Do not impersonate another person, sell access or share an account in a way that defeats plan limits. Notify support promptly if you suspect unauthorised access. We will investigate reported problems; you are not automatically liable for every action on a compromised account. Never send support your password, OTP, UPI PIN or complete payment-card details.
+
+1.4 Nature of the learning service
+Features may include AI-assisted tuition, textbook-grounded explanations, voice-to-text entry, image-based questions and live classroom quizzes. Availability depends on the app version, plan, supported curriculum and device. A feature labelled "coming soon" is not included as an available paid benefit unless expressly stated at checkout. Arivora is a learning aid and does not award recognised qualifications or guarantee marks, admission, examination results or academic improvement.
+
+1.5 Curriculum selection and AI limitations
+Select the correct board, class and subject before asking a question. Arivora may retrieve relevant educational material to support an explanation and apply concepts to unfamiliar questions. Coverage can be incomplete, and AI responses, quotations, calculations, translations and source references can contain errors. Check important answers against your prescribed textbook or teacher, especially before using them in assessed work. Report incorrect or mismatched answers to support. An AI limitation does not remove your rights where a paid service is defective, materially misdescribed or not supplied.
+
+1.6 Board and publisher independence
+References to CBSE, NCERT, Tamil Nadu State Board or other curriculum providers describe educational coverage. They do not imply affiliation, approval, sponsorship or endorsement unless we expressly provide evidence of that relationship. Textbooks, names, logos and other third-party materials remain subject to their owners' rights. Access through Arivora does not grant ownership or unrestricted republication rights.
+
+1.7 Acceptable use and live classrooms
+Use Arivora for lawful learning purposes. Do not harass others, upload abusive or unlawful material, expose another person's personal information, infringe intellectual property, bypass usage limits, interfere with systems or attempt unauthorised access. Do not use the service to violate examination or school assessment rules. Keep classroom joining codes private. Hosts must act fairly and responsibly and must not imply that they represent Arivora unless authorised. Report unsafe behaviour to support.
+
+1.8 Your questions, images and voice input
+Only submit material you own or are permitted to use. Avoid uploading identity documents, financial information, private records or images identifying other students unnecessarily. You retain any rights you hold in your submissions. You permit us and the service providers described in our Privacy Policy to process that material as necessary to provide, secure and support the requested service. This is not an unrestricted licence to sell or publicly publish your content. Microphone and image permissions are optional for those features; review a voice transcription before submitting it. Recording, retention, sharing and other data practices are governed by the separate Privacy Policy, not inferred from these terms.
+
+1.9 Plans, payments and activation
+The purchase screen must show the total price, applicable taxes, included benefits, usage allowance, duration, activation basis and renewal terms before payment. Current fixed-duration paid plans run for 30 days from activation following successful payment verification, unless a specific offer states otherwise. Do not assume "monthly" means a calendar month. A pending or failed payment is not proof of activation. Contact support if you are charged without receiving access. Do not make repeated payments while a payment issue is being investigated.
+
+1.10 Renewal and changes of plan
+A one-time 30-day purchase does not automatically renew. Recurring billing will apply only where explicitly offered and separately authorised at checkout. Any recurring offer must explain its price, billing frequency and cancellation method before authorisation. An upgrade or repeat purchase must disclose whether it replaces or extends existing access and what happens to unused benefits; do not assume that time or allowances stack. Future price changes will not retrospectively change the agreed price of a completed fixed-duration purchase.
+
+1.11 Usage allowances and token percentages
+Learning credits or tokens are internal units for measuring use of Arivora, not money, a deposit or a transferable financial asset. A remaining-use percentage relates to the allowance identified beside that meter; different daily, plan and top-up allowances can have separate expiry or reset rules. The allowance is not a promise of a fixed number of questions. Consumption can vary with the length and type of request and response. Purchased limits and material charging rules must be explained before purchase. We will investigate incorrect deductions and restore usage where an error is confirmed. A displayed percentage may be rounded or briefly delayed.
+
+Daily free allowances reset as disclosed and do not accumulate unless an offer expressly says otherwise. Paid allowances and top-ups expire on the date disclosed for that purchase. Promotional or test allowances follow their stated expiry. Credits are not transferable or redeemable for cash, except where a refund is due under our policy or applicable law. A technical correction may adjust an erroneous balance, with an explanation on request. Material changes will not be used to remove benefits already promised for an active paid period.
+
+1.12 Availability, suspension and closure
+We aim to provide reliable access, but maintenance, connectivity problems and third-party failures can interrupt service. We may restrict an account where reasonably necessary to address security, unlawful conduct or a material breach. Where appropriate, we will explain the reason and allow the user or guardian to respond. Urgent protective action may occur first. Contact support to challenge a restriction. Suspension does not automatically forfeit every payment or remove refund rights. If we permanently withdraw a paid service before its agreed end, we will provide an appropriate remedy under the Refund Policy.
+
+1.13 Ending use and deleting an account
+You may stop using Arivora at any time. Account deletion, cancellation of future billing and a refund request are different actions; use the relevant instructions or contact support for help. Uninstalling the app does not by itself cancel a separately authorised recurring subscription. Data deletion and any legally required retention are explained in the Privacy Policy. Account deletion does not waive an existing complaint or a refund entitlement.
+
+1.14 Responsibility and legal rights
+You are responsible for using learning outputs thoughtfully and following your school's rules. We remain responsible for obligations imposed on us by law and our express purchase commitments. Nothing in these terms excludes liability that cannot lawfully be excluded, including applicable liability for fraud, wilful misconduct or deficient services. No blanket "no refunds" rule overrides your statutory remedies.
+
+1.15 Changes, complaints and applicable law
+We will date updated terms and provide reasonable notice of material changes. Changes apply prospectively and do not remove accrued rights. Where fresh consent is required, we will request it. Indian law governs these terms, subject to any mandatory protections applicable to you. You may approach a competent consumer commission, court or other authority; these terms do not require you to surrender those rights or use exclusive private arbitration. Contact the support team or grievance officer listed above. We will acknowledge consumer complaints within 48 hours and seek to redress them within one month of receipt, as applicable, or within any shorter legally required period.
+
+============================================================
+2. CANCELLATION POLICY
+============================================================
+
+2.1 Fixed-duration plans
+A one-time plan remains available until its displayed expiry and does not create a further charge automatically. You can choose not to purchase another plan. Stopping use before expiry does not itself create a refund; see the separate Refund Policy for eligibility. If you want access ended immediately, contact support and state whether you also want a refund or account deletion.
+
+2.2 Recurring subscriptions, if offered
+Cancel through the subscription-management facility of the channel through which you subscribed, or the cancellation method identified in your receipt. For a Google Play-billed subscription, use Google Play > Payments & subscriptions > Subscriptions > Arivora > Cancel subscription. Cancellation normally prevents the next renewal while allowing access through the already-paid period, unless a refund or other termination changes that entitlement. Follow the timing shown by the billing provider before the next renewal. Contact us if the cancellation control is unavailable. We will not require unrelated purchases or unnecessary steps to cancel.
+
+2.3 Top-ups and promotional allowances
+One-time top-ups do not create recurring charges. Cancelling a paid plan does not automatically cancel a separately purchased top-up; each follows its disclosed validity. Free promotional balances have no cash refund value. Paid top-up refunds are governed by the Refund Policy.
+
+2.4 Uninstalling or deleting
+Uninstalling, logging out or ceasing use does not cancel recurring billing. When requesting account deletion, also identify any active recurring purchase so cancellation can be handled through the correct provider. Existing refund claims remain available after deletion, subject to reasonable verification.
+
+2.5 Cancellation assistance
+Send your registered email, purchase channel and order reference to support. State whether you want to stop renewal, end access immediately or request deletion. We will confirm the action and relevant access end date. We do not charge a separate cancellation fee under this policy. Refund eligibility is assessed separately.
+
+============================================================
+3. REFUND POLICY
+============================================================
+
+3.1 Scope and statutory protection
+This policy covers purchases made directly from Arivora and explains how to obtain help with app-store purchases. Mandatory consumer rights and more favourable applicable store rules take priority. Our no-voluntary-refund policy does not restrict claims for duplicate charges, non-delivery, defects, misdescription or other remedies available by law.
+
+3.2 Purchases are final; access continues until expiry
+Once a payment is successfully completed and the purchased service is made available as described, the purchase is final. We do not offer voluntary refunds for a change of mind, accidental selection of the wrong plan, choosing not to use the service, unused time or unused learning allowances. You may continue using the purchased benefits until the disclosed expiry, subject to the purchased usage limits and these terms. Cancellation or stopping use does not create a refund or extend validity. This rule is subject to the payment-error, service-failure and statutory exceptions below, and any applicable store rules. It does not excuse us from delivering the service purchased.
+
+3.3 Payment and delivery problems
+We will investigate duplicate charges, payment collected without activation, incorrect charges and purchases materially different from the description. A confirmed duplicate charge will be refunded. For access not delivered, we will offer prompt activation with the purchased duration preserved or an appropriate refund. Do not pay again merely because confirmation is delayed. Failed-payment reversals may be initiated by the bank or processor; we will help trace the transaction rather than treat the failed payment as a completed purchase.
+
+3.4 Defects and service interruption
+If a material technical problem prevents use of a purchased service and cannot be corrected within a reasonable time, we will provide an appropriate refund or other remedy consistent with applicable law. Depending on the circumstances, this may be a full refund or a proportionate refund for the undelivered portion. An extension or replacement credit will be offered as an option and will not be forced in place of a legally required monetary refund. Disappointing examination results alone are not grounds for a refund, because no result is guaranteed; a misleading promise or deficient service remains reviewable.
+
+3.5 Used or expired purchases
+A change of mind, reduced personal use or ordinary expiry does not qualify for a voluntary refund. Partly used purchases remain eligible where required by law or where our investigation identifies a service or billing failure. Expiry is not a reason to reject a valid claim that arose before expiry. Free grants, welcome allowances and promotional credits cannot be exchanged for money. Mixed paid and promotional purchases will be assessed using the amount actually paid.
+
+3.6 Unauthorised or accidental purchases
+Report suspected unauthorised or accidental purchases promptly. Parents and guardians may contact us about a child's purchase. We will review the circumstances and the relevant payment-provider rules; such requests are not automatically approved or rejected solely because a child used the account. Secure the account and contact the payment provider where appropriate. Never share an OTP, password or PIN to obtain a refund.
+
+3.7 How to request a refund
+Contact arivora_support@auxiumsoft.com with your registered account email, purchase date, amount, order/payment reference, purchase channel and a brief explanation. Include a redacted receipt or screenshot if helpful. Do not send full card details, passwords, PINs or unrelated identity documents. If you cannot access your account or receipt, tell us; we will explain reasonable alternative verification steps. We will provide a request reference, acknowledge consumer complaints within 48 hours and seek to resolve them within one month, subject to applicable legal requirements.
+
+3.8 Decision, payment and timing
+We will explain the outcome and calculation for any partial refund. For an approved direct refund, our proposed operational target is to initiate it within five business days of approval, unless applicable law requires sooner. Funds will normally return to the original payment method. Bank and processor settlement times vary; we will provide the refund reference and available estimated timeline. If the original method cannot accept the refund, we will arrange a lawful verified alternative rather than request sensitive payment credentials. No additional Arivora refund-processing fee is charged. Any required tax adjustment will be reflected in the refund record.
+
+3.9 Effect of a refund
+A full refund normally removes the corresponding paid entitlement or purchased allowance. A partial refund adjusts only the affected benefits, which we will explain. Unrelated purchases and ordinary account access are not automatically removed. We will not issue two refunds for the same transaction; tell us if your bank or app store has already refunded it so we can reconcile the records.
+
+3.10 App-store purchases
+Where Google Play or another store processed a payment, use that store's refund process or contact us with the store order reference for assistance. Store rules and technical controls can affect how a refund is issued and when it arrives. This does not remove statutory consumer rights or our responsibility to help with a service failure. A payment made through another authorised billing channel should be handled through the channel identified on the receipt. Do not assume that Google Play processed a payment simply because the app was installed from Google Play.
+
+3.11 Escalation
+If you disagree with the outcome, ask the grievance officer listed above to review the request and provide its reference number. You may also use the National Consumer Helpline at https://consumerhelpline.gov.in/ or approach a competent consumer authority or court. You are not required to waive legal remedies in order to request a refund.
+
+============================================================
+IMPLEMENTATION AND REVIEW NOTES — NOT CUSTOMER POLICY TEXT
+============================================================
+
+- The owner has confirmed the no-voluntary-refund policy. Business address and grievance contact name have been supplied. Full legal identity/legal form, contact telephone, effective date and operational response commitments still require completion. Do not publish placeholders as accepted terms. The owner confirmed the application name as Arivora. The support email has been confirmed as arivora_support@auxiumsoft.com.
+- Support email is configured as arivora_support@auxiumsoft.com. Replace the remaining placeholder phone details and test delivery.
+- Expose all three policies before signup/purchase and from the menu. Use readable screens and stable public URLs. Record the accepted terms version and timestamp with an appropriate parent/guardian flow; do not preselect consent.
+- Add a separate, accurate Privacy Policy and working account-deletion process. Do not claim that voice recordings are never stored or that data is never shared without auditing actual services and retention.
+- Clarify 30-day duration, replacement/extension on repeat purchases, usage percentages and refund contact before charging. Current payment code starts a new 30-day expiry on verification; stacking/upgrade behaviour needs explicit review.
+- Paid features labelled coming soon must remain unpurchasable. Avoid public-facing technical labels such as 'tracking target' in purchase promises.
+- For Google Play distribution, digital educational purchases generally require Play Billing unless an applicable exception or enrolled alternative billing programme applies. Existing Razorpay integration alone does not establish Play compliance.
+- Verify a refund/revocation process, store cancellation links where applicable, complaint tracking and the ability to meet promised deadlines before enabling purchases.
+- Obtain legal review of child-account consent, publisher/content permissions, current consumer rules and phased data-protection obligations. Policies alone do not implement compliance.
+
+OFFICIAL RESEARCH REFERENCES (reviewed 11 October 2026)
+Consumer protection legislation and rules:
+https://consumeraffairs.gov.in/pages/consumer-protection-acts
+Government statement of grievance acknowledgement/redress requirements:
+https://fcainfoweb.nic.in/PMS/writereaddata/2026_LS_B_5415.pdf
+2026 e-commerce amendments announced to commence 1 January 2027 (future commencement, not treated here as already in force):
+https://www.pib.gov.in/newsite/erelcontent.aspx?lang=2&reg=48&relid=294532
+Google Play payments policy:
+https://support.google.com/googleplay/android-developer/answer/9858738?hl=en
+Google Play refund policy:
+https://support.google.com/googleplay/answer/2479637?hl=en-EN
+MeitY Digital Personal Data Protection Rules publication:
+https://www.meity.gov.in/documents/act-and-policies/digital-personal-dataprotection-rules-2025gDOxUjMtQWa?pageTitle=Digital-Personal-Data-ProtectionRules-2025

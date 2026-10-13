@@ -2,9 +2,7 @@
     
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
-    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <application
         android:label="Arivora"
@@ -44,7 +42,6 @@
     </application>
 
     <queries>
-        <intent><action android:name="android.speech.RecognitionService" /></intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

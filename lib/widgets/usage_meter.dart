@@ -76,11 +76,9 @@ class _UsageMeterState extends State<UsageMeter> {
     }
     if (data['learning_credits'] is Map) {
       final credits = Map<String, dynamic>.from(data['learning_credits'] as Map);
-      final daily = (credits['daily_remaining'] as num).toInt();
       final welcome = (credits['welcome_remaining'] as num).toInt();
-      final allowance = (credits['daily_allowance'] as num?) ?? 15000;
-      final fraction = allowance > 0 ? (daily / allowance).clamp(0.0, 1.0) : null;
-      final welcomeFraction = (welcome / 50000).clamp(0.0, 1.0);
+      final allowance = (credits['welcome_allowance'] as num?) ?? 50000;
+      final welcomeFraction = allowance > 0 ? (welcome / allowance).clamp(0.0, 1.0) : null;
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(14),
@@ -89,20 +87,19 @@ class _UsageMeterState extends State<UsageMeter> {
           const Row(children: [Icon(Icons.speed_outlined, size: 20), SizedBox(width: 8),
             Expanded(child: Text('Token usage', style: TextStyle(fontWeight: FontWeight.w600)))]),
           const SizedBox(height: 8),
-          Text(fraction == null ? 'Daily usage unavailable' : '${_percent(fraction)}% left today'),
+          Text(welcomeFraction == null ? 'Welcome allowance unavailable' : 'Welcome allowance: ${_percent(welcomeFraction)}% left'),
           const SizedBox(height: 8),
-          if (fraction != null) LinearProgressIndicator(value: fraction, minHeight: 5),
+          if (welcomeFraction != null) LinearProgressIndicator(value: welcomeFraction, minHeight: 5),
           const SizedBox(height: 8),
-          if (fraction != null) Text('${_percent(1 - fraction)}% used today'),
-          Text('Welcome allowance: ${_percent(welcomeFraction)}% left'),
+          if (welcomeFraction != null) Text('${_percent(1 - welcomeFraction)}% of welcome credits used'),
           if ((credits['topup_remaining'] as num? ?? 0) > 0)
             const Text('Top-up balance available'),
           const SizedBox(height: 8),
-          const Text('Daily allowance resets at midnight IST. Welcome allowance does not reset.',
+          const Text('50,000 welcome credits, once per new account. No daily refill.',
             style: TextStyle(fontSize: 11, color: Colors.black54)),
           if (credits['active'] == true) const Text('Answer in progress; balance updates when it finishes.', style: TextStyle(fontSize: 11)),
           if ((credits['completion_overrun'] as num? ?? 0) > 0)
-            const Text('Credits used to finish your last answer will be deducted from the next daily allowance.', style: TextStyle(fontSize: 11)),
+            const Text('Your available balance accounts for credits used to finish your last answer.', style: TextStyle(fontSize: 11)),
           Align(alignment: Alignment.centerRight, child: IconButton(onPressed: _load,
             tooltip: 'Refresh usage', icon: const Icon(Icons.refresh, size: 18))),
         ]),

@@ -45,20 +45,32 @@ void main() {
     expect(find.textContaining('New period:'), findsNothing);
     await tester.pumpWidget(const SizedBox());
   });
-  testWidgets('Enforced free credits show separate daily and welcome balances', (tester) async {
+  testWidgets('Free credits show welcome percentage without daily refill', (tester) async {
     await show(tester, () async => {...usage(), 'learning_credits': {
       'daily_remaining': 3000, 'welcome_remaining': 46000,
       'active': false, 'completion_overrun': 0,
     }});
     expect(find.text('Token usage'), findsOneWidget);
-    expect(find.text('20% left today'), findsOneWidget);
-    expect(find.text('80% used today'), findsOneWidget);
+    expect(find.textContaining('left today'), findsNothing);
+    expect(find.textContaining('used today'), findsNothing);
+    expect(find.text('8% of welcome credits used'), findsOneWidget);
+    expect(tester.widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).value, 0.92);
     expect(find.textContaining('3000 /'), findsNothing);
     expect(find.textContaining('46000'), findsNothing);
     expect(find.text('Welcome allowance: 92% left'), findsOneWidget);
     expect(find.textContaining('Saved answer:'), findsNothing);
     expect(find.textContaining('tracking only'), findsNothing);
     expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+  testWidgets('Exhausted welcome credits stay zero while top-ups remain visible', (tester) async {
+    await show(tester, () async => {...usage(), 'learning_credits': {
+      'daily_remaining': 0, 'daily_allowance': 0, 'welcome_remaining': 0,
+      'welcome_allowance': 50000, 'topup_remaining': 12000, 'resets_at': null,
+    }});
+    expect(find.text('Welcome allowance: 0% left'), findsOneWidget);
+    expect(find.text('Top-up balance available'), findsOneWidget);
+    expect(find.textContaining('midnight'), findsNothing);
     await tester.pumpWidget(const SizedBox());
   });
   testWidgets('Missing token allowance never falls back to question counts', (tester) async {

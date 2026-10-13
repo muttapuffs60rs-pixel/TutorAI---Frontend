@@ -67,7 +67,7 @@ class _BoardSelectionScreenState extends State<BoardSelectionScreen> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'We will remember your board for next time. You can change it from the menu anytime.',
+                    'We will remember your board for next time. You can change it from Home or the menu anytime.',
                   ),
                   const SizedBox(height: 24),
                   DropdownButtonFormField<String>(

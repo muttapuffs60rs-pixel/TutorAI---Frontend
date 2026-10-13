@@ -1,4 +1,3 @@
-import '../widgets/voice_input_dialog.dart';
 import '../widgets/learning_mascot.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -403,7 +402,9 @@ class _ChatScreenState extends State<ChatScreen> {
     final String originalText = _controller.text;
 
     // Build lightweight history map BEFORE appending the new user message to prevent loop duplication
-    final recentMessages = messages.length > 6 ? messages.sublist(messages.length - 6) : messages;
+    // Keep learning identifiers across the ten-turn conversation. The API still
+    // sends only six bounded messages to the provider and summarizes older topics.
+    final recentMessages = messages.length > 20 ? messages.sublist(messages.length - 20) : messages;
     final List<Map<String, String>> historyPayload = recentMessages.map((m) {
       return {
         'role': m.isUser ? 'user' : 'assistant',
@@ -895,18 +896,6 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             onSubmitted: (val) => sendMessage(text: val),
                           ),
-                        ),
-                        IconButton(
-                          tooltip: 'Voice input',
-                          icon: const Icon(Icons.mic, color: Tailwind.indigo600),
-                          onPressed: isLoading ? null : () async {
-                            FocusScope.of(context).unfocus();
-                            final words = await showDialog<String>(context: context, builder: (_) => const VoiceInputDialog());
-                            if (!mounted || words == null || words.isEmpty) return;
-                            final prefix = _controller.text.trimRight();
-                            final value = [prefix, words].where((s) => s.isNotEmpty).join(' ');
-                            _controller.value = TextEditingValue(text: value, selection: TextSelection.collapsed(offset: value.length));
-                          },
                         ),
                         IconButton(
                           tooltip: 'Tamil keyboard / தமிழ் விசைப்பலகை',

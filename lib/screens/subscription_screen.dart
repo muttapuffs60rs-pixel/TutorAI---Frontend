@@ -61,7 +61,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       if (verifyRes.statusCode == 200) {
         if (mounted) {
           String successMessage = _currentPendingTier == 'topup_49'
-              ? "200,000 learning credits added, valid for 30 days."
+              ? "Your top-up has been added. It expires with your active subscription, or in 10 days without one."
               : "Success! $_currentPendingTier activated.";
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMessage)));
           Navigator.pop(context); // Return to chat screen
@@ -104,7 +104,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     try {
       int amount = 49;
-      if (tierName == 'tier_199') amount = 249;
+      if (tierName == 'tier_199') amount = 349;
       if (tierName == 'tier_499') amount = 499;
       if (tierName == 'tier_999') amount = 999;
 
@@ -191,15 +191,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                const Text('Free plan: 15,000 learning credits daily. New accounts receive 50,000 welcome credits once. Daily credits are used first and reset at midnight IST.'),
+                const Text('New accounts receive 50,000 welcome credits once. There is no daily refill. Check your remaining welcome allowance in the usage meter.'),
                 const SizedBox(height: 24),
 
                 // One-time top-up; does not replace the student's subscription.
                 _buildPlanCard(
-                  title: 'Learning Credit Top-up',
+                  title: 'Learning Top-up',
                   price: '₹49',
-                  subtitle: 'One-time purchase · valid for 30 days',
-                  features: ['200,000 learning credits', 'Use after existing allowances', 'Does not change your subscription'],
+                  subtitle: 'Valid until your active subscription ends, or 10 days without a subscription',
+                  features: ['Extra allowance for your study sessions', 'Use after existing allowances', 'Does not change your subscription'],
                   isBooster: true,
                   buttonText: 'Coming soon',
                   onTap: () => ScaffoldMessenger.of(context).showSnackBar(
@@ -208,13 +208,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // STANDARD - ₹249 (legacy storage ID: tier_199)
+                // STANDARD - ₹349 (legacy storage ID: tier_199)
                 _buildPlanCard(
                   title: 'Standard',
-                  price: '₹249',
-                  subtitle: 'Monthly subscription',
+                  price: '₹349',
+                  subtitle: 'Valid for 30 days',
                   features: [
-                    '1.25M learning credits/month (tracking target)',
+                    'Monthly allowance for regular study',
                     'Live Quiz: Host 3 times/day',
                     'Live Quiz: Play 10 times/day',
                     'Full Textbook Context',
@@ -228,9 +228,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 _buildPlanCard(
                   title: 'Syllabus Master',
                   price: '₹499',
-                  subtitle: 'Monthly subscription',
+                  subtitle: 'Valid for 30 days',
                   features: [
-                    '3M learning credits/month (tracking target)',
+                    'Larger monthly study allowance',
                     'Live Quiz: Host 5 times/day',
                     'Live Quiz: Play 15 times/day',
                     'Priority AI Access & Tips',
@@ -243,15 +243,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 _buildPlanCard(
                   title: 'Premium',
                   price: '₹999',
-                  subtitle: 'Monthly subscription',
+                  subtitle: 'Valid for 30 days',
                   features: [
-                    '8M learning credits/month (tracking target)',
+                    'Our largest monthly study allowance',
                     'Live Quiz: Host 5 times/day',
                     'Live Quiz: Play 15 times/day',
                   ],
                   buttonText: 'Coming soon',
                   onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('This plan will be available after token billing is ready.')),
+                    const SnackBar(content: Text('This plan will be available soon.')),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -302,16 +302,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             children: [
               Text(title, style: TextStyle(color: isDarkCard ? Tailwind.white : (isBooster ? Tailwind.amber600 : Tailwind.indigo600), fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(price, style: TextStyle(color: textColor, fontSize: 48, fontWeight: FontWeight.w900, letterSpacing: -1)),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Text(subtitle, style: TextStyle(color: subtitleColor, fontSize: 14, fontWeight: FontWeight.w500)),
-                  ),
-                ],
+              Text(price, style: TextStyle(color: textColor, fontSize: 48, fontWeight: FontWeight.w900, letterSpacing: -1)),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                softWrap: true,
+                style: TextStyle(color: subtitleColor, fontSize: 14, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 24),
               Divider(color: dividerColor, height: 1),

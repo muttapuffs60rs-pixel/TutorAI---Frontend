@@ -1,0 +1,28 @@
+name: iOS unsigned build
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.6'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test --no-pub
+      - name: Build unsigned iPhone app
+        run: flutter build ios --release --no-codesign
+      - name: Package app preserving bundle structure
+        run: ditto -c -k --sequesterRsrc --keepParent build/ios/iphoneos/Runner.app Arivora-ios-unsigned.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Arivora-ios-unsigned
+          path: Arivora-ios-unsigned.zip
+          if-no-files-found: error
+          retention-days: 14

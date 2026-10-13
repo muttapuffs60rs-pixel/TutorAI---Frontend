@@ -38,12 +38,12 @@ class _StudentTutorialState extends State<StudentTutorial> {
     ),
     (
       'Find your subject',
-      'Tap Tuition on Home, then choose your class and subject. Your board is saved. To switch boards, use Change board in the menu.',
+      'Tap Tuition on Home, then choose your class and subject. Your board is saved. To switch boards, tap Change board at the top of Home or in the menu.',
       Icons.auto_stories_outlined,
     ),
     (
       'Ask Preethi a question',
-      'Type your question or tap the microphone to speak in Tamil or English. Review and add the text, then tap Send. You can also attach a picture of a question. Use the subject selector at the top to change your class or subject.',
+      'Type your question, or tap அ to use the Tamil keyboard. Tap a base letter, then choose its form. Review your question and tap Send. You can also attach a picture of a question. Use the subject selector at the top to change your class or subject.',
       Icons.chat_bubble_outline,
     ),
     (
