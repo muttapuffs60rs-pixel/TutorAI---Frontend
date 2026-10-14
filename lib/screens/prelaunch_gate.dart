@@ -227,7 +227,7 @@ class _PrelaunchGateState extends State<PrelaunchGate>
                         ),
                         const SizedBox(height: 12),
                         const SelectableText(
-                          'arivora_support@auxiumsoft.com',
+                          'Solutions@auxiumsoft.com',
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
