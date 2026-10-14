@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'legal_policy_screen.dart';
+import '../widgets/auxiumsoft_brand.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Wraps the Navigator so direct links and existing sessions are checked too.
@@ -229,6 +230,9 @@ class _PrelaunchGateState extends State<PrelaunchGate>
                           'arivora_support@auxiumsoft.com',
                           textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 24),
+                        const AuxiumSoftBrand(),
+                        const SizedBox(height: 12),
                         const LegalPolicyLinks(),
                         if (_error != null) ...[
                           const SizedBox(height: 12),
