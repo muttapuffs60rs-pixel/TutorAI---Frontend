@@ -38,6 +38,28 @@ void main() {
     expect(tester.takeException(),isNull);
     await tester.pumpWidget(const SizedBox());
   });
+  testWidgets('public visitor can read policies while tutoring remains gated', (tester) async {
+    allowed = false; unavailable = false;
+    await tester.pumpWidget(MaterialApp(
+      builder: (context, child) => PrelaunchGate(child: child!),
+      home: const Scaffold(body: Text('PRIVATE HOME')),
+    ));
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+    await tester.pump();
+    await tester.scrollUntilVisible(find.text('Terms and Conditions'), 200,
+      scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('Terms and Conditions'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('1. Using Arivora'), findsOneWidget);
+    expect(find.text('PRIVATE HOME'), findsNothing);
+    await tester.pageBack();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Cancellation and Refund Policy'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump();
+  });
   testWidgets('server-approved account reaches app', (tester) async {
     allowed=true; unavailable=false;
     await tester.pumpWidget(const MaterialApp(home: PrelaunchGate(child: Text('PRIVATE HOME'))));

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Screens
 import 'screens/login_screen.dart';
+import 'screens/legal_policy_screen.dart';
 import 'screens/prelaunch_gate.dart';
 import 'screens/change_password_screen.dart'; 
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
@@ -98,6 +99,8 @@ class AkkaApp extends StatelessWidget {
       // STEP 1: Set default initialization view directly to the brand landing layer
       home: const SplashScreen(),
       routes: {
+        '/terms': (_) => const LegalPolicyScreen(policy: LegalPolicy.terms),
+        '/refund-policy': (_) => const LegalPolicyScreen(policy: LegalPolicy.refunds),
         '/login': (context) => const LoginScreen(),
         '/chat': (context) => const HomeSelectionScreen(),
         '/change-password': (context) => const ChangePasswordScreen(),

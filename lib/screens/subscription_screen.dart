@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../main.dart'; // Ensure this points to your main.dart where supabase is initialized
 import '../theme/tailwind_theme.dart';
+import 'legal_policy_screen.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -14,6 +15,7 @@ class SubscriptionScreen extends StatefulWidget {
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = false;
+  bool _acceptedPolicies = false;
   late Razorpay _razorpay;
   String? _currentPendingTier;
 
@@ -94,6 +96,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   // Function to handle the subscription logic by starting a Razorpay payment
   Future<void> _updateSubscription(String tierName) async {
+    if (_isLoading || !_acceptedPolicies) return;
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
@@ -192,6 +195,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 const SizedBox(height: 32),
 
                 const Text('Free plan: 15,000 learning credits daily. New accounts receive 50,000 welcome credits once. Daily credits are used first and reset at midnight IST.'),
+                const SizedBox(height: 24),
+
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _acceptedPolicies,
+                  onChanged: _isLoading
+                      ? null
+                      : (value) =>
+                            setState(() => _acceptedPolicies = value ?? false),
+                  title: const Text(
+                    'I agree to the Terms and Conditions and Cancellation and Refund Policy. If I am under 18, my parent or guardian has authorised this purchase.',
+                  ),
+                ),
+                const LegalPolicyLinks(),
+                const Text(
+                  'One-time payments. Plans do not automatically renew.',
+                ),
                 const SizedBox(height: 24),
 
                 // One-time top-up; does not replace the student's subscription.
@@ -330,7 +351,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: onTap,
+                  onPressed: _isLoading || !_acceptedPolicies ? null : onTap,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     backgroundColor: isDarkCard ? Tailwind.white : (isBooster ? Tailwind.amber500 : Tailwind.indigo600), 

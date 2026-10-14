@@ -5,6 +5,7 @@ import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import 'home_selection_screen.dart';
 import 'forgot_password_screen.dart';
+import 'legal_policy_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -129,7 +130,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignUpScreen())),
                     child: const Text('New user? Create an account here', style: TextStyle(color: Tailwind.slate600, fontWeight: FontWeight.w500)),
                   ),
-                ]
+                ],
+                const LegalPolicyLinks(),
               ],
             ),
           ),
@@ -175,6 +177,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _acceptedTerms = false;
 
   void _showWelcomeCarousel(String name) {
     showDialog(
@@ -274,6 +277,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _signUp() async {
+    if (!_acceptedTerms) {
+      _showCustomSnackBar('Please read and accept the Terms and Conditions.');
+      return;
+    }
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim(); // Capture Phone[cite: 3]
     final email = _emailController.text.trim();
@@ -365,12 +372,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 _buildField(_passwordController, 'Password', Icons.lock, isPass: true),
                 const SizedBox(height: 16),
                 _buildField(_confirmPasswordController, 'Confirm Password', Icons.lock_clock, isPass: true),
+                const SizedBox(height: 16),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _acceptedTerms,
+                  onChanged: _isLoading ? null : (value) =>
+                      setState(() => _acceptedTerms = value ?? false),
+                  title: const Text('I agree to the Terms and Conditions. If I am under 18, I have permission from my parent or guardian.'),
+                ),
+                const LegalPolicyLinks(),
                 const SizedBox(height: 32),
                 if (_isLoading)
                   const Center(child: CircularProgressIndicator(color: Tailwind.indigo600))
                 else
                   ElevatedButton(
-                    onPressed: _signUp,
+                    onPressed: _acceptedTerms ? _signUp : null,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16), 
                       backgroundColor: Tailwind.indigo600, 

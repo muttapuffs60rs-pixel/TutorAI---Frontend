@@ -11,6 +11,7 @@ import '../screens/chat_screen.dart';
 import '../services/profile_service.dart';
 import '../screens/answer_library_screen.dart';
 import 'usage_meter.dart';
+import '../screens/legal_policy_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
   final String? subscriptionTier;
@@ -348,6 +349,34 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ),
 
           const Divider(color: Tailwind.slate200),
+          _menuAction(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Terms and Conditions'),
+            onTap: () {
+              final navigator = Navigator.of(context);
+              navigator.pop();
+              navigator.push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const LegalPolicyScreen(policy: LegalPolicy.terms),
+                ),
+              );
+            },
+          ),
+          _menuAction(
+            leading: const Icon(Icons.receipt_long_outlined),
+            title: const Text('Cancellation and Refund Policy'),
+            onTap: () {
+              final navigator = Navigator.of(context);
+              navigator.pop();
+              navigator.push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const LegalPolicyScreen(policy: LegalPolicy.refunds),
+                ),
+              );
+            },
+          ),
           _menuAction(
             leading: const Icon(Icons.logout, color: Tailwind.rose500),
             title: const Text('Log Out', style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.w600)),
