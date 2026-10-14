@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Screens
 import 'screens/login_screen.dart';
+import 'screens/prelaunch_gate.dart';
 import 'screens/change_password_screen.dart'; 
 import 'screens/splash_screen.dart'; // INTEGRATED: Splash landing layer
 import 'screens/live_quiz/live_quiz_entry_screen.dart';
@@ -60,6 +61,7 @@ class AkkaApp extends StatelessWidget {
     return MaterialApp(
       title: 'Arivora',
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => PrelaunchGate(child: child ?? const SizedBox.shrink()),
       // PASTEL LEARNING THEME
       theme: ThemeData(
         brightness: Brightness.light,
