@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
+import '../services/payment_checkout.dart';
+import 'legal_policy_screen.dart';
 import '../main.dart'; // Ensure this points to your main.dart where supabase is initialized
 import '../theme/tailwind_theme.dart';
-import 'legal_policy_screen.dart';
 
 class SubscriptionScreen extends StatefulWidget {
-  const SubscriptionScreen({super.key});
+  const SubscriptionScreen({super.key, this.httpClient, this.openCheckout});
+
+  final http.Client? httpClient;
+  final Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
+  openCheckout;
 
   @override
   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
@@ -16,137 +20,119 @@ class SubscriptionScreen extends StatefulWidget {
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = false;
   bool _acceptedPolicies = false;
-  late Razorpay _razorpay;
-  String? _currentPendingTier;
-
-  @override
-  void initState() {
-    super.initState();
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
-  }
+  PaymentCheckout? _checkout;
+  static const _backend = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://akka-tutor-backend.onrender.com',
+  );
 
   @override
   void dispose() {
+    _checkout?.dispose();
     super.dispose();
-    _razorpay.clear();
   }
 
-  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    final user = supabase.auth.currentUser;
-    if (user == null || _currentPendingTier == null) return;
-    
-    setState(() => _isLoading = true);
-    
-    try {
-      // Use local dev endpoint if testing locally, or change to production. Since the user backend has been modified, we'll try to reach it. 
-      // I'll use the onrender.com endpoint since it's already deployed there. Wait, is main.py deployed automatically? 
-      // For now, let's use the deployed endpoint.
-      final session = supabase.auth.currentSession;
-      final String token = session?.accessToken ?? '';
+  Future<Map<String, dynamic>> _post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
+    final token = supabase.auth.currentSession?.accessToken;
+    if (token == null) throw Exception('Please sign in to make a purchase.');
+    final post = widget.httpClient?.post ?? http.post;
+    final response = await post(
+      Uri.parse('$_backend/$path'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    ).timeout(const Duration(seconds: 45));
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode != 200) {
+      throw Exception(data['detail'] ?? 'Payment service is unavailable.');
+    }
+    return data;
+  }
 
-      final verifyRes = await http.post(
-        Uri.parse('https://akka-tutor-backend.onrender.com/verify-payment'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'razorpay_payment_id': response.paymentId ?? '',
-          'razorpay_order_id': response.orderId ?? '',
-          'razorpay_signature': response.signature ?? '',
-        }),
+  Future<void> _updateSubscription(String tierName) async {
+    if (_isLoading) return;
+    if (!_acceptedPolicies) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please read and accept the purchase policies first.'),
+        ),
       );
-      
-      if (verifyRes.statusCode == 200) {
-        if (mounted) {
-          String successMessage = _currentPendingTier == 'topup_49'
-              ? "200,000 learning credits added, valid for 30 days."
-              : "Success! $_currentPendingTier activated.";
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMessage)));
-          Navigator.pop(context); // Return to chat screen
-        }
-      } else {
-        throw Exception("Verification failed on server");
+      return;
+    }
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to make a purchase.')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    const names = {
+      'topup_49': 'Learning Top-up',
+      'tier_199': 'Standard',
+      'tier_499': 'Syllabus Master',
+      'tier_999': 'Premium',
+    };
+    String? paymentId;
+    try {
+      final order = await _post('create-order', {'tier_id': tierName});
+      if (!mounted) return;
+      if (order['key_id'] is! String ||
+          !(order['key_id'] as String).startsWith('rzp_test_') ||
+          order['id'] is! String ||
+          order['amount'] is! num ||
+          order['currency'] != 'INR') {
+        throw Exception(
+          'Payment configuration is incomplete. Please contact support.',
+        );
       }
-    } catch (e) {
+      final payment =
+          await (widget.openCheckout ??
+              (_checkout ??= PaymentCheckout()).open)({
+            'key': order['key_id'],
+            'amount': order['amount'],
+            'currency': order['currency'],
+            'order_id': order['id'],
+            'name': 'Arivora',
+            'description': names[tierName],
+            'prefill': {'contact': user.phone ?? '', 'email': user.email ?? ''},
+          });
+      paymentId = payment['razorpay_payment_id'] as String?;
+      final verification = await _post('verify-payment', payment);
+      if (verification['status'] != 'success') {
+        throw Exception('Payment activation has not been confirmed.');
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            tierName == 'topup_49'
+                ? 'Your top-up has been added. It expires with your active subscription, or in 10 days without one.'
+                : '${names[tierName]} activated for 30 days.',
+          ),
+        ),
+      );
+      Navigator.pop(context, true);
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment verification error: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              paymentId == null
+                  ? 'Unable to complete checkout: $error'
+                  : 'Payment received, but activation could not be confirmed. Do not pay again. Contact Solutions@auxiumsoft.com with payment ID $paymentId.',
+            ),
+            duration: const Duration(seconds: 10),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  void _handlePaymentError(PaymentFailureResponse response) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Payment failed: ${response.message}")));
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _handleExternalWallet(ExternalWalletResponse response) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("External wallet selected: ${response.walletName}")));
-      setState(() => _isLoading = false);
-    }
-  }
-
-  // Function to handle the subscription logic by starting a Razorpay payment
-  Future<void> _updateSubscription(String tierName) async {
-    if (_isLoading || !_acceptedPolicies) return;
-    final user = supabase.auth.currentUser;
-    if (user == null) return;
-
-    setState(() {
-      _isLoading = true;
-      _currentPendingTier = tierName;
-    });
-
-    try {
-      int amount = 49;
-      if (tierName == 'tier_199') amount = 249;
-      if (tierName == 'tier_499') amount = 499;
-      if (tierName == 'tier_999') amount = 999;
-
-      final session = supabase.auth.currentSession;
-      final String token = session?.accessToken ?? '';
-
-      final orderRes = await http.post(
-        Uri.parse('https://akka-tutor-backend.onrender.com/create-order'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'tier_id': tierName}),
-      );
-      
-      if (orderRes.statusCode == 200) {
-        final orderData = jsonDecode(orderRes.body);
-        var options = {
-          'key': 'rzp_test_T0Hp0QiGT8OyLh',
-          'amount': amount * 100,
-          'name': 'Arivora',
-          'description': 'Subscription: $tierName',
-          'order_id': orderData['id'],
-          'prefill': {
-            'contact': user.phone ?? '',
-            'email': user.email ?? ''
-          }
-        };
-        _razorpay.open(options);
-      } else {
-        throw Exception("Failed to create order on server");
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error initiating payment: $e")),
-        );
-        setState(() => _isLoading = false);
-      }
     }
   }
 
@@ -155,7 +141,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        title: const Text('Upgrade to Arivora Pro', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Arivora payment test',
+          style: TextStyle(
+            color: Tailwind.slate800,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Tailwind.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Tailwind.slate800),
@@ -171,20 +163,35 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [Tailwind.amber500, Tailwind.orange500]),
+                      gradient: const LinearGradient(
+                        colors: [Tailwind.amber500, Tailwind.orange500],
+                      ),
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Tailwind.orange500.withOpacity(0.3), blurRadius: 20, spreadRadius: 5),
+                        BoxShadow(
+                          color: Tailwind.orange500.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
                       ],
                     ),
-                    child: const Icon(Icons.stars_rounded, size: 64, color: Tailwind.white),
+                    child: const Icon(
+                      Icons.stars_rounded,
+                      size: 64,
+                      color: Tailwind.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Achieve Your Best Marks!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Tailwind.slate800, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                  style: TextStyle(
+                    color: Tailwind.slate800,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
@@ -194,9 +201,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                const Text('Free plan: 15,000 learning credits daily. New accounts receive 50,000 welcome credits once. Daily credits are used first and reset at midnight IST.'),
+                const Text(
+                  'New accounts receive 50,000 welcome credits once. There is no daily refill. Check your remaining welcome allowance in the usage meter.',
+                ),
                 const SizedBox(height: 24),
 
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'Razorpay Test Mode: no real money is charged. A successful test can update your tester account plan. Use only Razorpay test payment details.',
+                    ),
+                  ),
+                ),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
@@ -211,21 +228,25 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const LegalPolicyLinks(),
                 const Text(
-                  'One-time payments. Plans do not automatically renew.',
+                  'One-time payments. Plans do not automatically renew. Pay using the payment methods available in Razorpay Checkout, including UPI where enabled.',
                 ),
                 const SizedBox(height: 24),
 
                 // One-time top-up; does not replace the student's subscription.
                 _buildPlanCard(
-                  title: 'Learning Credit Top-up',
+                  title: 'Learning Top-up',
                   price: '₹49',
-                  subtitle: 'One-time purchase · valid for 30 days',
-                  features: ['200,000 learning credits', 'Use after existing allowances', 'Does not change your subscription'],
+                  subtitle:
+                      'Valid until your active subscription ends, or 10 days without a subscription',
+                  features: [
+                    'Extra allowance for your study sessions',
+                    'Use after existing allowances',
+                    'Does not change your subscription',
+                  ],
                   isBooster: true,
-                  buttonText: 'Coming soon',
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Top-ups will be available when payments are ready.')),
-                  ),
+                  buttonText: 'Top-up coming soon',
+                  onTap: () {},
+                  isAvailable: false,
                 ),
                 const SizedBox(height: 24),
 
@@ -233,9 +254,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 _buildPlanCard(
                   title: 'Standard',
                   price: '₹249',
-                  subtitle: 'Monthly subscription',
+                  subtitle: 'Valid for 30 days',
                   features: [
-                    '1.25M learning credits/month (tracking target)',
+                    'Monthly allowance for regular study',
                     'Live Quiz: Host 3 times/day',
                     'Live Quiz: Play 10 times/day',
                     'Full Textbook Context',
@@ -249,9 +270,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 _buildPlanCard(
                   title: 'Syllabus Master',
                   price: '₹499',
-                  subtitle: 'Monthly subscription',
+                  subtitle: 'Valid for 30 days',
                   features: [
-                    '3M learning credits/month (tracking target)',
+                    'Larger monthly study allowance',
                     'Live Quiz: Host 5 times/day',
                     'Live Quiz: Play 15 times/day',
                     'Priority AI Access & Tips',
@@ -264,43 +285,50 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 _buildPlanCard(
                   title: 'Premium',
                   price: '₹999',
-                  subtitle: 'Monthly subscription',
+                  subtitle: 'Valid for 30 days',
                   features: [
-                    '8M learning credits/month (tracking target)',
+                    'Our largest monthly study allowance',
                     'Live Quiz: Host 5 times/day',
                     'Live Quiz: Play 15 times/day',
                   ],
-                  buttonText: 'Coming soon',
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('This plan will be available after token billing is ready.')),
-                  ),
+                  buttonText: 'Choose Premium',
+                  onTap: () => _updateSubscription('tier_999'),
                 ),
                 const SizedBox(height: 32),
               ],
             ),
           ),
           if (_isLoading)
-            const Center(child: CircularProgressIndicator(color: Tailwind.indigo600)),
+            const Center(
+              child: CircularProgressIndicator(color: Tailwind.indigo600),
+            ),
         ],
       ),
     );
   }
 
   Widget _buildPlanCard({
-    required String title, 
-    required String price, 
+    required String title,
+    required String price,
     required String subtitle,
-    required List<String> features, 
+    required List<String> features,
     required String buttonText,
     required VoidCallback onTap,
     bool isPro = false,
     bool isBooster = false,
+    bool isAvailable = true,
   }) {
     final bool isDarkCard = isPro;
     final Color textColor = isDarkCard ? Tailwind.white : Tailwind.slate800;
-    final Color subtitleColor = isDarkCard ? Tailwind.slate200 : Tailwind.slate500;
-    final Color iconColor = isDarkCard ? Tailwind.emerald400 : (isBooster ? Tailwind.amber500 : Tailwind.emerald500);
-    final Color dividerColor = isDarkCard ? Tailwind.white.withOpacity(0.2) : Tailwind.slate200;
+    final Color subtitleColor = isDarkCard
+        ? Tailwind.slate200
+        : Tailwind.slate500;
+    final Color iconColor = isDarkCard
+        ? Tailwind.emerald400
+        : (isBooster ? Tailwind.amber500 : Tailwind.emerald500);
+    final Color dividerColor = isDarkCard
+        ? Tailwind.white.withValues(alpha: 0.2)
+        : Tailwind.slate200;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -309,59 +337,112 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
             color: isDarkCard ? null : Tailwind.white,
-            gradient: isDarkCard ? const LinearGradient(
-              colors: [Tailwind.indigo600, Tailwind.purple600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ) : null,
+            gradient: isDarkCard
+                ? const LinearGradient(
+                    colors: [Tailwind.indigo600, Tailwind.purple600],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
             borderRadius: Tailwind.rounded3Xl,
             boxShadow: isDarkCard ? Tailwind.shadowLg : Tailwind.shadowMd,
-            border: isDarkCard ? null : Border.all(color: isBooster ? Tailwind.amber500 : Tailwind.slate200, width: isBooster ? 2 : 1),
+            border: isDarkCard
+                ? null
+                : Border.all(
+                    color: isBooster ? Tailwind.amber500 : Tailwind.slate200,
+                    width: isBooster ? 2 : 1,
+                  ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: TextStyle(color: isDarkCard ? Tailwind.white : (isBooster ? Tailwind.amber600 : Tailwind.indigo600), fontSize: 24, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: TextStyle(
+                  color: isDarkCard
+                      ? Tailwind.white
+                      : (isBooster ? Tailwind.amber600 : Tailwind.indigo600),
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(price, style: TextStyle(color: textColor, fontSize: 48, fontWeight: FontWeight.w900, letterSpacing: -1)),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Text(subtitle, style: TextStyle(color: subtitleColor, fontSize: 14, fontWeight: FontWeight.w500)),
-                  ),
-                ],
+              Text(
+                price,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                softWrap: true,
+                style: TextStyle(
+                  color: subtitleColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 24),
               Divider(color: dividerColor, height: 1),
               const SizedBox(height: 24),
-              ...features.map((f) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                  Icon(Icons.check_circle, color: iconColor, size: 22), 
-                  const SizedBox(width: 12), 
-                  Expanded(child: Text(f, style: TextStyle(color: isDarkCard ? Tailwind.slate100 : Tailwind.slate700, fontSize: 15, fontWeight: FontWeight.w500, height: 1.4)))
-                ]),
-              )),
+              ...features.map(
+                (f) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.check_circle, color: iconColor, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          f,
+                          style: TextStyle(
+                            color: isDarkCard
+                                ? Tailwind.slate100
+                                : Tailwind.slate700,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading || !_acceptedPolicies ? null : onTap,
+                  onPressed: _isLoading || !_acceptedPolicies || !isAvailable
+                      ? null
+                      : onTap,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    backgroundColor: isDarkCard ? Tailwind.white : (isBooster ? Tailwind.amber500 : Tailwind.indigo600), 
-                    foregroundColor: isDarkCard ? Tailwind.indigo600 : Tailwind.white,
+                    backgroundColor: isDarkCard
+                        ? Tailwind.white
+                        : (isBooster ? Tailwind.amber500 : Tailwind.indigo600),
+                    foregroundColor: isDarkCard
+                        ? Tailwind.indigo600
+                        : Tailwind.white,
                     elevation: isDarkCard ? 2 : 0,
-                    shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl)
+                    shape: RoundedRectangleBorder(
+                      borderRadius: Tailwind.roundedXl,
+                    ),
                   ),
-                  child: Text(buttonText, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: Text(
+                    buttonText,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),
