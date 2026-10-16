@@ -50,7 +50,7 @@ void main() {
       'daily_remaining': 3000, 'welcome_remaining': 46000,
       'active': false, 'completion_overrun': 0,
     }});
-    expect(find.text('Token usage'), findsOneWidget);
+    expect(find.text('Study allowance'), findsOneWidget);
     expect(find.text('20% left today'), findsOneWidget);
     expect(find.text('80% used today'), findsOneWidget);
     expect(find.textContaining('3000 /'), findsNothing);

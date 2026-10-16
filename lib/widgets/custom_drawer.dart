@@ -3,7 +3,7 @@ import '../screens/board_selection_screen.dart';
 import '../screens/home_selection_screen.dart';
 import '../screens/student_tutorial.dart';
 import 'package:flutter/material.dart';
-import '../main.dart'; 
+import '../main.dart';
 import '../screens/login_screen.dart';
 import '../screens/subscription_screen.dart';
 import '../theme/tailwind_theme.dart';
@@ -12,16 +12,19 @@ import '../services/profile_service.dart';
 import '../screens/answer_library_screen.dart';
 import 'usage_meter.dart';
 import '../screens/legal_policy_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CustomDrawer extends StatefulWidget {
+  final Future<Map<String, dynamic>> Function()? loadUsage;
   final String? subscriptionTier;
   final String? subscriptionStartDate;
   final String? subscriptionExpiresAt;
-  final Function(String)? onSessionSelected; 
+  final Function(String)? onSessionSelected;
   final Function(String)? onSessionDeleted;
 
   const CustomDrawer({
     super.key,
+    this.loadUsage,
     this.subscriptionTier,
     this.subscriptionStartDate,
     this.subscriptionExpiresAt,
@@ -39,7 +42,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
   bool _isLoadingProfile = true;
 
   String _subscriptionTier = 'free';
-  String? _subscriptionStartDate;
   String? _subscriptionExpiresAt;
 
   @override
@@ -48,7 +50,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
     _fetchChatSessions();
     if (widget.subscriptionTier != null) {
       _subscriptionTier = widget.subscriptionTier ?? 'free';
-      _subscriptionStartDate = widget.subscriptionStartDate;
       _subscriptionExpiresAt = widget.subscriptionExpiresAt;
       _isLoadingProfile = false;
     } else {
@@ -58,14 +59,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Future<void> _fetchProfileData() async {
     final user = supabase.auth.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+          _isLoadingSessions = false;
+        });
+      }
+      return;
+    }
     try {
       final profile = await fetchDailyProfile();
       String subTier = profile['subscription_tier'] ?? 'free';
       if (mounted) {
         setState(() {
           _subscriptionTier = subTier;
-          _subscriptionStartDate = profile['subscription_start_date'];
           _subscriptionExpiresAt = profile['subscription_expires_at'];
           _isLoadingProfile = false;
         });
@@ -78,12 +86,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   Future<void> _fetchChatSessions() async {
     final user = supabase.auth.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      if (mounted) {
+        setState(() {
+          _isLoadingProfile = false;
+          _isLoadingSessions = false;
+        });
+      }
+      return;
+    }
 
     try {
       // FIX: Changed table name from 'chats' to 'chat_sessions' to ensure continuity
       final data = await supabase
-          .from('chat_sessions') 
+          .from('chat_sessions')
           .select()
           .eq('user_id', user.id)
           .order('created_at', ascending: false);
@@ -107,19 +123,37 @@ class _CustomDrawerState extends State<CustomDrawer> {
         return AlertDialog(
           backgroundColor: Tailwind.white,
           shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
-          title: const Text("Delete Chat", style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
-          content: const Text("Are you sure you want to delete this chat history? This cannot be undone.", style: TextStyle(color: Tailwind.slate600)),
+          title: const Text(
+            "Delete Chat",
+            style: TextStyle(
+              color: Tailwind.slate800,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            "Are you sure you want to delete this chat history? This cannot be undone.",
+            style: TextStyle(color: Tailwind.slate600),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Tailwind.slate500),
+              ),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await _deleteSession(sessionId);
               },
-              child: const Text("Delete", style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)),
+              child: const Text(
+                "Delete",
+                style: TextStyle(
+                  color: Tailwind.rose500,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );
@@ -140,280 +174,413 @@ class _CustomDrawerState extends State<CustomDrawer> {
     }
   }
 
+  Future<void> _open(Widget screen) async {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    await navigator.push(MaterialPageRoute<void>(builder: (_) => screen));
+    if (mounted && screen is SubscriptionScreen) {
+      _fetchProfileData();
+    }
+  }
+
+  String get _planName =>
+      const {
+        'free': 'Free',
+        'tier_199': 'Standard',
+        'tier_499': 'Syllabus Master',
+        'tier_999': 'Premium',
+        'admin': 'Admin',
+      }[_subscriptionTier] ??
+      'Learning';
+
+  Widget _section(String label) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Tailwind.slate500,
+        fontWeight: FontWeight.w700,
+        fontSize: 12,
+        letterSpacing: 1,
+      ),
+    ),
+  );
+
+  Future<void> _support() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'Solutions@auxiumsoft.com',
+      query: 'subject=Arivora%20support',
+    );
+    try {
+      if (await launchUrl(uri)) return;
+    } catch (_) {
+      /* Show a readable fallback below. */
+    }
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Contact support'),
+        content: const SelectableText('Solutions@auxiumsoft.com'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _logout() {
+    final navigator = Navigator.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text('You can sign in again to continue learning.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await supabase.auth.signOut();
+              if (navigator.mounted) {
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (_) => false,
+                );
+              }
+            },
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
-    final String displayName = user?.userMetadata?['full_name'] ?? 
-                               user?.userMetadata?['username'] ?? 'Student';
-
+    final String name =
+        user?.userMetadata?['full_name'] ??
+        user?.userMetadata?['username'] ??
+        'Student';
+    final width = (MediaQuery.sizeOf(context).width - 24).clamp(0.0, 360.0);
     return Drawer(
-      backgroundColor: Tailwind.white, 
-      child: Column( 
-        children: [
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                UserAccountsDrawerHeader(
-                  decoration: const BoxDecoration(color: Tailwind.indigo600), 
-                  accountName: Text(
-                    displayName, 
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Tailwind.white)
-                  ),
-                  accountEmail: Text(
-                    user?.email ?? 'Unknown User',
-                    style: const TextStyle(color: Tailwind.indigo100),
-                  ),
-                  currentAccountPicture: CircleAvatar(
-                    backgroundColor: Tailwind.white,
+      width: width,
+      backgroundColor: const Color(0xfff7f8fa),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 8, 12),
+              child: Row(
+                children: [
+                  const Expanded(
                     child: Text(
-                      displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S', 
-                      style: const TextStyle(fontSize: 24, color: Tailwind.indigo600, fontWeight: FontWeight.bold)
+                      'Your learning space',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Tailwind.slate800,
+                      ),
                     ),
                   ),
-                ),
-                
-                _menuAction(
-                  leading: const Icon(Icons.school_outlined),
-                  title: const Text('Change board'),
-                  subtitle: Text(boardNames[savedBoard(user?.userMetadata)] ?? 'Select your board'),
-                  onTap: () {
-                    final navigator = Navigator.of(context);
-                    navigator.pop();
-                    navigator.push(MaterialPageRoute(builder: (_) => BoardSelectionScreen(
-                      changing: true,
-                      initialBoard: savedBoard(user?.userMetadata),
-                      onSave: (board) async {
-                        await supabase.auth.updateUser(UserAttributes(data: {'education_board': board}));
-                        if (!navigator.mounted) return;
-                        navigator.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const HomeSelectionScreen()), (route) => false);
-                      },
-                    )));
-                  },
-                ),
-                const UsageMeter(),
-                ListTile(
-                  leading: Icon(
-                    Icons.bolt, 
-                    color: Tailwind.indigo600
+                  IconButton(
+                    tooltip: 'Close menu',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Tailwind.slate600,
+                    ),
                   ),
-                  title: _isLoadingProfile 
-                      ? const Text('Loading...', style: TextStyle(color: Tailwind.slate500, fontSize: 12))
-                      : Text(
-                          '${_subscriptionTier == 'free' ? 'Free' : _subscriptionTier == 'tier_199' ? 'Standard' : _subscriptionTier == 'tier_499' ? 'Syllabus Master' : _subscriptionTier == 'tier_999' ? 'Premium' : _subscriptionTier == 'admin' ? 'Admin' : 'Learning'} plan',
-                          style: const TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 24),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Tailwind.indigo100,
+                          child: Text(
+                            name.isEmpty ? 'S' : name[0].toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: Tailwind.indigo600,
+                            ),
+                          ),
                         ),
-                  subtitle: _isLoadingProfile 
-                    ? null 
-                    : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 2),
-                      Text(
-                        'Current Plan: ${_subscriptionTier.toUpperCase()}',
-                        style: const TextStyle(color: Tailwind.slate500, fontWeight: FontWeight.w600),
-                      ),
-                      if (_subscriptionStartDate != null && _subscriptionTier != 'free') ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          'Started: ${_formatDate(_subscriptionStartDate)}',
-                          style: const TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w500),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: Tailwind.slate800,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                user?.email ?? 'Student account',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Tailwind.slate500,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
-                      if (_subscriptionExpiresAt != null && _subscriptionTier != 'free') ...[
-                        const SizedBox(height: 2),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Tailwind.slate800,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'YOUR PLAN',
+                          style: TextStyle(
+                            color: Color(0xffbdcbd1),
+                            fontSize: 11,
+                            letterSpacing: 1,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
                         Text(
-                          'Expires: ${_formatDate(_subscriptionExpiresAt)}',
-                          style: const TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w500),
+                          _isLoadingProfile
+                              ? 'Loading plan…'
+                              : '$_planName plan',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 23,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        if (_subscriptionExpiresAt != null &&
+                            _subscriptionTier != 'free') ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Valid until ${_formatDate(_subscriptionExpiresAt)}',
+                            style: const TextStyle(
+                              color: Color(0xffd8e2e6),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: () => _open(const SubscriptionScreen()),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: Tailwind.slate800,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text(
+                              'View plans',
+                              style: TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-                
-                const Divider(color: Tailwind.slate200),
-
-                if (_subscriptionTier == 'admin')
+                  UsageMeter(loadUsage: widget.loadUsage),
+                  _section('LEARN'),
                   _menuAction(
-                    leading: const Icon(Icons.fact_check_outlined),
-                    title: const Text('Answer library'),
+                    leading: const Icon(Icons.school_outlined),
+                    title: const Text('Board & curriculum'),
+                    subtitle: Text(
+                      boardNames[savedBoard(user?.userMetadata)] ??
+                          'Select your board',
+                    ),
                     onTap: () {
                       final navigator = Navigator.of(context);
                       navigator.pop();
-                      navigator.push(MaterialPageRoute(builder: (_) => const AnswerLibraryScreen()));
-                    },
-                  ),
-                _menuAction(
-                  leading: const Icon(Icons.upgrade, color: Tailwind.emerald500),
-                  title: const Text('Upgrade Plan', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w600)),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Tailwind.amber500,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Text(
-                      'OFFER',
-                      style: TextStyle(color: Tailwind.white, fontSize: 10, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SubscriptionScreen()),
-                    );
-                  },
-                ),
-
-                _menuAction(
-                  leading: const Icon(Icons.help_outline, color: Tailwind.indigo600),
-                  title: const Text('Student tutorial'),
-                  subtitle: const Text('Take a quick tour'),
-                  onTap: () {
-                    final navigator = Navigator.of(context);
-                    navigator.pop();
-                    StudentTutorial.show(navigator.context);
-                  },
-                ),
-                _menuAction(
-                leading: const Icon(Icons.lock_reset, color: Tailwind.slate500),
-                title: const Text('Change Password', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.w500)),
-                subtitle: const Text('Update your account password'),
-                onTap: () {
-                  Navigator.pop(context); // Close drawer
-                  Navigator.pushNamed(context, '/change-password'); // Push screen
-                  },
-                ),
-
-                _menuAction(
-                  leading: const Icon(Icons.gamepad_rounded, color: Tailwind.indigo500),
-                  title: const Text('Live classroom', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
-                  subtitle: const Text('Join or host a live quiz'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/live-quiz');
-                  },
-                ),
-
-                const Divider(color: Tailwind.slate200),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Text(
-                    "RECENT CHATS",
-                    style: TextStyle(color: Tailwind.slate400, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-
-                if (_isLoadingSessions)
-                  const Center(child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(color: Tailwind.indigo500),
-                  ))
-                else if (_sessions.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text("No history yet.", style: TextStyle(color: Tailwind.slate400, fontSize: 14)),
-                  )
-                else
-                  ..._sessions.map((session) => _menuAction(
-                    leading: const Icon(Icons.chat_bubble_outline, color: Tailwind.slate400, size: 20),
-                    title: Text(
-                      session['title'] ?? 'New Chat',
-                      style: const TextStyle(color: Tailwind.slate700, fontSize: 14, fontWeight: FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: IconButton(
-                      tooltip: 'Delete chat',
-                      icon: const Icon(Icons.delete_outline, color: Tailwind.rose400, size: 20),
-                      onPressed: () => _confirmDeleteSession(context, session['id']),
-                    ),
-                    onTap: () {
-                      if (widget.onSessionSelected != null) {
-                        widget.onSessionSelected!(session['id']); 
-                      } else {
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatScreen(initialSessionId: session['id']),
+                      navigator.push(
+                        MaterialPageRoute(
+                          builder: (_) => BoardSelectionScreen(
+                            changing: true,
+                            initialBoard: savedBoard(user?.userMetadata),
+                            onSave: (board) async {
+                              await supabase.auth.updateUser(
+                                UserAttributes(
+                                  data: {'education_board': board},
+                                ),
+                              );
+                              if (!navigator.mounted) return;
+                              navigator.pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder: (_) => const HomeSelectionScreen(),
+                                ),
+                                (_) => false,
+                              );
+                            },
                           ),
-                        );
-                      }
+                        ),
+                      );
                     },
-                  )),
-              ],
-            ),
-          ),
-
-          const Divider(color: Tailwind.slate200),
-          _menuAction(
-            leading: const Icon(Icons.description_outlined),
-            title: const Text('Terms and Conditions'),
-            onTap: () {
-              final navigator = Navigator.of(context);
-              navigator.pop();
-              navigator.push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      const LegalPolicyScreen(policy: LegalPolicy.terms),
-                ),
-              );
-            },
-          ),
-          _menuAction(
-            leading: const Icon(Icons.receipt_long_outlined),
-            title: const Text('Cancellation and Refund Policy'),
-            onTap: () {
-              final navigator = Navigator.of(context);
-              navigator.pop();
-              navigator.push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      const LegalPolicyScreen(policy: LegalPolicy.refunds),
-                ),
-              );
-            },
-          ),
-          _menuAction(
-            leading: const Icon(Icons.logout, color: Tailwind.rose500),
-            title: const Text('Log Out', style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.w600)),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    backgroundColor: Tailwind.white,
-                    shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl),
-                    title: const Text("Logout", style: TextStyle(color: Tailwind.slate800)),
-                    content: const Text("Are you sure you want to log out?", style: TextStyle(color: Tailwind.slate600)),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text("Cancel", style: TextStyle(color: Tailwind.slate500)),
+                  ),
+                  _menuAction(
+                    leading: const Icon(Icons.groups_outlined),
+                    title: const Text('Live classroom'),
+                    subtitle: const Text('Join or host a quiz'),
+                    onTap: () {
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      navigator.pushNamed('/live-quiz');
+                    },
+                  ),
+                  _section('RECENT CHATS'),
+                  if (_isLoadingSessions)
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: LinearProgressIndicator(),
+                    )
+                  else if (_sessions.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 8,
                       ),
-                      TextButton(
-                        onPressed: () async {
-                          await supabase.auth.signOut();
-                          if (context.mounted) {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(builder: (_) => const LoginScreen()), 
-                              (route) => false
-                            );
+                      child: Text(
+                        'Your saved conversations will appear here.',
+                        style: TextStyle(
+                          color: Tailwind.slate500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    )
+                  else
+                    ..._sessions.map(
+                      (session) => _menuAction(
+                        leading: const Icon(
+                          Icons.chat_bubble_outline,
+                          size: 20,
+                        ),
+                        title: Text(
+                          session['title'] ?? 'New chat',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: IconButton(
+                          tooltip: 'Delete chat',
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Tailwind.rose500,
+                            size: 20,
+                          ),
+                          onPressed: () =>
+                              _confirmDeleteSession(context, session['id']),
+                        ),
+                        onTap: () {
+                          if (widget.onSessionSelected != null) {
+                            widget.onSessionSelected!(session['id']);
+                          } else {
+                            _open(ChatScreen(initialSessionId: session['id']));
                           }
                         },
-                        child: const Text("Logout", style: TextStyle(color: Tailwind.rose500, fontWeight: FontWeight.bold)),
                       ),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          const SizedBox(height: 20),
-        ],
+                    ),
+                  _section('HELP & ACCOUNT'),
+                  _menuAction(
+                    leading: const Icon(Icons.help_outline),
+                    title: const Text('How to use Arivora'),
+                    onTap: () {
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      StudentTutorial.show(navigator.context);
+                    },
+                  ),
+                  _menuAction(
+                    leading: const Icon(Icons.mail_outline),
+                    title: const Text('Contact support'),
+                    subtitle: const Text('Solutions@auxiumsoft.com'),
+                    onTap: _support,
+                  ),
+                  _menuAction(
+                    leading: const Icon(Icons.lock_outline),
+                    title: const Text('Change password'),
+                    onTap: () {
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      navigator.pushNamed('/change-password');
+                    },
+                  ),
+                  if (_subscriptionTier == 'admin')
+                    _menuAction(
+                      leading: const Icon(Icons.fact_check_outlined),
+                      title: const Text('Answer library'),
+                      onTap: () => _open(const AnswerLibraryScreen()),
+                    ),
+                  _section('POLICIES'),
+                  _menuAction(
+                    leading: const Icon(Icons.description_outlined),
+                    title: const Text('Terms & conditions'),
+                    onTap: () => _open(
+                      const LegalPolicyScreen(policy: LegalPolicy.terms),
+                    ),
+                  ),
+                  _menuAction(
+                    leading: const Icon(Icons.receipt_long_outlined),
+                    title: const Text('Cancellation & refunds'),
+                    onTap: () => _open(
+                      const LegalPolicyScreen(policy: LegalPolicy.refunds),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _menuAction(
+                    leading: const Icon(
+                      Icons.logout_rounded,
+                      color: Tailwind.rose500,
+                    ),
+                    title: const Text(
+                      'Sign out',
+                      style: TextStyle(color: Tailwind.rose600),
+                    ),
+                    onTap: _logout,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: Text(
+                      'Arivora · An AuxiumSoft product',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Tailwind.slate500, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -428,7 +595,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Material(
-        color: Tailwind.slate50,
+        color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: Tailwind.slate200),
@@ -440,7 +607,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
           hoverColor: Tailwind.indigo100,
           focusColor: Tailwind.indigo100,
           splashColor: Tailwind.indigo100,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 4,
+          ),
           leading: Container(
             width: 38,
             height: 38,
@@ -452,12 +622,26 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ),
           title: title,
           subtitle: subtitle,
-          titleTextStyle: const TextStyle(color: Tailwind.slate800, fontSize: 14, fontWeight: FontWeight.w600),
-          subtitleTextStyle: const TextStyle(color: Tailwind.slate500, fontSize: 12),
-          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (trailing != null) trailing,
-            const Icon(Icons.chevron_right_rounded, color: Tailwind.indigo600, size: 20),
-          ]),
+          titleTextStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: Tailwind.slate800,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+          subtitleTextStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+            color: Tailwind.slate500,
+            fontSize: 12,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ?trailing,
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Tailwind.indigo600,
+                size: 20,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -466,9 +650,24 @@ class _CustomDrawerState extends State<CustomDrawer> {
   String _formatDate(String? isoString) {
     if (isoString == null || isoString.isEmpty) return 'N/A';
     try {
-      final dateTime = DateTime.parse(isoString);
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return '${months[dateTime.month - 1]} ${dateTime.day}, ${dateTime.year}';
+      final dateTime = DateTime.parse(
+        isoString,
+      ).toUtc().add(const Duration(hours: 5, minutes: 30));
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year}';
     } catch (e) {
       return isoString;
     }
