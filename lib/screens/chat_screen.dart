@@ -494,7 +494,9 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           _serverSessionLimitReached = streamedResponse.headers['x-chat-error'] == 'conversation_limit';
           messages[botMessageIndex] = ChatMessage(
-            text: detail is String ? detail : 'Please check your question and try again.', isUser: false);
+            text: (detail is String ? detail : 'Please check your question and try again.') +
+                (['subscription_expired', 'credit_limit'].contains(streamedResponse.headers['x-chat-error']) ? ' [PAYWALL]' : ''),
+            isUser: false);
         });
         await _loadProfileData();
       }
@@ -755,7 +757,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionScreen())),
               icon: const Icon(Icons.star, color: Tailwind.white, size: 18),
-              label: const Text('Upgrade to Arivora Pro', style: TextStyle(color: Tailwind.white, fontWeight: FontWeight.bold)),
+              label: const Text('Subscribe to Arivora Pro', style: TextStyle(color: Tailwind.white, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Tailwind.amber500,
                 elevation: 0,
