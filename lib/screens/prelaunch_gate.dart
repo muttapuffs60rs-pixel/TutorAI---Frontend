@@ -26,14 +26,22 @@ class _PrelaunchGateState extends State<PrelaunchGate>
   bool _loginVisible = false, _busy = false, _checking = false;
   String? _error;
   int _generation = 0;
+  String? _accessUserId;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _auth = _client.auth.onAuthStateChange.listen((_) {
+    _accessUserId = _client.auth.currentUser?.id;
+    _auth = _client.auth.onAuthStateChange.listen((state) {
       _generation++;
-      if (mounted) setState(() => _status = null);
+      final userId = state.session?.user.id;
+      // A refresh for the same account must not dispose the active Navigator.
+      // Account changes still close access immediately; every event rechecks it.
+      if (userId != _accessUserId) {
+        _accessUserId = userId;
+        if (mounted) setState(() => _status = null);
+      }
       _refresh();
     });
     _poll = Timer.periodic(const Duration(seconds: 30), (_) => _refresh());
