@@ -172,8 +172,10 @@ class _PrelaunchGateState extends State<PrelaunchGate>
                         ),
                         const SizedBox(height: 12),
                         const Text(
-                          'Your learning journey begins soon. Join us for the launch!',
+                          'Ask doubts, practise quizzes, and study your syllabus with Arivora. '
+                          'Your learning journey begins soon!',
                           textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, height: 1.5),
                         ),
                         const SizedBox(height: 28),
                         Container(
