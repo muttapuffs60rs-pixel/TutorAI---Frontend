@@ -451,8 +451,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                   _menuAction(
                     leading: const Icon(Icons.groups_outlined),
-                    title: const Text('Live classroom'),
-                    subtitle: const Text('Join or host a quiz'),
+                    title: const Text('Quizzes'),
+                    subtitle: const Text('Practise alone, join or host'),
                     onTap: () {
                       final navigator = Navigator.of(context);
                       navigator.pop();

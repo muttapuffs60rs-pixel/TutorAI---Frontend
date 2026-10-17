@@ -3,6 +3,7 @@ import '../../widgets/learning_mascot.dart';
 import '../../theme/tailwind_theme.dart';
 import 'teacher_create_quiz_screen.dart';
 import 'student_join_screen.dart';
+import '../solo_practice_screen.dart';
 
 class LiveQuizEntryScreen extends StatelessWidget {
   const LiveQuizEntryScreen({super.key});
@@ -14,7 +15,13 @@ class LiveQuizEntryScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Tailwind.white,
         elevation: 0,
-        title: const Text('Live Quiz 🎮', style: TextStyle(color: Tailwind.slate800, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Quizzes',
+          style: TextStyle(
+            color: Tailwind.slate800,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         iconTheme: const IconThemeData(color: Tailwind.slate800),
       ),
       body: SafeArea(
@@ -42,15 +49,29 @@ class LiveQuizEntryScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
                       child: const LearningMascot(size: 80),
                     ),
                     const SizedBox(height: 16),
-                    const Text('Live Classroom Quiz', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                    const Text(
+                      'Build confidence, one question at a time',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Real-time quizzes with live leaderboards. Engage your class like never before!',
-                      style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+                      'Practise at your own pace or join your class for a live quiz.',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
@@ -58,7 +79,24 @@ class LiveQuizEntryScreen extends StatelessWidget {
               const SizedBox(height: 32),
               const Text(
                 'CHOOSE A QUIZ MODE',
-                style: TextStyle(color: Tailwind.slate400, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+                style: TextStyle(
+                  color: Tailwind.slate400,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _RoleCard(
+                icon: Icons.psychology_rounded,
+                title: 'Practise alone',
+                subtitle: 'Choose a topic, get feedback. No code needed.',
+                color: Tailwind.indigo600,
+                lightColor: Tailwind.indigo50,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SoloPracticeScreen()),
+                ),
               ),
               const SizedBox(height: 16),
               _RoleCard(
@@ -67,7 +105,12 @@ class LiveQuizEntryScreen extends StatelessWidget {
                 subtitle: "Create a quiz, invite students with a code",
                 color: Tailwind.indigo600,
                 lightColor: Tailwind.indigo50,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherCreateQuizScreen())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TeacherCreateQuizScreen(),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               _RoleCard(
@@ -76,21 +119,35 @@ class LiveQuizEntryScreen extends StatelessWidget {
                 subtitle: "Join a live quiz with a 6-digit code",
                 color: const Color(0xFF059669),
                 lightColor: const Color(0xFFECFDF5),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StudentJoinScreen())),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StudentJoinScreen()),
+                ),
               ),
               const SizedBox(height: 16),
               const SizedBox(height: 32),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Tailwind.amber50, borderRadius: Tailwind.roundedXl, border: Border.all(color: Tailwind.amber200)),
+                decoration: BoxDecoration(
+                  color: Tailwind.amber50,
+                  borderRadius: Tailwind.roundedXl,
+                  border: Border.all(color: Tailwind.amber200),
+                ),
                 child: const Row(
                   children: [
-                    Icon(Icons.info_outline, color: Tailwind.amber600, size: 18),
+                    Icon(
+                      Icons.info_outline,
+                      color: Tailwind.amber600,
+                      size: 18,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Both teacher and students must be logged in to participate.',
-                        style: TextStyle(color: Tailwind.amber700, fontSize: 13),
+                        style: TextStyle(
+                          color: Tailwind.amber700,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -113,8 +170,12 @@ class _RoleCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _RoleCard({
-    required this.icon, required this.title, required this.subtitle,
-    required this.color, required this.lightColor, required this.onTap,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.lightColor,
+    required this.onTap,
   });
 
   @override
@@ -132,8 +193,12 @@ class _RoleCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 56, height: 56,
-              decoration: BoxDecoration(color: lightColor, borderRadius: BorderRadius.circular(16)),
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: lightColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Icon(icon, color: color, size: 28),
             ),
             const SizedBox(width: 16),
@@ -141,9 +206,22 @@ class _RoleCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(color: color, fontSize: 17, fontWeight: FontWeight.w800)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(subtitle, style: const TextStyle(color: Tailwind.slate500, fontSize: 13)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: Tailwind.slate500,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),

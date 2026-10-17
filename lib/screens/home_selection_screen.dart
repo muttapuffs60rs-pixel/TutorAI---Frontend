@@ -169,8 +169,8 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                           ),
                           _LearningCard(
                             width: width,
-                            title: 'Live classroom',
-                            subtitle: 'Join a quiz together',
+                            title: 'Quizzes',
+                            subtitle: 'Practise alone or join your class',
                             icon: Icons.school_outlined,
                             color: Tailwind.pastels[2],
                             onTap: () => open(const LiveQuizEntryScreen()),

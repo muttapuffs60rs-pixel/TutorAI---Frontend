@@ -101,6 +101,10 @@ void main() {
                   context,
                   MaterialPageRoute<void>(
                     builder: (_) => SubscriptionScreen(
+                      profileLoader: () async => {
+                        'subscription_tier': 'tier_199',
+                        'subscription_expires_at': '2099-01-01T00:00:00Z',
+                      },
                       httpClient: client,
                       openCheckout: (options) async {
                         checkoutCalls++;
@@ -127,6 +131,13 @@ void main() {
       );
       await tester.tap(find.text('Open plans'));
       await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Your current plan: Standard'),
+        findsOneWidget,
+      );
+      expect(find.text('Compare at a glance'), findsOneWidget);
+      expect(find.text('Monthly tracking target'), findsOneWidget);
+      expect(find.text('LIMITED OFFER'), findsNothing);
       await tester.scrollUntilVisible(find.byType(CheckboxListTile), 350);
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pump();

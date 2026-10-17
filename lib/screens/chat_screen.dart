@@ -552,8 +552,9 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Tailwind.slate800),
         actions: [
-          IconButton(icon: const Icon(Icons.add_comment, color: Tailwind.indigo600), onPressed: _startNewChat),
+          IconButton(tooltip: 'New chat', icon: const Icon(Icons.add_comment, color: Tailwind.indigo600), onPressed: _startNewChat),
           IconButton(
+            tooltip: 'Sign out',
             icon: const Icon(Icons.logout, color: Tailwind.slate500),
             onPressed: _showLogoutConfirmation,
           )
@@ -775,6 +776,28 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Column(
       children: [
+        if (!isLoading && !blockInput && messages.length > 2 && !messages.last.isUser)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Choose a follow-up, then tap Send.', style: TextStyle(fontSize: 12, color: Tailwind.slate500)),
+              Wrap(spacing: 8, children: [
+                for (final action in const {
+                  'Hint': 'Give me just one small hint for the last practice question. Do not reveal the answer.',
+                  'Short explanation': 'Explain your last answer in at most three short sentences. Focus on the main idea or my mistake.',
+                  'Full solution': 'Explain the last question with a full step-by-step solution and check the answer.',
+                }.entries)
+                  ActionChip(label: Text(action.key), onPressed: () {
+                    if (_controller.text.trim().isNotEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Send or clear your current question before choosing a follow-up.')));
+                      return;
+                    }
+                    _controller.text = action.value;
+                    _controller.selection = TextSelection.collapsed(offset: _controller.text.length);
+                  }),
+              ]),
+            ]),
+          ),
         if (_pendingImageUrl != null && !blockInput)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -851,6 +874,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Row(
                       children: [
                         IconButton(
+                          tooltip: 'Attach a question photo',
                           icon: const Icon(Icons.add_a_photo, color: Tailwind.indigo500), 
                           onPressed: isLoading ? null : () {
                             if (_subscriptionTier == 'free') {
@@ -945,6 +969,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: IconButton(
+                                  tooltip: 'Send question',
                                   icon: const Icon(Icons.send, color: Tailwind.white, size: 18),
                                   onPressed: () => sendMessage(), 
                                 ),

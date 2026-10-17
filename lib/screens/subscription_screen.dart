@@ -5,9 +5,16 @@ import '../services/payment_checkout.dart';
 import 'legal_policy_screen.dart';
 import '../main.dart'; // Ensure this points to your main.dart where supabase is initialized
 import '../theme/tailwind_theme.dart';
+import '../services/profile_service.dart';
 
 class SubscriptionScreen extends StatefulWidget {
-  const SubscriptionScreen({super.key, this.httpClient, this.openCheckout});
+  const SubscriptionScreen({
+    super.key,
+    this.httpClient,
+    this.openCheckout,
+    this.profileLoader = fetchDailyProfile,
+  });
+  final Future<Map<String, dynamic>> Function() profileLoader;
 
   final http.Client? httpClient;
   final Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
@@ -20,6 +27,38 @@ class SubscriptionScreen extends StatefulWidget {
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _isLoading = false;
   bool _acceptedPolicies = false;
+  String? _currentTier;
+  String? _currentExpiry;
+  bool _loadingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await widget.profileLoader();
+      final expiry = DateTime.tryParse(
+        profile['subscription_expires_at']?.toString() ?? '',
+      );
+      if (mounted) {
+        setState(() {
+          _currentTier = expiry != null && !expiry.isAfter(DateTime.now())
+              ? 'free'
+              : profile['subscription_tier'] as String? ?? 'free';
+          _currentExpiry = expiry == null
+              ? null
+              : '${expiry.day}/${expiry.month}/${expiry.year}';
+        });
+      }
+    } catch (_) {
+      /* Keep purchase choices available if profile lookup fails. */
+    }
+    if (mounted) setState(() => _loadingProfile = false);
+  }
+
   PaymentCheckout? _checkout;
   static const _backend = String.fromEnvironment(
     'API_BASE_URL',
@@ -142,7 +181,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
         title: const Text(
-          'Arivora payment test',
+          'Compare study plans',
           style: TextStyle(
             color: Tailwind.slate800,
             fontWeight: FontWeight.bold,
@@ -184,7 +223,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Achieve Your Best Marks!',
+                  'Find your study plan',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Tailwind.slate800,
@@ -200,6 +239,66 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   style: TextStyle(color: Tailwind.slate500, fontSize: 16),
                 ),
                 const SizedBox(height: 32),
+
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      _loadingProfile
+                          ? 'Loading your current plan…'
+                          : _currentTier == null
+                          ? 'Your current plan could not be loaded. Check your plan in the menu before purchasing.'
+                          : 'Your current plan: ${const {'tier_199': 'Standard', 'tier_499': 'Syllabus Master', 'tier_999': 'Premium', 'free': 'Free', 'admin': 'Admin'}[_currentTier] ?? 'Learning'}${_currentTier != 'free' && _currentExpiry != null ? ' · Valid until $_currentExpiry' : ''}',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Compare at a glance',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Table(
+                  border: TableBorder.all(color: Tailwind.slate200),
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                  children: [
+                    for (final row in const [
+                      ['Plan', 'Standard', 'Syllabus Master', 'Premium'],
+                      ['Price / 30 days', '₹249', '₹499', '₹999'],
+                      ['Chat replies / day', '50', '150', '150'],
+                      [
+                        'Monthly tracking target',
+                        '12.5 lakh credits',
+                        '30 lakh credits',
+                        '80 lakh credits',
+                      ],
+                      ['Host live quizzes / day', '3', '5', '5'],
+                      ['Join live quizzes / day', '10', '15', '15'],
+                    ])
+                      TableRow(
+                        children: row
+                            .map(
+                              (cell) => Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Text(
+                                  cell,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'All plans include textbook-based tutoring. Solo practice: up to 5 generated quizzes per day on every plan.',
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Monthly study targets track AI processing, including your question, textbook context and the reply. They are not a guaranteed number of answers and are currently tracking targets rather than hard monthly caps. Daily chat limits still apply. Days reset at midnight IST.',
+                ),
+                const SizedBox(height: 24),
 
                 const Text(
                   'New accounts receive 50,000 welcome credits once. There is no daily refill. Check your remaining welcome allowance in the usage meter.',
@@ -228,7 +327,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const LegalPolicyLinks(),
                 const Text(
-                  'One-time payments. Plans do not automatically renew. Pay using the payment methods available in Razorpay Checkout, including UPI where enabled.',
+                  'One-time payments. Plans do not automatically renew. Buying a plan starts a new 30-day period and replaces your current plan; unused days do not stack. Pay using the methods available in Razorpay Checkout, including UPI where enabled.',
                 ),
                 const SizedBox(height: 24),
 
@@ -256,12 +355,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   price: '₹249',
                   subtitle: 'Valid for 30 days',
                   features: [
-                    'Monthly allowance for regular study',
+                    'Up to 50 chat replies per day',
+                    'Monthly tracking target: 12.5 lakh study credits',
+                    'Solo practice: 5 generated quizzes per day',
                     'Live Quiz: Host 3 times/day',
                     'Live Quiz: Play 10 times/day',
-                    'Full Textbook Context',
+                    'Textbook-based tutoring',
                   ],
                   buttonText: 'Choose Standard',
+                  tierId: 'tier_199',
                   onTap: () => _updateSubscription('tier_199'),
                 ),
                 const SizedBox(height: 24),
@@ -272,13 +374,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   price: '₹499',
                   subtitle: 'Valid for 30 days',
                   features: [
-                    'Larger monthly study allowance',
+                    'Up to 150 chat replies per day',
+                    'Monthly tracking target: 30 lakh study credits',
+                    'Solo practice: 5 generated quizzes per day',
                     'Live Quiz: Host 5 times/day',
                     'Live Quiz: Play 15 times/day',
-                    'Priority AI Access & Tips',
+                    'Textbook-based tutoring',
                   ],
                   isPro: true,
-                  buttonText: 'Go Pro Master',
+                  buttonText: 'Choose Syllabus Master',
+                  tierId: 'tier_499',
                   onTap: () => _updateSubscription('tier_499'),
                 ),
                 const SizedBox(height: 24),
@@ -287,11 +392,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   price: '₹999',
                   subtitle: 'Valid for 30 days',
                   features: [
-                    'Our largest monthly study allowance',
+                    'Up to 150 chat replies per day',
+                    'Monthly tracking target: 80 lakh study credits',
+                    'Solo practice: 5 generated quizzes per day',
+                    'Textbook-based tutoring',
                     'Live Quiz: Host 5 times/day',
                     'Live Quiz: Play 15 times/day',
                   ],
                   buttonText: 'Choose Premium',
+                  tierId: 'tier_999',
                   onTap: () => _updateSubscription('tier_999'),
                 ),
                 const SizedBox(height: 32),
@@ -317,6 +426,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     bool isPro = false,
     bool isBooster = false,
     bool isAvailable = true,
+    String? tierId,
   }) {
     final bool isDarkCard = isPro;
     final Color textColor = isDarkCard ? Tailwind.white : Tailwind.slate800;
@@ -356,6 +466,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (tierId != null && _currentTier == tierId) ...[
+                Text(
+                  'YOUR CURRENT PLAN',
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
               Text(
                 title,
                 style: TextStyle(
@@ -458,7 +578,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 boxShadow: Tailwind.shadowSm,
               ),
               child: Text(
-                isPro ? 'MOST POPULAR' : 'LIMITED OFFER',
+                isPro ? 'LARGER STUDY TARGET' : 'COMING SOON',
                 style: TextStyle(
                   color: isPro ? Tailwind.slate900 : Tailwind.white,
                   fontSize: 12,
