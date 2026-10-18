@@ -136,6 +136,8 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Compare at a glance'), findsOneWidget);
+      expect(find.text('Chat replies / day'), findsNothing);
+      expect(find.textContaining('chat replies per day'), findsNothing);
       expect(find.text('Monthly tracking target'), findsOneWidget);
       expect(find.text('LIMITED OFFER'), findsNothing);
       await tester.scrollUntilVisible(find.byType(CheckboxListTile), 350);

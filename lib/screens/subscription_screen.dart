@@ -266,7 +266,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     for (final row in const [
                       ['Plan', 'Standard', 'Syllabus Master', 'Premium'],
                       ['Price / 30 days', '₹249', '₹499', '₹999'],
-                      ['Chat replies / day', '50', '150', '150'],
                       [
                         'Monthly tracking target',
                         '12.5 lakh credits',
@@ -297,7 +296,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Monthly study targets track AI processing, including your question, textbook context and the reply. They are not a guaranteed number of answers and are currently tracking targets rather than hard monthly caps. Daily chat limits still apply. Days reset at midnight IST.',
+                  'Monthly study targets track AI processing, including your question, textbook context and the reply. They are not a guaranteed number of answers and are currently tracking targets rather than hard monthly caps. Chat access follows your study credits and plan validity, rather than a daily reply count.',
                 ),
                 const SizedBox(height: 24),
 
@@ -358,7 +357,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   price: '₹249',
                   subtitle: 'Valid for 30 days',
                   features: [
-                    'Up to 50 chat replies per day',
                     'Monthly tracking target: 12.5 lakh study credits',
                     'Solo practice: 5 generated quizzes per day',
                     'Live Quiz: Host 3 times/day',
@@ -377,7 +375,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   price: '₹499',
                   subtitle: 'Valid for 30 days',
                   features: [
-                    'Up to 150 chat replies per day',
                     'Monthly tracking target: 30 lakh study credits',
                     'Solo practice: 5 generated quizzes per day',
                     'Live Quiz: Host 5 times/day',
@@ -395,7 +392,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   price: '₹999',
                   subtitle: 'Valid for 30 days',
                   features: [
-                    'Up to 150 chat replies per day',
                     'Monthly tracking target: 80 lakh study credits',
                     'Solo practice: 5 generated quizzes per day',
                     'Textbook-based tutoring',
