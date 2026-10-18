@@ -387,6 +387,7 @@ class _ProfileHistoryState extends State<_ProfileHistory>
   final List<Map<String, dynamic>> _items = [];
   bool _loading = false, _more = true;
   String? _error;
+  num? _currentBalance;
   @override
   bool get wantKeepAlive => true;
   @override
@@ -415,6 +416,10 @@ class _ProfileHistoryState extends State<_ProfileHistory>
       if (mounted) {
         setState(() {
           _items.addAll(items);
+          if (!widget.learning &&
+              result!.containsKey('current_credit_balance')) {
+            _currentBalance = result['current_credit_balance'] as num?;
+          }
           _more = widget.learning
               ? items.length == 20
               : result!['has_more'] == true;
@@ -502,7 +507,7 @@ class _ProfileHistoryState extends State<_ProfileHistory>
           const Padding(
             padding: EdgeInsets.only(top: 12),
             child: Text(
-              'Credit usage statement · Dates in IST',
+              'Credit usage statement · Dates in IST\nCurrent = available balance now, shown when a historical balance was not recorded.',
               style: TextStyle(fontSize: 12, color: Colors.black54),
             ),
           ),
@@ -558,15 +563,9 @@ class _ProfileHistoryState extends State<_ProfileHistory>
                   creditDate,
                   item['kind']?.toString() ?? 'Tutor request',
                   '−$creditAmount',
-                  item['credit_pending'] is num
-                      ? (item['credit_pending'] as num)
-                            .toInt()
-                            .toString()
-                            .replaceAllMapped(
-                              RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-                              (m) => '${m[1]},',
-                            )
-                      : '—',
+                  (item['credit_pending'] ?? _currentBalance) is num
+                      ? '${((item['credit_pending'] ?? _currentBalance) as num).toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}${item['credit_pending'] == null ? '\nCurrent' : ''}'
+                      : 'Unavailable',
                 ),
               ),
             );

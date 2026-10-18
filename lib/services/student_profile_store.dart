@@ -4,6 +4,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../main.dart';
 import 'profile_service.dart';
 
+int? currentAvailableCredits(Map<String, dynamic> usage) {
+  final wallet = usage['learning_credits'];
+  if (wallet is Map) return (wallet['remaining'] as num?)?.toInt();
+  final target = usage['token_target'] ?? usage['monthly_token_target'];
+  final used = usage['monthly_credits_used'] ?? usage['monthly_tokens_used'];
+  if (target is! num ||
+      used is! num ||
+      (usage['unmetered_requests'] as num? ?? 0) > 0) {
+    return null;
+  }
+  return ((target - used).clamp(0, target) +
+          (usage['topup_remaining'] as num? ?? 0))
+      .toInt();
+}
+
 DateTime? validBirthDate(dynamic value) {
   if (value is! String || !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
     return null;
@@ -107,6 +122,23 @@ class SupabaseStudentProfileStore implements StudentProfileStore {
     if (response.statusCode != 200) {
       throw StateError('Could not load your credit history.');
     }
-    return Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+    final result = Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+    if ((result['items'] as List).any(
+      (item) => item['credit_pending'] == null,
+    )) {
+      final usageResponse = await http
+          .get(
+            Uri.parse('$backend/usage'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 30));
+      if (usageResponse.statusCode != 200) {
+        throw StateError('Could not load your current balance.');
+      }
+      result['current_credit_balance'] = currentAvailableCredits(
+        Map<String, dynamic>.from(jsonDecode(usageResponse.body) as Map),
+      );
+    }
+    return result;
   }
 }

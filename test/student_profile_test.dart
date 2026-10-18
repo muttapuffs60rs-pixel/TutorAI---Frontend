@@ -51,6 +51,7 @@ class FakeStudentProfileStore implements StudentProfileStore {
     if (failCredits) throw StateError('offline');
     return {
       'has_more': offset == 0,
+      'current_credit_balance': 1250000,
       'items': [
         {
           'id': 'usage-$offset',
@@ -115,6 +116,41 @@ void main() {
       expect(validBirthDate(value), isNull);
     }
   });
+  test(
+    'current balance uses wallet total or remaining paid allowance plus topups',
+    () {
+      expect(
+        currentAvailableCredits({
+          'learning_credits': {'remaining': 42000, 'topup_remaining': 20000},
+        }),
+        42000,
+      );
+      expect(
+        currentAvailableCredits({
+          'token_target': 1250000,
+          'monthly_credits_used': 57003,
+          'topup_remaining': 996241,
+        }),
+        2189238,
+      );
+      expect(
+        currentAvailableCredits({
+          'token_target': 100,
+          'monthly_credits_used': 120,
+          'topup_remaining': 30,
+        }),
+        30,
+      );
+      expect(
+        currentAvailableCredits({
+          'token_target': 100,
+          'monthly_credits_used': 10,
+          'unmetered_requests': 1,
+        }),
+        isNull,
+      );
+    },
+  );
   testWidgets('profile overview fits a phone with a full DOB', (tester) async {
     await open(tester, FakeStudentProfileStore());
     expect(tester.takeException(), isNull);
@@ -137,7 +173,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('−3,000'), findsOneWidget);
     expect(find.text('Credit Pending'), findsOneWidget);
-    expect(find.text('—'), findsOneWidget);
+    expect(find.text('1,250,000\nCurrent'), findsOneWidget);
     expect(find.text('Total credits remaining'), findsNothing);
     await tester.ensureVisible(find.text('Load older records'));
     await tester.tap(find.text('Load older records'));
