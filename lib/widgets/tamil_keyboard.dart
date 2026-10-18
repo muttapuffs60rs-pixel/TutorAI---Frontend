@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 
 /// Keep edits on grapheme boundaries, including Tamil vowel signs and emoji.
-void editTamilDraft(TextEditingController controller, String text, {bool backspace = false}) {
+void editTamilDraft(
+  TextEditingController controller,
+  String text, {
+  bool backspace = false,
+}) {
   final value = controller.value;
   final selection = value.selection;
-  var start = selection.isValid ? selection.start.clamp(0, value.text.length) : value.text.length;
-  var end = selection.isValid ? selection.end.clamp(0, value.text.length) : value.text.length;
+  var start = selection.isValid
+      ? selection.start.clamp(0, value.text.length)
+      : value.text.length;
+  var end = selection.isValid
+      ? selection.end.clamp(0, value.text.length)
+      : value.text.length;
   final boundaries = <int>[0];
   for (final letter in value.text.characters) {
     boundaries.add(boundaries.last + letter.length);
@@ -29,81 +37,253 @@ void editTamilDraft(TextEditingController controller, String text, {bool backspa
 class TamilKeyboard extends StatefulWidget {
   final TextEditingController controller;
   final VoidCallback onDone;
-  const TamilKeyboard({super.key, required this.controller, required this.onDone});
+  const TamilKeyboard({
+    super.key,
+    required this.controller,
+    required this.onDone,
+  });
 
   @override
   State<TamilKeyboard> createState() => _TamilKeyboardState();
 }
 
 class _TamilKeyboardState extends State<TamilKeyboard> {
-  String consonant = 'க';
-  static const vowels = ['அ', 'ஆ', 'இ', 'ஈ', 'உ', 'ஊ', 'எ', 'ஏ', 'ஐ', 'ஒ', 'ஓ', 'ஔ', 'ஃ'];
-  static const consonants = ['க', 'ங', 'ச', 'ஞ', 'ட', 'ண', 'த', 'ந', 'ப', 'ம', 'ய', 'ர', 'ல', 'வ', 'ழ', 'ள', 'ற', 'ன', 'ஜ', 'ஷ', 'ஸ', 'ஹ', 'க்ஷ'];
-  static const signs = ['', 'ா', 'ி', 'ீ', 'ு', 'ூ', 'ெ', 'ே', 'ை', 'ொ', 'ோ', 'ௌ', '்'];
+  String? consonant;
+  int group = 0;
+  static const vowels = [
+    'அ',
+    'ஆ',
+    'இ',
+    'ஈ',
+    'உ',
+    'ஊ',
+    'எ',
+    'ஏ',
+    'ஐ',
+    'ஒ',
+    'ஓ',
+    'ஔ',
+    'ஃ',
+  ];
+  static const consonants = [
+    'க',
+    'ங',
+    'ச',
+    'ஞ',
+    'ட',
+    'ண',
+    'த',
+    'ந',
+    'ப',
+    'ம',
+    'ய',
+    'ர',
+    'ல',
+    'வ',
+    'ழ',
+    'ள',
+    'ற',
+    'ன',
+    'ஜ',
+    'ஷ',
+    'ஸ',
+    'ஹ',
+    'க்ஷ',
+  ];
+  static const signs = [
+    '',
+    'ா',
+    'ி',
+    'ீ',
+    'ு',
+    'ூ',
+    'ெ',
+    'ே',
+    'ை',
+    'ொ',
+    'ோ',
+    'ௌ',
+    '்',
+  ];
+  static const symbols = [
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '0',
+    '?',
+    '.',
+    ',',
+    '!',
+    'ஸ்ரீ',
+  ];
 
-  Widget letterKey(String letter) => OutlinedButton(
-    key: ValueKey('insert-$letter'),
-    style: OutlinedButton.styleFrom(minimumSize: const Size(44, 44), padding: const EdgeInsets.symmetric(horizontal: 10)),
-    onPressed: () => editTamilDraft(widget.controller, letter),
-    child: Text(letter, style: const TextStyle(fontSize: 19)),
-  );
+  void insert(String letter) {
+    editTamilDraft(widget.controller, letter);
+    if (consonant != null) setState(() => consonant = null);
+  }
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(children: [
-            const Expanded(child: Text('தமிழ் keyboard', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-            TextButton(onPressed: widget.onDone, child: const Text('Done')),
-          ]),
-          TextField(
-            controller: widget.controller,
-            readOnly: true,
-            showCursor: true,
-            minLines: 1,
-            maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Your question / உங்கள் கேள்வி', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 8),
-          Expanded(child: SingleChildScrollView(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Vowels / உயிரெழுத்துகள்'),
-              Wrap(spacing: 4, runSpacing: 4, children: vowels.map(letterKey).toList()),
-              const SizedBox(height: 12),
-              const Text('1. Choose a consonant / மெய் எழுத்தைத் தேர்ந்தெடுக்கவும்'),
-              Wrap(spacing: 4, children: consonants.map((letter) => ChoiceChip(
-                key: ValueKey('choose-$letter'),
-                label: Text(letter, style: const TextStyle(fontSize: 18)),
-                selected: consonant == letter,
-                onSelected: (_) => setState(() => consonant = letter),
-              )).toList()),
-              const SizedBox(height: 8),
-              const Text('2. Tap a letter to type / எழுத வேண்டிய எழுத்தைத் தொடவும்'),
-              Wrap(spacing: 4, runSpacing: 4, children: signs.map((sign) => letterKey('$consonant$sign')).toList()),
-              const SizedBox(height: 12),
-              Wrap(spacing: 4, runSpacing: 4, children: ['ஸ்ரீ', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', '.', ',', '!'].map(letterKey).toList()),
-            ],
-          ))),
-          const SizedBox(height: 8),
-          Row(children: [
-            Expanded(child: OutlinedButton(
-              onPressed: () => editTamilDraft(widget.controller, ' '),
-              child: const Text('Space / இடைவெளி'),
-            )),
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Delete previous letter',
-              onPressed: () => editTamilDraft(widget.controller, '', backspace: true),
-              icon: const Icon(Icons.backspace_outlined),
+  Widget build(BuildContext context) {
+    final forms = consonant != null;
+    final letters = forms
+        ? signs.map((sign) => '$consonant$sign').toList()
+        : group == 0
+        ? consonants
+        : group == 1
+        ? vowels
+        : symbols;
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'தமிழில் எழுதுங்கள்',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                TextButton(onPressed: widget.onDone, child: const Text('Done')),
+              ],
             ),
-          ]),
-        ],
+            TextField(
+              controller: widget.controller,
+              readOnly: true,
+              showCursor: true,
+              minLines: 1,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                hintText: 'உங்கள் கேள்வி / Your question',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (forms)
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: () => setState(() => consonant = null),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('எழுத்துகள்'),
+                  ),
+                  Expanded(
+                    child: Text(
+                      '$consonant — வடிவத்தைத் தொடவும்',
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  for (final tab in [
+                    (0, 'க எழுத்துகள்'),
+                    (1, 'அ உயிர்'),
+                    (2, '123 / ?'),
+                  ])
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: ChoiceChip(
+                          key: ValueKey('tamil-tab-${tab.$1}'),
+                          label: Text(tab.$2),
+                          labelPadding: EdgeInsets.zero,
+                          showCheckmark: false,
+                          selected: group == tab.$1,
+                          onSelected: (_) => setState(() => group = tab.$1),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            if (!forms)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  group == 0
+                      ? 'முதலில் எழுத்தைத் தொடவும் · க → கி, கு, க்'
+                      : 'எழுத வேண்டிய எழுத்தைத் தொடவும்',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth < 350 ? 5 : 6;
+                  return GridView.builder(
+                    key: ValueKey('tamil-grid-$group-$consonant'),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      mainAxisExtent: 50,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                    ),
+                    itemCount: letters.length,
+                    itemBuilder: (context, index) {
+                      final letter = letters[index];
+                      final choosing = !forms && group == 0;
+                      return OutlinedButton(
+                        key: ValueKey(
+                          '${choosing ? 'choose' : 'insert'}-$letter',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.05),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () => choosing
+                            ? setState(() => consonant = letter)
+                            : insert(letter),
+                        child: Text(
+                          letter,
+                          style: const TextStyle(fontSize: 22),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                    ),
+                    onPressed: () => editTamilDraft(widget.controller, ' '),
+                    child: const Text('Space / இடைவெளி'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Delete previous letter',
+                  onPressed: () =>
+                      editTamilDraft(widget.controller, '', backspace: true),
+                  icon: const Icon(Icons.backspace_outlined),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
