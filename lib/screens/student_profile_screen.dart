@@ -1,3 +1,4 @@
+import 'referrals_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/student_profile_store.dart';
 import '../widgets/usage_meter.dart';
@@ -220,17 +221,20 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                           'This shows your current subscription. A complete payment history is not available yet.',
                         ),
                       ]),
-                      _card(const [
-                        Text(
-                          'Referrals & rewards',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                      _card([
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.card_giftcard),
+                          title: const Text('Referrals & rewards'),
+                          subtitle: const Text(
+                            'Your code, invitations and reward history',
                           ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Planned feature. Referral earnings and reward history will appear here once referrals are available.',
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ReferralsScreen(),
+                            ),
+                          ),
                         ),
                       ]),
                     ],

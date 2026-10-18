@@ -15,7 +15,8 @@ int? currentAvailableCredits(Map<String, dynamic> usage) {
     return null;
   }
   return ((target - used).clamp(0, target) +
-          (usage['topup_remaining'] as num? ?? 0))
+          (usage['topup_remaining'] as num? ?? 0) +
+          (usage['referral_remaining'] as num? ?? 0))
       .toInt();
 }
 
