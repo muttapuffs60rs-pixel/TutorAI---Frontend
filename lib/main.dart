@@ -1,3 +1,4 @@
+import 'services/referral_invite.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +31,8 @@ const _supabaseAnonKey = String.fromEnvironment(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await rememberReferral(Uri.base);
 
   // Initialize Supabase
   await Supabase.initialize(

@@ -1,3 +1,4 @@
+import '../services/referral_invite.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
   void initState() {
     super.initState();
     _load();
+    pendingReferral().then((code) {
+      if (mounted && code != null && _code.text.isEmpty) _code.text = code;
+    });
   }
 
   @override
@@ -89,6 +93,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
       } else {
         await _request(_code.text.trim());
       }
+      await clearReferral();
       _code.clear();
       await _load();
     } catch (e) {
@@ -131,7 +136,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Ask your friend to sign up, open My profile → Referrals & rewards, and enter your code before their first payment. Only you receive the reward after their first successful paid purchase.',
+            'Ask your friend to sign up, open My profile → Referrals & rewards, and use your invitation link or enter your code before their first payment. Only you receive the reward after their first successful paid purchase.',
           ),
           if (_busy) const LinearProgressIndicator(),
           if (_error != null) ...[
@@ -173,6 +178,29 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                       },
                       icon: const Icon(Icons.copy),
                       label: const Text('Copy code'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(
+                            text: referralLink(data['code'].toString()),
+                          ),
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Invitation link copied. Share it with your friend.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.link),
+                      label: const Text('Copy invitation link'),
+                    ),
+                    const Text(
+                      'The link remembers your code through sign-up. Your friend confirms it before paying.',
                     ),
                   ],
                 ),

@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tutor_preethi/screens/referrals_screen.dart';
@@ -10,6 +11,9 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+      SharedPreferences.setMockInitialValues({
+        'pending_referral_code': 'ABCDEF000111',
+      });
       String? applied;
       bool claimed = false;
       await tester.pumpWidget(
@@ -41,7 +45,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('ABC123DEF456'), findsOneWidget);
-      expect(find.textContaining('Locked until'), findsOneWidget);
+      expect(find.text('Copy invitation link'), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byType(TextField),
         200,
@@ -51,6 +55,10 @@ void main() {
               matching: find.byType(Scrollable),
             )
             .first,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'ABCDEF000111',
       );
       await tester.enterText(find.byType(TextField), 'FRIEND123');
       await tester.ensureVisible(find.text('Apply friend code'));

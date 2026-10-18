@@ -1,3 +1,4 @@
+import '../widgets/referral_invite_banner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'board_selection_screen.dart';
 import 'student_tutorial.dart';
@@ -231,6 +232,7 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                     },
                   ),
                   const SizedBox(height: 20),
+                  const ReferralInviteBanner(),
                   OpeningDayWelcomeOffer(
                     accountCreatedAt: DateTime.tryParse(user?.createdAt ?? ''),
                   ),
