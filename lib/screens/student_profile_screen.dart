@@ -470,6 +470,14 @@ class _ProfileHistoryState extends State<_ProfileHistory>
           final label = date == null
               ? 'Date unavailable'
               : '${date.day}/${date.month}/${date.year} · IST';
+          final creditDate = date == null
+              ? 'Date unavailable'
+              : '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+          final credits = (item['credits_used'] as num?)?.abs().toInt() ?? 0;
+          final creditAmount = credits.toString().replaceAllMapped(
+            RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+            (match) => '${match[1]},',
+          );
           return Card(
             child: ListTile(
               leading: Icon(
@@ -480,12 +488,12 @@ class _ProfileHistoryState extends State<_ProfileHistory>
               title: Text(
                 widget.learning
                     ? item['title']?.toString() ?? 'Study session'
-                    : '${item['credits_used']} study credits used',
+                    : '$creditDate: −$creditAmount credits',
               ),
               subtitle: Text(
                 widget.learning
                     ? '${boardNames[item['board']] ?? 'Board'} · Class ${item['grade_level'] ?? '—'} · ${item['subject'] ?? 'Subject'}\n$label'
-                    : '${item['kind']} · $label',
+                    : '${item['kind']} · IST',
               ),
               trailing: widget.learning
                   ? const Icon(Icons.chevron_right)

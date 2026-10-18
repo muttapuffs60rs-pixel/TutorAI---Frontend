@@ -134,12 +134,12 @@ void main() {
     expect(find.text('Algebra practice'), findsOneWidget);
     await tester.tap(find.text('Credits'));
     await tester.pumpAndSettle();
-    expect(find.text('3000 study credits used'), findsOneWidget);
+    expect(find.text('18/10/2026: −3,000 credits'), findsOneWidget);
     await tester.ensureVisible(find.text('Load older records'));
     await tester.tap(find.text('Load older records'));
     await tester.pumpAndSettle();
     expect(store.creditOffsets, [0, 1]);
-    expect(find.text('1500 study credits used'), findsOneWidget);
+    expect(find.text('18/10/2026: −1,500 credits'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets(
@@ -174,6 +174,6 @@ void main() {
     store.failCredits = false;
     await tester.tap(find.text('Retry history'));
     await tester.pumpAndSettle();
-    expect(find.text('3000 study credits used'), findsOneWidget);
+    expect(find.text('18/10/2026: −3,000 credits'), findsOneWidget);
   });
 }
