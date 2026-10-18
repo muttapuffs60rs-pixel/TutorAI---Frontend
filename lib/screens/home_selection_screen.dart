@@ -9,6 +9,7 @@ import '../widgets/learning_mascot.dart';
 import '../widgets/opening_day_welcome_offer.dart';
 import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
+import 'student_profile_screen.dart';
 
 class HomeSelectionScreen extends StatefulWidget {
   const HomeSelectionScreen({super.key});
@@ -28,12 +29,14 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
   Future<void> _introduce() async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null ||
-        savedBoard(supabase.auth.currentUser?.userMetadata) == null)
+        savedBoard(supabase.auth.currentUser?.userMetadata) == null) {
       return;
+    }
     try {
       final needed = await StudentTutorial.needsIntroduction(userId);
-      if (!mounted || !needed || supabase.auth.currentUser?.id != userId)
+      if (!mounted || !needed || supabase.auth.currentUser?.id != userId) {
         return;
+      }
       setState(() => _showIntroduction = true);
     } catch (error) {
       debugPrint('Tutorial preference unavailable: $error');
@@ -74,7 +77,22 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
     void open(Widget screen) =>
         Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
     return Scaffold(
-      appBar: AppBar(title: const Text('Arivora'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Arivora'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'My profile',
+            icon: const Icon(Icons.account_circle_outlined),
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StudentProfileScreen()),
+              );
+              if (mounted) setState(() {});
+            },
+          ),
+        ],
+      ),
       drawer: const CustomDrawer(),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -127,6 +145,31 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                     ),
                   ),
                   const SizedBox(height: 28),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.school_outlined),
+                      title: const Text('Board & curriculum'),
+                      subtitle: Text(boardNames[board] ?? 'Select your board'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => open(
+                        BoardSelectionScreen(
+                          changing: true,
+                          initialBoard: board,
+                          onSave: (selected) async {
+                            await supabase.auth.updateUser(
+                              UserAttributes(
+                                data: {'education_board': selected},
+                              ),
+                            );
+                            if (!context.mounted) return;
+                            Navigator.of(context).pop();
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,

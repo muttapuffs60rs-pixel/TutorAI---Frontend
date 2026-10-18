@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../screens/login_screen.dart';
 import '../screens/subscription_screen.dart';
+import '../screens/student_profile_screen.dart';
 import '../theme/tailwind_theme.dart';
 import '../screens/chat_screen.dart';
 import '../services/profile_service.dart';
@@ -178,7 +179,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
     final navigator = Navigator.of(context);
     navigator.pop();
     await navigator.push(MaterialPageRoute<void>(builder: (_) => screen));
-    if (mounted && screen is SubscriptionScreen) {
+    if (mounted &&
+        (screen is SubscriptionScreen || screen is StudentProfileScreen)) {
       _fetchProfileData();
     }
   }
@@ -511,6 +513,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                       ),
                     ),
                   _section('HELP & ACCOUNT'),
+                  _menuAction(
+                    leading: const Icon(Icons.account_circle_outlined),
+                    title: const Text('My profile'),
+                    subtitle: const Text(
+                      'Account, learning and credit history',
+                    ),
+                    onTap: () => _open(const StudentProfileScreen()),
+                  ),
                   _menuAction(
                     leading: const Icon(Icons.help_outline),
                     title: const Text('How to use Arivora'),
