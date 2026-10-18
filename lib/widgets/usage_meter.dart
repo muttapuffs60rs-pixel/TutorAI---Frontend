@@ -8,7 +8,12 @@ import '../theme/tailwind_theme.dart';
 /// Compact account usage card. Monthly figures are tracking targets, not a wallet.
 class UsageMeter extends StatefulWidget {
   final Future<Map<String, dynamic>> Function()? loadUsage;
-  const UsageMeter({super.key, this.loadUsage});
+  final bool showRemainingTotal;
+  const UsageMeter({
+    super.key,
+    this.loadUsage,
+    this.showRemainingTotal = false,
+  });
   @override
   State<UsageMeter> createState() => _UsageMeterState();
 }
@@ -84,6 +89,11 @@ class _UsageMeterState extends State<UsageMeter> {
   String _percent(double fraction) =>
       (fraction * 100).toStringAsFixed(1).replaceFirst(RegExp(r'\.0$'), '');
 
+  String _amount(num value) => value.toInt().toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (match) => '${match[1]},',
+  );
+
   @override
   Widget build(BuildContext context) {
     final data = _usage;
@@ -129,6 +139,21 @@ class _UsageMeterState extends State<UsageMeter> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.showRemainingTotal) ...[
+              const Text(
+                'Total credits remaining',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                '${_amount(daily + welcome + (credits['topup_remaining'] as num? ?? 0))} credits',
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text('Available daily, welcome and top-up credits.'),
+              const SizedBox(height: 12),
+            ],
             const Row(
               children: [
                 Icon(Icons.speed_outlined, size: 20),
@@ -224,6 +249,27 @@ class _UsageMeterState extends State<UsageMeter> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (widget.showRemainingTotal) ...[
+            const Text(
+              'Total credits remaining',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              unknown || remaining == null
+                  ? 'Unavailable'
+                  : '${_amount(remaining)} credits',
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            ),
+            const Text(
+              'Remaining study allowance · usage tracking only',
+              style: TextStyle(fontSize: 12),
+            ),
+            if ((data['topup_remaining'] as num? ?? 0) > 0)
+              Text(
+                'Separate top-up balance: ${_amount(data['topup_remaining'] as num)} credits',
+              ),
+            const SizedBox(height: 12),
+          ],
           Row(
             children: [
               const Expanded(

@@ -449,7 +449,37 @@ class _ProfileHistoryState extends State<_ProfileHistory>
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        if (!widget.learning) UsageMeter(loadUsage: widget.loadUsage),
+        if (!widget.learning) ...[
+          UsageMeter(loadUsage: widget.loadUsage, showRemainingTotal: true),
+          const SizedBox(height: 16),
+          const Row(
+            children: [
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Date (IST)',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 4,
+                child: Text(
+                  'Description',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Text(
+                  'Credit (+/−)',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const Divider(),
+        ],
         if (widget.learning)
           const Text(
             'Your recent chats',
@@ -478,6 +508,35 @@ class _ProfileHistoryState extends State<_ProfileHistory>
             RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
             (match) => '${match[1]},',
           );
+          if (!widget.learning) {
+            return Semantics(
+              label: '$creditDate: −$creditAmount credits',
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 3, child: Text(creditDate)),
+                    Expanded(
+                      flex: 4,
+                      child: Text(item['kind']?.toString() ?? 'Tutor request'),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        '−$creditAmount',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
           return Card(
             child: ListTile(
               leading: Icon(
