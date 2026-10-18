@@ -236,22 +236,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     ],
                   ),
                   _ProfileHistory(store: _store, learning: true),
-                  Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                        child: const Text(
-                          'Credit usage records are shown below. This is not a payment or referral-earnings ledger.',
-                        ),
-                      ),
-                      Expanded(
-                        child: _ProfileHistory(
-                          store: _store,
-                          learning: false,
-                          loadUsage: widget.loadUsage,
-                        ),
-                      ),
-                    ],
+                  _ProfileHistory(
+                    store: _store,
+                    learning: false,
+                    loadUsage: widget.loadUsage,
                   ),
                 ],
               ),
@@ -443,6 +431,49 @@ class _ProfileHistoryState extends State<_ProfileHistory>
     }
   }
 
+  Widget _statementColumns(
+    String date,
+    String description,
+    String amount, {
+    bool header = false,
+  }) => DefaultTextStyle.merge(
+    style: TextStyle(
+      fontSize: 13,
+      fontWeight: header ? FontWeight.w700 : FontWeight.normal,
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(width: 88, child: Text(date)),
+        const SizedBox(width: 12),
+        Expanded(child: Text(description)),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 80,
+          child: Text(
+            amount,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _statementRow(
+    String date,
+    String description,
+    String amount, {
+    bool header = false,
+  }) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    decoration: const BoxDecoration(
+      color: Color(0xFFF1F5F9),
+      border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+    ),
+    child: _statementColumns(date, description, amount, header: header),
+  );
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -451,34 +482,20 @@ class _ProfileHistoryState extends State<_ProfileHistory>
       children: [
         if (!widget.learning) ...[
           UsageMeter(loadUsage: widget.loadUsage, showRemainingTotal: true),
-          const SizedBox(height: 16),
-          const Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: Text(
-                  'Date (IST)',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(
-                flex: 4,
-                child: Text(
-                  'Description',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(
-                flex: 3,
-                child: Text(
-                  'Credit (+/−)',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
+          const Padding(
+            padding: EdgeInsets.only(top: 12),
+            child: Text(
+              'Credit usage statement · Dates in IST',
+              style: TextStyle(fontSize: 12, color: Colors.black54),
+            ),
           ),
-          const Divider(),
+          const SizedBox(height: 16),
+          _statementRow(
+            'Date (IST)',
+            'Description',
+            'Credit (+/−)',
+            header: true,
+          ),
         ],
         if (widget.learning)
           const Text(
@@ -512,27 +529,17 @@ class _ProfileHistoryState extends State<_ProfileHistory>
             return Semantics(
               label: '$creditDate: −$creditAmount credits',
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 decoration: const BoxDecoration(
                   border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 3, child: Text(creditDate)),
-                    Expanded(
-                      flex: 4,
-                      child: Text(item['kind']?.toString() ?? 'Tutor request'),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        '−$creditAmount',
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
+                child: _statementColumns(
+                  creditDate,
+                  item['kind']?.toString() ?? 'Tutor request',
+                  '−$creditAmount',
                 ),
               ),
             );

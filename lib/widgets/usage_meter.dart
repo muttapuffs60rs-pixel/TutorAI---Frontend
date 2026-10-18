@@ -129,7 +129,9 @@ class _UsageMeterState extends State<UsageMeter> {
           ? (welcome / welcomeAllowance).clamp(0.0, 1.0)
           : 0.0;
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: widget.showRemainingTotal
+            ? EdgeInsets.zero
+            : const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -239,7 +241,9 @@ class _UsageMeterState extends State<UsageMeter> {
       'Dec',
     ];
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      margin: widget.showRemainingTotal
+          ? EdgeInsets.zero
+          : const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
