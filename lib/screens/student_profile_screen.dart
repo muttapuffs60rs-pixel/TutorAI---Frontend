@@ -434,7 +434,8 @@ class _ProfileHistoryState extends State<_ProfileHistory>
   Widget _statementColumns(
     String date,
     String description,
-    String amount, {
+    String amount,
+    String pending, {
     bool header = false,
   }) => DefaultTextStyle.merge(
     style: TextStyle(
@@ -456,6 +457,15 @@ class _ProfileHistoryState extends State<_ProfileHistory>
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
+        const SizedBox(width: 16),
+        SizedBox(
+          width: 100,
+          child: Text(
+            pending,
+            textAlign: TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
       ],
     ),
   );
@@ -463,7 +473,8 @@ class _ProfileHistoryState extends State<_ProfileHistory>
   Widget _statementRow(
     String date,
     String description,
-    String amount, {
+    String amount,
+    String pending, {
     bool header = false,
   }) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -471,17 +482,23 @@ class _ProfileHistoryState extends State<_ProfileHistory>
       color: Color(0xFFF1F5F9),
       border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
     ),
-    child: _statementColumns(date, description, amount, header: header),
+    child: _statementColumns(
+      date,
+      description,
+      amount,
+      pending,
+      header: header,
+    ),
   );
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ListView(
+    final history = ListView(
       padding: const EdgeInsets.all(20),
       children: [
         if (!widget.learning) ...[
-          UsageMeter(loadUsage: widget.loadUsage, showRemainingTotal: true),
+          UsageMeter(loadUsage: widget.loadUsage, edgeToEdge: true),
           const Padding(
             padding: EdgeInsets.only(top: 12),
             child: Text(
@@ -494,6 +511,7 @@ class _ProfileHistoryState extends State<_ProfileHistory>
             'Date (IST)',
             'Description',
             'Credit (+/−)',
+            'Credit Pending',
             header: true,
           ),
         ],
@@ -540,6 +558,15 @@ class _ProfileHistoryState extends State<_ProfileHistory>
                   creditDate,
                   item['kind']?.toString() ?? 'Tutor request',
                   '−$creditAmount',
+                  item['credit_pending'] is num
+                      ? (item['credit_pending'] as num)
+                            .toInt()
+                            .toString()
+                            .replaceAllMapped(
+                              RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+                              (m) => '${m[1]},',
+                            )
+                      : '—',
                 ),
               ),
             );
@@ -590,6 +617,17 @@ class _ProfileHistoryState extends State<_ProfileHistory>
             child: const Text('Load older records'),
           ),
       ],
+    );
+    if (widget.learning) return history;
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: constraints.maxWidth < 600 ? 600 : constraints.maxWidth,
+          height: constraints.maxHeight,
+          child: history,
+        ),
+      ),
     );
   }
 }

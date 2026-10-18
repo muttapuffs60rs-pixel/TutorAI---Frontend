@@ -56,6 +56,7 @@ class FakeStudentProfileStore implements StudentProfileStore {
           'id': 'usage-$offset',
           'created_at': '2026-10-18T09:00:00Z',
           'credits_used': offset == 0 ? 3000 : 1500,
+          'credit_pending': offset == 0 ? null : 1220500,
           'kind': 'Tutor request',
         },
       ],
@@ -135,11 +136,15 @@ void main() {
     await tester.tap(find.text('Credits'));
     await tester.pumpAndSettle();
     expect(find.text('−3,000'), findsOneWidget);
+    expect(find.text('Credit Pending'), findsOneWidget);
+    expect(find.text('—'), findsOneWidget);
+    expect(find.text('Total credits remaining'), findsNothing);
     await tester.ensureVisible(find.text('Load older records'));
     await tester.tap(find.text('Load older records'));
     await tester.pumpAndSettle();
     expect(store.creditOffsets, [0, 1]);
     expect(find.text('−1,500'), findsOneWidget);
+    expect(find.text('1,220,500'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets(
