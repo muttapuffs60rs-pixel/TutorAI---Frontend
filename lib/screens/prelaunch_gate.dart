@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'legal_policy_screen.dart';
 import '../widgets/auxiumsoft_brand.dart';
+import '../widgets/opening_day_welcome_offer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Wraps the Navigator so direct links and existing sessions are checked too.
@@ -186,6 +187,8 @@ class _PrelaunchGateState extends State<PrelaunchGate>
                           style: TextStyle(fontSize: 16, height: 1.5),
                         ),
                         const SizedBox(height: 28),
+                        OpeningDayWelcomeOffer(now: now),
+                        const SizedBox(height: 16),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(24),

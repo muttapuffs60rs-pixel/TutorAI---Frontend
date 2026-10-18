@@ -6,6 +6,7 @@ import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/learning_mascot.dart';
+import '../widgets/opening_day_welcome_offer.dart';
 import 'subject_selection_screen.dart';
 import 'live_quiz/live_quiz_entry_screen.dart';
 
@@ -185,6 +186,10 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                         ],
                       );
                     },
+                  ),
+                  const SizedBox(height: 20),
+                  OpeningDayWelcomeOffer(
+                    accountCreatedAt: DateTime.tryParse(user?.createdAt ?? ''),
                   ),
                 ],
               ),

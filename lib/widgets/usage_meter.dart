@@ -114,7 +114,10 @@ class _UsageMeterState extends State<UsageMeter> {
       final fraction = allowance > 0
           ? (daily / allowance).clamp(0.0, 1.0)
           : null;
-      final welcomeFraction = (welcome / 50000).clamp(0.0, 1.0);
+      final welcomeAllowance = (credits['welcome_allowance'] as num?) ?? 30000;
+      final welcomeFraction = welcomeAllowance > 0
+          ? (welcome / welcomeAllowance).clamp(0.0, 1.0)
+          : 0.0;
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(14),

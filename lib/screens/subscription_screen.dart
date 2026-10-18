@@ -6,6 +6,7 @@ import 'legal_policy_screen.dart';
 import '../main.dart'; // Ensure this points to your main.dart where supabase is initialized
 import '../theme/tailwind_theme.dart';
 import '../services/profile_service.dart';
+import '../widgets/opening_day_welcome_offer.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({
@@ -301,8 +302,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 const SizedBox(height: 24),
 
                 const Text(
-                  'New accounts receive 50,000 welcome credits once. There is no daily refill. Check your remaining welcome allowance in the usage meter.',
+                  'New accounts receive 30,000 welcome credits once. Free accounts also have a separate daily allowance, shown with remaining welcome credits in the usage meter.',
                 ),
+                const SizedBox(height: 12),
+                const OpeningDayWelcomeOffer(),
                 const SizedBox(height: 24),
 
                 const Card(
