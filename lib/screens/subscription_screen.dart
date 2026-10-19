@@ -130,8 +130,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Future<void> _updateSubscription(String tierName) async {
     if (_isLoading || !_checkoutEnabled) return;
     if (tierName == 'topup_49' &&
-        (!_topupEligible || _paymentStatus?['topups_enabled'] != true))
+        (!_topupEligible || _paymentStatus?['topups_enabled'] != true)) {
       return;
+    }
     if (!_acceptedPolicies) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
