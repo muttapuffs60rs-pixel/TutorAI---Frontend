@@ -1,9 +1,48 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutor_preethi/screens/student_tutorial.dart';
 
 void main() {
+  test('every tutorial step has a real capture and an on-screen highlight', () {
+    final captures =
+        jsonDecode(File('assets/tutorial/captures.json').readAsStringSync())
+            as List;
+    expect(captures, hasLength(7));
+    for (final capture in captures) {
+      expect(File(capture['asset'] as String).lengthSync(), greaterThan(1000));
+      final rect = (capture['rect'] as List).cast<num>();
+      expect(rect[0], greaterThanOrEqualTo(0));
+      expect(rect[1], greaterThanOrEqualTo(0));
+      expect(rect[2], greaterThan(0));
+      expect(rect[3], greaterThan(0));
+      expect(rect[0] + rect[2], lessThanOrEqualTo(1));
+      expect(rect[1] + rect[3], lessThanOrEqualTo(1));
+    }
+  });
+  testWidgets('screen previews enlarge and close without leaving the tour', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(child: TutorialScreenPreview(step: 0)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Tap Start learning'), findsOneWidget);
+    await tester.tap(find.byType(InkWell).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(InteractiveViewer), findsOneWidget);
+    await tester.tap(find.byTooltip('Close screen preview'));
+    await tester.pumpAndSettle();
+    expect(find.byType(InteractiveViewer), findsNothing);
+    expect(find.text('Tap Start learning'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   test('completion is remembered separately per account', () async {
     SharedPreferences.setMockInitialValues({});
     expect(await StudentTutorial.needsIntroduction('a'), isTrue);

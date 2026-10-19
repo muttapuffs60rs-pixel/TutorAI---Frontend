@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'tutorial_captures.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/tailwind_theme.dart';
 
@@ -7,7 +8,7 @@ class StudentTutorial extends StatefulWidget {
   const StudentTutorial({super.key, this.onClose});
 
   // Show the improved guide once, including to students who saw the old tour.
-  static String storageKey(String userId) => 'student_tutorial_v3_$userId';
+  static String storageKey(String userId) => 'student_tutorial_v4_$userId';
 
   static Future<void> show(BuildContext context) => showDialog<void>(
     context: context,
@@ -26,6 +27,147 @@ class StudentTutorial extends StatefulWidget {
 
   @override
   State<StudentTutorial> createState() => _StudentTutorialState();
+}
+
+/// Actual application captures, with focus coordinates recorded by the capture test.
+class TutorialScreenPreview extends StatelessWidget {
+  final int step;
+  const TutorialScreenPreview({super.key, required this.step});
+
+  @override
+  Widget build(BuildContext context) {
+    final capture = tutorialCaptures[step];
+    final label = capture['label'] as String;
+    Widget picture() => Semantics(
+      image: true,
+      label: 'Example application screen. Highlighted control: $label',
+      child: AspectRatio(
+        aspectRatio: .5,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final r = (capture['rect'] as List).cast<num>();
+            final rect = Rect.fromLTWH(
+              r[0] * constraints.maxWidth,
+              r[1] * constraints.maxHeight,
+              r[2] * constraints.maxWidth,
+              r[3] * constraints.maxHeight,
+            ).inflate(4);
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  capture['asset'] as String,
+                  fit: BoxFit.fill,
+                  excludeFromSemantics: true,
+                ),
+                CustomPaint(painter: _ScreenSpotlight(rect)),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 260),
+            child: InkWell(
+              onTap: () => showDialog<void>(
+                context: context,
+                builder: (context) => Dialog.fullscreen(
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  label,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Close screen preview',
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.close),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Text(
+                          'Pinch to zoom • Example screen with sample data',
+                        ),
+                        Expanded(
+                          child: InteractiveViewer(
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Center(child: picture()),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              borderRadius: BorderRadius.circular(16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: picture(),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Tap the screenshot to enlarge. The orange outline shows where to tap in the app.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: Tailwind.slate600),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScreenSpotlight extends CustomPainter {
+  final Rect rect;
+  _ScreenSpotlight(this.rect);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final focus = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+    final mask = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Offset.zero & size)
+      ..addRRect(focus);
+    canvas.drawPath(mask, Paint()..color = Colors.black.withValues(alpha: .35));
+    canvas.drawRRect(
+      focus,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 7,
+    );
+    canvas.drawRRect(
+      focus,
+      Paint()
+        ..color = const Color(0xFFEA580C)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_ScreenSpotlight oldDelegate) => oldDelegate.rect != rect;
 }
 
 class _TourStep {
@@ -230,6 +372,8 @@ class _StudentTutorialState extends State<StudentTutorial> {
                         color: Tailwind.slate700,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    TutorialScreenPreview(step: step),
                     const SizedBox(height: 16),
                     Container(
                       width: double.infinity,
