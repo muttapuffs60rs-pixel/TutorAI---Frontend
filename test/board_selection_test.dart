@@ -67,7 +67,7 @@ void main() {
       find.textContaining('English-medium NCERT textbooks'),
       findsOneWidget,
     );
-    await tester.tap(find.text('Continue to Home'));
+    await tester.tap(find.text('Save board'));
     await tester.pumpAndSettle();
     expect(saved, 'cbse');
   });

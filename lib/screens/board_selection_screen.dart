@@ -62,12 +62,12 @@ class _BoardSelectionScreenState extends State<BoardSelectionScreen> {
                   const Icon(Icons.school_outlined, size: 64),
                   const SizedBox(height: 24),
                   Text(
-                    'Select your board',
+                    'First, choose your school board',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'We will remember your board for next time. You can change it from the menu anytime.',
+                    'Your board determines your textbooks and lessons. Choose the board followed by your school, then select your class and subject. You can change it at the top of Home anytime.',
                   ),
                   const SizedBox(height: 24),
                   DropdownButtonFormField<String>(
@@ -107,7 +107,13 @@ class _BoardSelectionScreenState extends State<BoardSelectionScreen> {
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _board == null || _saving ? null : _save,
-                    child: Text(_saving ? 'Saving...' : 'Continue to Home'),
+                    child: Text(
+                      _saving
+                          ? 'Saving...'
+                          : widget.changing
+                          ? 'Save board'
+                          : 'Continue to Home',
+                    ),
                   ),
                 ],
               ),

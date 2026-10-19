@@ -8,7 +8,7 @@ class StudentTutorial extends StatefulWidget {
   const StudentTutorial({super.key, this.onClose});
 
   // Show the improved guide once, including to students who saw the old tour.
-  static String storageKey(String userId) => 'student_tutorial_v4_$userId';
+  static String storageKey(String userId) => 'student_tutorial_v5_$userId';
 
   static Future<void> show(BuildContext context) => showDialog<void>(
     context: context,
@@ -189,16 +189,16 @@ class _StudentTutorialState extends State<StudentTutorial> {
   int step = 0;
   static const steps = [
     _TourStep(
-      title: 'Your first steps in Arivora',
+      title: 'First, choose your school board',
       summary:
-          'Learn where to go and what to tap. You can skip this guide and open it again whenever you need.',
-      route: 'Home',
+          'Your school board comes first. It determines which textbooks and lessons Arivora uses for your learning.',
+      route: 'Home → Choose / change board',
       actions: [
-        'Tuition helps you understand a lesson or ask a question.',
-        'Quizzes lets you practise alone or join your teacher’s class.',
+        'Tap Choose / change board at the top of Home.',
+        'Select Tamil Nadu State Board or CBSE to match your school, then save your choice.',
       ],
       example:
-          'Ask a question → understand the explanation → try a practice question.',
+          'School board → Class → Subject → Start learning',
       tip:
           'Look for “How to use Arivora” on Home or in the menu to replay this guide.',
       icon: Icons.explore_outlined,
@@ -209,7 +209,7 @@ class _StudentTutorialState extends State<StudentTutorial> {
           'Start with your board, class and subject so your learning matches your course.',
       route: 'Home → Tuition → Class → Subject',
       actions: [
-        'Check Board & curriculum on Home. Tap it if you need to change boards.',
+        'Confirm your selected board in the first card on Home.',
         'Tap Tuition or Start learning. Select your class first, then your subject.',
       ],
       example: 'Tamil Nadu State Board · Class 6 · Science',

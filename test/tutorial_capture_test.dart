@@ -137,10 +137,20 @@ void main() {
         }),
       );
       await mount(const HomeSelectionScreen());
+      final learning = tester.getRect(
+        find.widgetWithText(ElevatedButton, 'Start learning'),
+      );
+      expect(learning.bottom, lessThanOrEqualTo(800));
+      final learningRect = [
+        learning.left / 400,
+        learning.top / 800,
+        learning.width / 400,
+        learning.height / 800,
+      ];
       await capture(
         'home',
-        find.widgetWithText(ElevatedButton, 'Start learning'),
-        'Tap Start learning',
+        find.widgetWithText(FilledButton, 'Choose / change board'),
+        'First, tap Choose / change board',
       );
       await mount(const SubjectSelectionScreen(board: 'tn'));
       await capture(
@@ -210,7 +220,12 @@ void main() {
         find.text('My profile'),
         'Open My profile for your account and credit history',
       );
-      captures.add(captures.first);
+      // Reuse the Home capture but focus the separate learning action at the end.
+      final homeCapture = Map<String, dynamic>.from(captures.first);
+      // Home is captured before signing out, with both controls visible.
+      homeCapture['label'] = 'After checking your board, tap Start learning';
+      homeCapture['rect'] = learningRect;
+      captures.add(homeCapture);
       await tester.runAsync(() async {
         final json = const JsonEncoder.withIndent('  ').convert(captures);
         await File('assets/tutorial/captures.json').writeAsString(json);

@@ -2,8 +2,8 @@
 const tutorialCaptures = <Map<String, dynamic>>[
   {
     "asset": "assets/tutorial/home.png",
-    "label": "Tap Start learning",
-    "rect": [0.1, 0.2525, 0.33220117568969726, 0.06],
+    "label": "First, tap Choose / change board",
+    "rect": [0.105, 0.345, 0.5332553863525391, 0.06],
   },
   {
     "asset": "assets/tutorial/class.png",
@@ -32,7 +32,7 @@ const tutorialCaptures = <Map<String, dynamic>>[
   },
   {
     "asset": "assets/tutorial/home.png",
-    "label": "Tap Start learning",
-    "rect": [0.1, 0.2525, 0.33220117568969726, 0.06],
+    "label": "After checking your board, tap Start learning",
+    "rect": [0.1, 0.615, 0.33220117568969726, 0.06],
   },
 ];

@@ -105,6 +105,70 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Tailwind.indigo50,
+                      borderRadius: Tailwind.roundedXl,
+                      border: Border.all(color: Tailwind.indigo600, width: 2),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'STEP 1 · YOUR SCHOOL BOARD',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: Tailwind.indigo600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Choose your board first',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: Tailwind.slate800,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Your board determines the textbooks and lessons you study. Check it before choosing your class and subject.',
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Selected: ${boardNames[board]}',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
+                          icon: const Icon(Icons.school_outlined),
+                          label: const Text('Choose / change board'),
+                          onPressed: () => open(
+                            BoardSelectionScreen(
+                              changing: true,
+                              initialBoard: board,
+                              onSave: (selected) async {
+                                await supabase.auth.updateUser(
+                                  UserAttributes(
+                                    data: {'education_board': selected},
+                                  ),
+                                );
+                                if (!context.mounted) return;
+                                Navigator.of(context).pop();
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Tailwind.pastels[1],
@@ -158,30 +222,6 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.school_outlined),
-                      title: const Text('Board & curriculum'),
-                      subtitle: Text(boardNames[board] ?? 'Select your board'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => open(
-                        BoardSelectionScreen(
-                          changing: true,
-                          initialBoard: board,
-                          onSave: (selected) async {
-                            await supabase.auth.updateUser(
-                              UserAttributes(
-                                data: {'education_board': selected},
-                              ),
-                            );
-                            if (!context.mounted) return;
-                            Navigator.of(context).pop();
-                            setState(() {});
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(

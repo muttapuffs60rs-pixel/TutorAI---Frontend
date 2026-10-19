@@ -33,14 +33,14 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Tap Start learning'), findsOneWidget);
+    expect(find.text('First, tap Choose / change board'), findsOneWidget);
     await tester.tap(find.byType(InkWell).first);
     await tester.pumpAndSettle();
     expect(find.byType(InteractiveViewer), findsOneWidget);
     await tester.tap(find.byTooltip('Close screen preview'));
     await tester.pumpAndSettle();
     expect(find.byType(InteractiveViewer), findsNothing);
-    expect(find.text('Tap Start learning'), findsOneWidget);
+    expect(find.text('First, tap Choose / change board'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   test('completion is remembered separately per account', () async {
