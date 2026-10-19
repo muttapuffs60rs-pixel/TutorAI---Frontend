@@ -506,7 +506,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   _menuAction(
                     leading: const Icon(Icons.mail_outline),
                     title: const Text('Contact support'),
-                    subtitle: const Text('arivora_support@auxiumsoft.com'),
+                    subtitle: const Text('dinesh.mjraj93@gmail.com'),
                     onTap: () => _open(const SupportScreen()),
                   ),
                   _menuAction(

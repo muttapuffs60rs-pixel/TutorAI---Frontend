@@ -194,7 +194,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             content: Text(
               paymentId == null
                   ? 'Unable to complete checkout: $error'
-                  : 'Payment received, but activation could not be confirmed. Do not pay again. Contact arivora_support@auxiumsoft.com with payment ID $paymentId.',
+                  : 'Payment received, but activation could not be confirmed. Do not pay again. Contact dinesh.mjraj93@gmail.com with payment ID $paymentId.',
             ),
             duration: const Duration(seconds: 10),
           ),
@@ -343,7 +343,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       _paymentStatus == null
                           ? 'Checking payment availability…'
                           : !_checkoutEnabled
-                          ? 'Payments are currently unavailable. Please try again later or contact arivora_support@auxiumsoft.com.'
+                          ? 'Payments are currently unavailable. Please try again later or contact dinesh.mjraj93@gmail.com.'
                           : _paymentStatus?['mode'] == 'live'
                           ? 'Secure payment through Razorpay. This is a real payment. Review the plan and amount before paying.'
                           : 'Razorpay Test Mode: no real money is charged. A successful test can update your tester account plan. Use only Razorpay test payment details.',

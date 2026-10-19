@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key, this.paymentRequest = false});
   final bool paymentRequest;
-  static const email = 'arivora_support@auxiumsoft.com';
+  static const email = 'dinesh.mjraj93@gmail.com';
   String get requestTemplate => paymentRequest
       ? 'Subject: Arivora payment or refund request\n\nAccount email:\nPayment / order ID:\nPayment date and amount:\nReason for request:\n'
       : 'Subject: Arivora support request\n\nAccount email:\nWhat happened:\nWhat I expected:\nSteps to reproduce:\n';
