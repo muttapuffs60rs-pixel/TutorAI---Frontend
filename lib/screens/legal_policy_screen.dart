@@ -100,7 +100,7 @@ const _terms = <(String, String)>[
   ),
   (
     '4. Plans, allowances and delivery',
-    'The purchase screen shows the price, duration and included features. Paid plans provide access for 30 days after successful payment verification. Purchases are one-time payments and do not automatically renew. Top-ups expire with your active subscription, or after 10 days without an active subscription. Usage allowances and feature limits apply; access is not unlimited. Access is delivered digitally after payment verification; no physical goods are shipped.',
+    'The purchase screen shows the price, duration and included features. Paid plans provide access for 30 days after successful payment verification. Purchases are one-time payments and do not automatically renew. The ₹49 top-up adds 300,000 study credits and is available only with an active ₹249, ₹499 or ₹999 subscription. Top-up credits expire when that subscription ends and do not extend it. Usage allowances and feature limits apply; access is not unlimited. Access is delivered digitally after payment verification; no physical goods are shipped.',
   ),
   (
     '5. Payments',

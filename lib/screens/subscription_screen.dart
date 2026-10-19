@@ -32,6 +32,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool _acceptedPolicies = false;
   String? _currentTier;
   String? _currentExpiry;
+  DateTime? _subscriptionExpiry;
+  bool get _topupEligible =>
+      {'tier_199', 'tier_499', 'tier_999'}.contains(_currentTier) &&
+      _subscriptionExpiry != null &&
+      _subscriptionExpiry!.isAfter(DateTime.now());
   bool _loadingProfile = true;
   Map<String, dynamic>? _paymentStatus;
   bool get _checkoutEnabled =>
@@ -76,6 +81,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           _currentTier = expiry != null && !expiry.isAfter(DateTime.now())
               ? 'free'
               : profile['subscription_tier'] as String? ?? 'free';
+          _subscriptionExpiry = expiry;
           _currentExpiry = expiry == null
               ? null
               : '${expiry.day}/${expiry.month}/${expiry.year}';
@@ -123,6 +129,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Future<void> _updateSubscription(String tierName) async {
     if (_isLoading || !_checkoutEnabled) return;
+    if (tierName == 'topup_49' &&
+        (!_topupEligible || _paymentStatus?['topups_enabled'] != true))
+      return;
     if (!_acceptedPolicies) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -181,7 +190,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         SnackBar(
           content: Text(
             tierName == 'topup_49'
-                ? 'Your top-up has been added. It expires with your active subscription, or in 10 days without one.'
+                ? 'Your 300,000 top-up credits have been added. They expire with your active subscription.'
                 : '${names[tierName]} activated for 30 days.',
           ),
         ),
@@ -372,17 +381,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 _buildPlanCard(
                   title: 'Learning Top-up',
                   price: '₹49',
-                  subtitle:
-                      'Valid until your active subscription ends, or 10 days without a subscription',
+                  subtitle: 'Expires with your active subscription',
                   features: [
-                    'Extra allowance for your study sessions',
+                    '300,000 extra study credits',
+                    'For active ₹249, ₹499 or ₹999 subscribers only',
                     'Use after existing allowances',
                     'Does not change your subscription',
                   ],
                   isBooster: true,
-                  buttonText: 'Top-up coming soon',
-                  onTap: () {},
-                  isAvailable: false,
+                  buttonText: _topupEligible
+                      ? 'Buy top-up ₹49'
+                      : 'Active subscription required',
+                  onTap: () => _updateSubscription('topup_49'),
+                  isAvailable:
+                      _topupEligible &&
+                      _paymentStatus?['topups_enabled'] == true,
                 ),
                 const SizedBox(height: 24),
 
@@ -616,7 +629,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 boxShadow: Tailwind.shadowSm,
               ),
               child: Text(
-                isPro ? 'LARGER STUDY TARGET' : 'COMING SOON',
+                isPro ? 'LARGER STUDY TARGET' : 'SUBSCRIBER TOP-UP',
                 style: TextStyle(
                   color: isPro ? Tailwind.slate900 : Tailwind.white,
                   fontSize: 12,

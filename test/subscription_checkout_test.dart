@@ -42,8 +42,62 @@ void main() {
   });
   tearDownAll(() => Supabase.instance.dispose());
 
+  for (final tier in [
+    'free',
+    'admin',
+    'tier_49_daily',
+    'tier_199',
+    'tier_499',
+    'tier_999',
+  ]) {
+    for (final active in [true, false]) {
+      testWidgets('Top-up eligibility $tier active=$active', (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: SubscriptionScreen(
+              profileLoader: () async => {
+                'subscription_tier': tier,
+                'subscription_expires_at': active
+                    ? '2099-01-01T00:00:00Z'
+                    : '2020-01-01T00:00:00Z',
+              },
+              paymentStatusLoader: () async => {
+                'mode': 'test',
+                'checkout_enabled': true,
+                'topups_enabled': true,
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final eligible =
+            active && ['tier_199', 'tier_499', 'tier_999'].contains(tier);
+        expect(find.text('COMING SOON'), findsNothing);
+        expect(find.text('Top-up coming soon'), findsNothing);
+        expect(
+          find.text(
+            eligible ? 'Buy top-up ₹49' : 'Active subscription required',
+          ),
+          findsOneWidget,
+        );
+        await tester.scrollUntilVisible(find.byType(CheckboxListTile), 350);
+        await tester.tap(find.byType(CheckboxListTile));
+        await tester.pump();
+        final button = find.widgetWithText(
+          ElevatedButton,
+          eligible ? 'Buy top-up ₹49' : 'Active subscription required',
+        );
+        expect(
+          tester.widget<ElevatedButton>(button).onPressed != null,
+          eligible,
+        );
+      });
+    }
+  }
+
   for (final scenario in [
     'verified',
+    'topup verified',
     'cancelled',
     'activation failed',
     'order failed',
@@ -63,7 +117,10 @@ void main() {
           'Bearer synthetic-test-session',
         );
         if (request.url.path.endsWith('create-order')) {
-          expect(jsonDecode(request.body)['tier_id'], 'tier_199');
+          expect(
+            jsonDecode(request.body)['tier_id'],
+            scenario == 'topup verified' ? 'topup_49' : 'tier_199',
+          );
           if (scenario == 'order failed') {
             return http.Response(
               '{"detail":"Payment provider unavailable"}',
@@ -76,7 +133,7 @@ void main() {
               'key_id': (scenario == 'live key' || scenario == 'live verified')
                   ? 'rzp_live_synthetic'
                   : 'rzp_test_synthetic',
-              'amount': 24900,
+              'amount': scenario == 'topup verified' ? 4900 : 24900,
               'currency': 'INR',
             }),
             200,
@@ -111,6 +168,7 @@ void main() {
                             ? 'live'
                             : 'test',
                         'checkout_enabled': scenario != 'status unavailable',
+                        'topups_enabled': true,
                         'live_charging_enabled': scenario == 'live verified',
                       },
                       profileLoader: () async => {
@@ -126,7 +184,10 @@ void main() {
                               ? 'rzp_live_synthetic'
                               : 'rzp_test_synthetic',
                         );
-                        expect(options['amount'], 24900);
+                        expect(
+                          options['amount'],
+                          scenario == 'topup verified' ? 4900 : 24900,
+                        );
                         expect(options['currency'], 'INR');
                         if (scenario == 'cancelled') {
                           throw Exception('Checkout cancelled.');
@@ -160,12 +221,22 @@ void main() {
       await tester.scrollUntilVisible(find.byType(CheckboxListTile), 350);
       await tester.tap(find.byType(CheckboxListTile));
       await tester.pump();
-      await tester.scrollUntilVisible(find.text('Choose Standard'), 350);
-      await tester.tap(find.text('Choose Standard'));
+      await tester.scrollUntilVisible(
+        find.text(
+          scenario == 'topup verified' ? 'Buy top-up ₹49' : 'Choose Standard',
+        ),
+        350,
+      );
+      await tester.tap(
+        find.text(
+          scenario == 'topup verified' ? 'Buy top-up ₹49' : 'Choose Standard',
+        ),
+      );
       await tester.pumpAndSettle();
       expect(
         verificationCalls,
         scenario == 'verified' ||
+                scenario == 'topup verified' ||
                 scenario == 'live verified' ||
                 scenario == 'activation failed'
             ? 1
@@ -180,9 +251,18 @@ void main() {
             ? 0
             : 1,
       );
-      if (scenario == 'verified' || scenario == 'live verified') {
+      if (scenario == 'verified' ||
+          scenario == 'topup verified' ||
+          scenario == 'live verified') {
         expect(find.text('Open plans'), findsOneWidget);
-        expect(find.text('Standard activated for 30 days.'), findsOneWidget);
+        expect(
+          find.text(
+            scenario == 'topup verified'
+                ? 'Your 300,000 top-up credits have been added. They expire with your active subscription.'
+                : 'Standard activated for 30 days.',
+          ),
+          findsOneWidget,
+        );
       } else {
         expect(find.byType(SubscriptionScreen), findsOneWidget);
         expect(find.textContaining('activated for 30 days.'), findsNothing);
