@@ -48,6 +48,9 @@ void main() {
     'activation failed',
     'order failed',
     'live key',
+    'live verified',
+    'live disabled',
+    'status unavailable',
   ]) {
     testWidgets('Checkout handles $scenario without an actual payment', (
       tester,
@@ -70,7 +73,7 @@ void main() {
           return http.Response(
             jsonEncode({
               'id': 'order_synthetic',
-              'key_id': scenario == 'live key'
+              'key_id': (scenario == 'live key' || scenario == 'live verified')
                   ? 'rzp_live_synthetic'
                   : 'rzp_test_synthetic',
               'amount': 24900,
@@ -101,6 +104,15 @@ void main() {
                   context,
                   MaterialPageRoute<void>(
                     builder: (_) => SubscriptionScreen(
+                      paymentStatusLoader: () async => {
+                        'mode':
+                            scenario.startsWith('live ') &&
+                                scenario != 'live key'
+                            ? 'live'
+                            : 'test',
+                        'checkout_enabled': scenario != 'status unavailable',
+                        'live_charging_enabled': scenario == 'live verified',
+                      },
                       profileLoader: () async => {
                         'subscription_tier': 'tier_199',
                         'subscription_expires_at': '2099-01-01T00:00:00Z',
@@ -108,7 +120,12 @@ void main() {
                       httpClient: client,
                       openCheckout: (options) async {
                         checkoutCalls++;
-                        expect(options['key'], 'rzp_test_synthetic');
+                        expect(
+                          options['key'],
+                          scenario == 'live verified'
+                              ? 'rzp_live_synthetic'
+                              : 'rzp_test_synthetic',
+                        );
                         expect(options['amount'], 24900);
                         expect(options['currency'], 'INR');
                         if (scenario == 'cancelled') {
@@ -148,13 +165,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         verificationCalls,
-        scenario == 'verified' || scenario == 'activation failed' ? 1 : 0,
+        scenario == 'verified' ||
+                scenario == 'live verified' ||
+                scenario == 'activation failed'
+            ? 1
+            : 0,
       );
       expect(
         checkoutCalls,
-        scenario == 'order failed' || scenario == 'live key' ? 0 : 1,
+        scenario == 'order failed' ||
+                scenario == 'live key' ||
+                scenario == 'live disabled' ||
+                scenario == 'status unavailable'
+            ? 0
+            : 1,
       );
-      if (scenario == 'verified') {
+      if (scenario == 'verified' || scenario == 'live verified') {
         expect(find.text('Open plans'), findsOneWidget);
         expect(find.text('Standard activated for 30 days.'), findsOneWidget);
       } else {

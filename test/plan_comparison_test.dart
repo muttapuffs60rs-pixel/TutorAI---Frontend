@@ -33,6 +33,10 @@ void main() {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(fontFamily: 'Roboto'),
           home: SubscriptionScreen(
+            paymentStatusLoader: () async => {
+              'mode': 'test',
+              'checkout_enabled': true,
+            },
             profileLoader: () async => {
               'subscription_tier': 'tier_199',
               'subscription_expires_at': '2020-01-01T00:00:00Z',

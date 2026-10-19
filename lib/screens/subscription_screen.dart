@@ -14,8 +14,10 @@ class SubscriptionScreen extends StatefulWidget {
     this.httpClient,
     this.openCheckout,
     this.profileLoader = fetchDailyProfile,
+    this.paymentStatusLoader,
   });
   final Future<Map<String, dynamic>> Function() profileLoader;
+  final Future<Map<String, dynamic>> Function()? paymentStatusLoader;
 
   final http.Client? httpClient;
   final Future<Map<String, dynamic>> Function(Map<String, dynamic>)?
@@ -31,11 +33,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   String? _currentTier;
   String? _currentExpiry;
   bool _loadingProfile = true;
+  Map<String, dynamic>? _paymentStatus;
+  bool get _checkoutEnabled =>
+      _paymentStatus?['checkout_enabled'] == true &&
+      (_paymentStatus?['mode'] == 'test' ||
+          (_paymentStatus?['mode'] == 'live' &&
+              _paymentStatus?['live_charging_enabled'] == true));
+
+  Future<void> _loadPaymentStatus() async {
+    try {
+      final status = widget.paymentStatusLoader != null
+          ? await widget.paymentStatusLoader!()
+          : await (() async {
+              final response = await http
+                  .get(Uri.parse('$_backend/payments/status'))
+                  .timeout(const Duration(seconds: 15));
+              if (response.statusCode != 200)
+                throw Exception('Payment status unavailable');
+              return jsonDecode(response.body) as Map<String, dynamic>;
+            })();
+      if (mounted) setState(() => _paymentStatus = status);
+    } catch (_) {
+      if (mounted) setState(() => _paymentStatus = {'checkout_enabled': false});
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
+    _loadPaymentStatus();
   }
 
   Future<void> _loadProfile() async {
@@ -95,7 +122,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Future<void> _updateSubscription(String tierName) async {
-    if (_isLoading) return;
+    if (_isLoading || !_checkoutEnabled) return;
     if (!_acceptedPolicies) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -123,7 +150,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       final order = await _post('create-order', {'tier_id': tierName});
       if (!mounted) return;
       if (order['key_id'] is! String ||
-          !(order['key_id'] as String).startsWith('rzp_test_') ||
+          !(order['key_id'] as String).startsWith(
+            _paymentStatus?['mode'] == 'live' ? 'rzp_live_' : 'rzp_test_',
+          ) ||
           order['id'] is! String ||
           order['amount'] is! num ||
           order['currency'] != 'INR') {
@@ -307,11 +336,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 const OpeningDayWelcomeOffer(),
                 const SizedBox(height: 24),
 
-                const Card(
+                Card(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Text(
-                      'Razorpay Test Mode: no real money is charged. A successful test can update your tester account plan. Use only Razorpay test payment details.',
+                      _paymentStatus == null
+                          ? 'Checking payment availability…'
+                          : !_checkoutEnabled
+                          ? 'Payments are currently unavailable. Please try again later or contact arivora_support@auxiumsoft.com.'
+                          : _paymentStatus?['mode'] == 'live'
+                          ? 'Secure payment through Razorpay. This is a real payment. Review the plan and amount before paying.'
+                          : 'Razorpay Test Mode: no real money is charged. A successful test can update your tester account plan. Use only Razorpay test payment details.',
                     ),
                   ),
                 ),
@@ -537,7 +572,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading || !_acceptedPolicies || !isAvailable
+                  onPressed:
+                      _isLoading ||
+                          !_checkoutEnabled ||
+                          !_acceptedPolicies ||
+                          !isAvailable
                       ? null
                       : onTap,
                   style: ElevatedButton.styleFrom(
