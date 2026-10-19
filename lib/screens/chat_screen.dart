@@ -1,3 +1,4 @@
+import '../services/chat_image_access.dart';
 import '../widgets/voice_input_dialog.dart';
 import '../widgets/learning_mascot.dart';
 import 'dart:convert';
@@ -98,6 +99,12 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
+  Map<String, String> _imageHeaders(String url) => privateChatImageHeaders(
+    url: url,
+    storageUrl: supabase.storage.from('chat-images').getPublicUrl(''),
+    accessToken: supabase.auth.currentSession?.accessToken,
+  );
+
   void _showFullScreenImage(String url) {
     showDialog(
       context: context,
@@ -106,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Container(
           color: Colors.black,
           child: InteractiveViewer(
-            child: Image.network(url, fit: BoxFit.contain),
+            child: Image.network(url, headers: _imageHeaders(url), fit: BoxFit.contain),
           ),
         ),
       ),
@@ -327,9 +334,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (croppedFile == null) return; 
 
       final Uint8List bytes = await croppedFile.readAsBytes();
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-
-      final imageUrl = await _uploadImageToSupabase(fileName, bytes);
+      final imageUrl = await _uploadImageToSupabase(bytes);
       if (imageUrl == null || imageUrl.isEmpty) {
         throw Exception("Upload failed");
       }
@@ -350,14 +355,16 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<String?> _uploadImageToSupabase(String fileName, Uint8List bytes) async {
+  Future<String?> _uploadImageToSupabase(Uint8List bytes) async {
     try {
-      final path = 'chat_uploads/$fileName';
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null || bytes.length > 5 * 1024 * 1024) return null;
+      final path = newChatImagePath(userId);
       await supabase.storage.from('chat-images').uploadBinary(
         path, bytes, fileOptions: const FileOptions(contentType: 'image/jpeg'),
       );
       
-      return supabase.storage.from('chat-images').getPublicUrl(path);
+      return supabase.storage.from('chat-images').getPublicUrl(path).replaceFirst('/object/public/', '/object/authenticated/');
     } catch (e) {
       debugPrint("Image upload failed: $e");
       return null;
@@ -678,7 +685,7 @@ class _ChatScreenState extends State<ChatScreen> {
               constraints: const BoxConstraints(maxWidth: 250),
               child: ClipRRect(
                 borderRadius: Tailwind.roundedXl,
-                child: Image.network(message.imageUrl!, fit: BoxFit.cover),
+                child: Image.network(message.imageUrl!, headers: _imageHeaders(message.imageUrl!), fit: BoxFit.cover),
               ),
             ),
           ),
@@ -813,7 +820,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         borderRadius: Tailwind.roundedXl,
                         boxShadow: Tailwind.shadowSm,
                         image: DecorationImage(
-                          image: NetworkImage(_pendingImageUrl!),
+                          image: NetworkImage(_pendingImageUrl!, headers: _imageHeaders(_pendingImageUrl!)),
                           fit: BoxFit.cover,
                         ),
                       ),

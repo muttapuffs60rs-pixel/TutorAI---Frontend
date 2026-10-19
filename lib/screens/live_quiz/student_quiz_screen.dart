@@ -218,7 +218,7 @@ class _StudentQuizScreenState extends State<StudentQuizScreen> {
           setState(() {
             _hasAnsweredCurrent = true;
             _wasCorrect = data['is_correct'];
-            if (!_wasCorrect) _correctAnswerMsg = data['correct_answer'];
+            if (!_wasCorrect) _correctAnswerMsg = data['correct_answer']?.toString() ?? '';
           });
         } else if (res.statusCode == 409) {
           setState(() => _hasAnsweredCurrent = true);
