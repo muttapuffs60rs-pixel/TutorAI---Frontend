@@ -105,6 +105,48 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Tailwind.pastels[1],
+                      borderRadius: Tailwind.roundedXl,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Hello, $name!',
+                                style: const TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w800,
+                                  color: Tailwind.slate800,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'A little curiosity. A big discovery.',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Tailwind.slate700,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () =>
+                                    open(SubjectSelectionScreen(board: board)),
+                                child: const Text('Start learning'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const LearningMascot(size: 112),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -164,48 +206,6 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Tailwind.pastels[1],
-                      borderRadius: Tailwind.roundedXl,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Hello, $name!',
-                                style: const TextStyle(
-                                  fontSize: 25,
-                                  fontWeight: FontWeight.w800,
-                                  color: Tailwind.slate800,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'A little curiosity. A big discovery.',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Tailwind.slate700,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () =>
-                                    open(SubjectSelectionScreen(board: board)),
-                                child: const Text('Start learning'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const LearningMascot(size: 112),
                       ],
                     ),
                   ),
