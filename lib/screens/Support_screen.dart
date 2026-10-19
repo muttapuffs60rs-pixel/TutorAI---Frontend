@@ -22,7 +22,7 @@ class SupportScreen extends StatelessWidget {
     final String userId = supabase.auth.currentUser?.id ?? "Not Logged In";
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
-      path: 'Solutions@auxiumsoft.com',
+      path: 'arivora_support@auxiumsoft.com',
       query: 'subject=Support Request: Arivora&body=User ID: $userId\n\nIssue Description:',
     );
 

@@ -125,7 +125,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             content: Text(
               paymentId == null
                   ? 'Unable to complete checkout: $error'
-                  : 'Payment received, but activation could not be confirmed. Do not pay again. Contact Solutions@auxiumsoft.com with payment ID $paymentId.',
+                  : 'Payment received, but activation could not be confirmed. Do not pay again. Contact arivora_support@auxiumsoft.com with payment ID $paymentId.',
             ),
             duration: const Duration(seconds: 10),
           ),

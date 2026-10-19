@@ -8,7 +8,7 @@ class LegalPolicyScreen extends StatelessWidget {
   const LegalPolicyScreen({super.key, required this.policy});
 
   final LegalPolicy policy;
-  static const supportEmail = 'Solutions@auxiumsoft.com';
+  static const supportEmail = 'arivora_support@auxiumsoft.com';
   static const version = '2026-10-14';
 
   static void open(BuildContext context, LegalPolicy policy) {
@@ -138,7 +138,7 @@ const _terms = <(String, String)>[
   ),
   (
     '8. Changes and support',
-    'Updates to these terms will be shown with a revised date. Purchase-specific terms apply to the purchase made under them; changes do not remove accrued consumer rights. For account, payment or policy questions, contact Solutions@auxiumsoft.com.',
+    'Updates to these terms will be shown with a revised date. Purchase-specific terms apply to the purchase made under them; changes do not remove accrued consumer rights. For account, payment or policy questions, contact arivora_support@auxiumsoft.com.',
   ),
 ];
 
@@ -153,7 +153,7 @@ const _refunds = <(String, String)>[
   ),
   (
     '3. How to request help',
-    'Email Solutions@auxiumsoft.com with your account email, payment or order ID, payment date, amount and reason. Attach a receipt or screenshot if available. Never send your password, OTP, card PIN or full card details. Sending a request does not automatically cancel access or confirm a refund.',
+    'Email arivora_support@auxiumsoft.com with your account email, payment or order ID, payment date, amount and reason. Attach a receipt or screenshot if available. Never send your password, OTP, card PIN or full card details. Sending a request does not automatically cancel access or confirm a refund.',
   ),
   (
     '4. Refund processing',

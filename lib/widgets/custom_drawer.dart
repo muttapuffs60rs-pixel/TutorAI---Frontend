@@ -209,7 +209,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   Future<void> _support() async {
     final uri = Uri(
       scheme: 'mailto',
-      path: 'Solutions@auxiumsoft.com',
+      path: 'arivora_support@auxiumsoft.com',
       query: 'subject=Arivora%20support',
     );
     try {
@@ -222,7 +222,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Contact support'),
-        content: const SelectableText('Solutions@auxiumsoft.com'),
+        content: const SelectableText('arivora_support@auxiumsoft.com'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -523,7 +523,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   _menuAction(
                     leading: const Icon(Icons.mail_outline),
                     title: const Text('Contact support'),
-                    subtitle: const Text('Solutions@auxiumsoft.com'),
+                    subtitle: const Text('arivora_support@auxiumsoft.com'),
                     onTap: _support,
                   ),
                   _menuAction(
