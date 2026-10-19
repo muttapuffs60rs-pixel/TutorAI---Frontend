@@ -124,4 +124,23 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox());
   });
+
+  testWidgets('menu Contact support opens an in-app contact page', (
+    tester,
+  ) async {
+    await openMenu(tester);
+    await tester.scrollUntilVisible(
+      find.text('Contact support'),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.text('Contact support'));
+    await tester.pumpAndSettle();
+    expect(find.text('Copy email address'), findsOneWidget);
+    expect(find.text('Tell us what happened'), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Your lessons'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

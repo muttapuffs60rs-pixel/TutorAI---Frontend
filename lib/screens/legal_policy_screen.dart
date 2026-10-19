@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'Support_screen.dart';
 
 enum LegalPolicy { terms, refunds }
 
@@ -15,31 +14,6 @@ class LegalPolicyScreen extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LegalPolicyScreen(policy: policy),
-      ),
-    );
-  }
-
-  Future<void> _contactSupport(BuildContext context) async {
-    final uri = Uri(
-      scheme: 'mailto',
-      path: supportEmail,
-      query:
-          'subject=${Uri.encodeComponent('Arivora cancellation or refund request')}'
-          '&body=${Uri.encodeComponent('Account email:\nPayment / order ID:\nPayment date and amount:\nReason for request:\n')}',
-    );
-    try {
-      if (await launchUrl(uri)) return;
-    } catch (_) {
-      // Keep the address usable when no email application is available.
-    }
-    if (!context.mounted) return;
-    await Clipboard.setData(const ClipboardData(text: supportEmail));
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Support email copied. Send your request to $supportEmail.',
-        ),
       ),
     );
   }
@@ -82,7 +56,11 @@ class LegalPolicyScreen extends StatelessWidget {
                   const SelectableText('Contact: $supportEmail'),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: () => _contactSupport(context),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => SupportScreen(paymentRequest: !isTerms),
+                      ),
+                    ),
                     icon: const Icon(Icons.email_outlined),
                     label: const Text('Contact support'),
                   ),

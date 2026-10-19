@@ -13,7 +13,7 @@ import '../services/profile_service.dart';
 import '../screens/answer_library_screen.dart';
 import 'usage_meter.dart';
 import '../screens/legal_policy_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../screens/Support_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
   final Future<Map<String, dynamic>> Function()? loadUsage;
@@ -207,33 +207,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ),
     ),
   );
-
-  Future<void> _support() async {
-    final uri = Uri(
-      scheme: 'mailto',
-      path: 'Solutions@auxiumsoft.com',
-      query: 'subject=Arivora%20support',
-    );
-    try {
-      if (await launchUrl(uri)) return;
-    } catch (_) {
-      /* Show a readable fallback below. */
-    }
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Contact support'),
-        content: const SelectableText('Solutions@auxiumsoft.com'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _logout() {
     final navigator = Navigator.of(context);
@@ -534,7 +507,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     leading: const Icon(Icons.mail_outline),
                     title: const Text('Contact support'),
                     subtitle: const Text('Solutions@auxiumsoft.com'),
-                    onTap: _support,
+                    onTap: () => _open(const SupportScreen()),
                   ),
                   _menuAction(
                     leading: const Icon(Icons.lock_outline),
