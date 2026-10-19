@@ -78,10 +78,10 @@ class _StudentTutorialState extends State<StudentTutorial> {
     _TourStep(
       title: 'Ask your first question',
       summary:
-          'Be specific about what you want to understand. You can type, speak or attach a clear photo.',
+          'Be specific about what you want to understand. You can type your question or attach a clear photo.',
       route: 'Tuition → Question box → Send',
       actions: [
-        'Type a question, use the Tamil keyboard, or tap the microphone. Review spoken text before adding it to your message.',
+        'Type your question, or use the Tamil keyboard to enter Tamil text.',
         'For a photo, crop to the question. Add what you need help with, then tap Send.',
         'Want more help? Choose Hint, Short explanation or Full solution, then tap Send.',
       ],
