@@ -148,6 +148,18 @@ class _HomeSelectionScreenState extends State<HomeSelectionScreen> {
                   const SizedBox(height: 28),
                   Card(
                     child: ListTile(
+                      leading: const Icon(Icons.help_outline),
+                      title: const Text('How to use Arivora'),
+                      subtitle: const Text(
+                        'A quick guide to questions, practice and live classes',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => StudentTutorial.show(context),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    child: ListTile(
                       leading: const Icon(Icons.school_outlined),
                       title: const Text('Board & curriculum'),
                       subtitle: Text(boardNames[board] ?? 'Select your board'),
