@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'legal_policy_screen.dart';
 import '../widgets/auxiumsoft_brand.dart';
 import '../widgets/opening_day_welcome_offer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -246,7 +245,6 @@ class _PrelaunchGateState extends State<PrelaunchGate>
                         const SizedBox(height: 24),
                         const AuxiumSoftBrand(),
                         const SizedBox(height: 12),
-                        const LegalPolicyLinks(),
                         if (_error != null) ...[
                           const SizedBox(height: 12),
                           Text(_error!, textAlign: TextAlign.center),

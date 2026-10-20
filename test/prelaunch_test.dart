@@ -72,8 +72,8 @@ void main() {
         'id': 'different-test-user',
         'aud': 'authenticated',
         'created_at': '2026-01-01T00:00:00Z',
-          'app_metadata': <String, dynamic>{},
-          'user_metadata': <String, dynamic>{},
+        'app_metadata': <String, dynamic>{},
+        'user_metadata': <String, dynamic>{},
       },
     });
     // ignore: invalid_use_of_internal_member
@@ -185,7 +185,7 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
-  testWidgets('public visitor can read policies while tutoring remains gated', (
+  testWidgets('opening page omits policy links while tutoring remains gated', (
     tester,
   ) async {
     allowed = false;
@@ -200,20 +200,9 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 200)),
     );
     await tester.pump();
-    await tester.scrollUntilVisible(
-      find.text('Terms and Conditions'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.text('Terms and Conditions'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('1. Using Arivora'), findsOneWidget);
+    expect(find.text('Terms and Conditions'), findsNothing);
+    expect(find.text('Cancellation and Refund Policy'), findsNothing);
     expect(find.text('PRIVATE HOME'), findsNothing);
-    await tester.pageBack();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Cancellation and Refund Policy'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     await tester.pump();
   });

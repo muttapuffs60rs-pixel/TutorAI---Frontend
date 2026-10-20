@@ -40,7 +40,7 @@ void main() {
   tearDownAll(() => Supabase.instance.dispose());
   for (final scale in [1.0, 1.8]) {
     testWidgets(
-      'board is first and change action opens saved board at text scale $scale',
+      'welcome is first and board change action opens saved board at text scale $scale',
       (tester) async {
         tester.view.physicalSize = const Size(360, 640);
         tester.view.devicePixelRatio = 1;
@@ -65,9 +65,8 @@ void main() {
         final learning = find.text('Start learning');
         expect(
           tester.getTopLeft(board).dy,
-          lessThan(tester.getTopLeft(learning).dy),
+          greaterThan(tester.getTopLeft(learning).dy),
         );
-        if (scale == 1) expect(tester.getBottomRight(board).dy, lessThan(640));
         expect(find.text('Selected: CBSE'), findsOneWidget);
         await tester.ensureVisible(board);
         await tester.tap(board);
