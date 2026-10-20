@@ -199,23 +199,6 @@ class _UsageMeterState extends State<UsageMeter> {
     final color = fraction != null && fraction <= .2
         ? Colors.orange.shade800
         : Tailwind.indigo600;
-    final end = DateTime.parse(
-      data['period_end'] as String,
-    ).toUtc().add(const Duration(hours: 5, minutes: 30));
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
     return Container(
       margin: widget.edgeToEdge
           ? EdgeInsets.zero
@@ -282,13 +265,13 @@ class _UsageMeterState extends State<UsageMeter> {
           ),
           if (target != null) ...[
             const SizedBox(height: 10),
-            Text(
-              lifetime
-                  ? 'One-time free trial · No monthly reset'
-                  : 'Period ends ${end.day} ${months[end.month - 1]} ${end.year} (IST)',
-              style: const TextStyle(fontSize: 12, color: Tailwind.slate600),
-            ),
-            const SizedBox(height: 4),
+            if (lifetime) ...[
+              const Text(
+                'One-time free trial · No monthly reset',
+                style: TextStyle(fontSize: 12, color: Tailwind.slate600),
+              ),
+              const SizedBox(height: 4),
+            ],
             const Text(
               'Usage tracking only · not a billing balance',
               style: TextStyle(fontSize: 11, color: Tailwind.slate500),
