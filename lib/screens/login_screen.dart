@@ -5,6 +5,7 @@ import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import 'home_selection_screen.dart';
 import 'forgot_password_screen.dart';
+import '../services/signup_error_message.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -308,7 +309,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
       if (mounted) _showWelcomeCarousel(name);
     } on AuthException catch (e) {
-      if (mounted) _showCustomSnackBar(e.message);
+      final message = await signupErrorMessage(e.message, phone);
+      if (mounted) _showCustomSnackBar(message);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
