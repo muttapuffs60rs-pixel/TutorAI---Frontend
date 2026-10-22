@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart'; 
+import '../main.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -11,9 +11,11 @@ class ChangePasswordScreen extends StatefulWidget {
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   bool _isLoading = false;
 
   // Track password field visibility independently
@@ -35,7 +37,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       SnackBar(
         elevation: 6.0,
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? const Color(0xFFD00000) : const Color(0xFF38B000),
+        backgroundColor: isError
+            ? const Color(0xFFD00000)
+            : const Color(0xFF38B000),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Row(
@@ -70,32 +74,35 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     try {
       final user = supabase.auth.currentUser;
-      if (user == null || user.email == null) throw Exception("No authenticated user found");
+      if (user == null || user.email == null)
+        throw Exception("No authenticated user found");
 
       // 1. Verify current password by re-authenticating
       await supabase.auth.signInWithPassword(
         email: user.email!,
-        password: _currentPasswordController.text.trim(),
+        password: _currentPasswordController.text,
       );
 
       // 2. Update to the new password
       await supabase.auth.updateUser(
-        UserAttributes(
-          password: _newPasswordController.text.trim(),
-        ),
+        UserAttributes(password: _newPasswordController.text),
       );
 
       if (!mounted) return;
-      _showCustomSnackBar(message: "Password updated successfully!", isError: false);
-      
-      Navigator.pop(context); 
+      _showCustomSnackBar(
+        message: "Password updated successfully!",
+        isError: false,
+      );
+
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      
-      String clearErrorMessage = e.toString().contains("Invalid login credentials")
+
+      String clearErrorMessage =
+          e.toString().contains("Invalid login credentials")
           ? "The current password you entered is incorrect."
           : "Could not update password. Please check your network connection.";
-          
+
       _showCustomSnackBar(message: clearErrorMessage, isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -111,7 +118,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       backgroundColor: themePurple,
       appBar: AppBar(
         backgroundColor: darkPurple,
-        title: const Text('Change Password', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Change Password',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
@@ -129,7 +139,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Current Password Field with visibility switch
                 _buildPasswordField(
                   controller: _currentPasswordController,
@@ -139,7 +149,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     setState(() => _obscureCurrent = !_obscureCurrent);
                   },
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter your current password';
+                    if (value == null || value.isEmpty)
+                      return 'Please enter your current password';
                     return null;
                   },
                 ),
@@ -155,9 +166,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     setState(() => _obscureNew = !_obscureNew);
                   },
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter a new PIN';
-                    if (value.length != 4) return 'PIN must be exactly 4 digits';
-                    if (!RegExp(r'^[0-9]{4}$').hasMatch(value)) return 'PIN must contain only numbers';
+                    if (value == null || value.isEmpty)
+                      return 'Please enter a new PIN';
+                    if (value.length != 4)
+                      return 'PIN must be exactly 4 digits';
+                    if (!RegExp(r'^[0-9]{4}$').hasMatch(value))
+                      return 'PIN must contain only numbers';
                     return null;
                   },
                 ),
@@ -173,7 +187,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     setState(() => _obscureConfirm = !_obscureConfirm);
                   },
                   validator: (value) {
-                    if (value != _newPasswordController.text) return 'PINs do not match';
+                    if (value != _newPasswordController.text)
+                      return 'PINs do not match';
                     return null;
                   },
                 ),
@@ -184,17 +199,26 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
-                          child: CircularProgressIndicator(color: darkPurple, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: darkPurple,
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Text(
                           'Update Password',
-                          style: TextStyle(color: darkPurple, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: darkPurple,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ],
@@ -224,10 +248,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
-        counterText: '',  // hide the "0/4" counter on PIN fields
+        counterText: '', // hide the "0/4" counter on PIN fields
         suffixIcon: IconButton(
           icon: Icon(
-            isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+            isObscured
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
             color: Colors.white70,
           ),
           onPressed: onToggleVisibility,

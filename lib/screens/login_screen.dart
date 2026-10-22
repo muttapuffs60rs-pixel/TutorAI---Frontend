@@ -1,7 +1,7 @@
 import '../widgets/arivora_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../main.dart'; 
+import '../main.dart';
 import '../theme/tailwind_theme.dart';
 import 'home_selection_screen.dart';
 import 'forgot_password_screen.dart';
@@ -16,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   // Updated to reflect that this field can be Email OR Phone
-  final _identifierController = TextEditingController(); 
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
@@ -25,17 +25,25 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(isError ? Icons.error_outline : Icons.check_circle_outline, color: Colors.white),
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
         ),
-        backgroundColor: isError ? Colors.redAccent : Colors.greenAccent.shade700,
+        backgroundColor: isError
+            ? Colors.redAccent
+            : Colors.greenAccent.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(20),
@@ -47,29 +55,34 @@ class _LoginScreenState extends State<LoginScreen> {
   // Dual Login Logic: Detects if input is an email or a phone number
   Future<void> _signIn() async {
     final identifier = _identifierController.text.trim();
-    final password = _passwordController.text.trim();
+    final password = _passwordController.text;
 
     if (identifier.isEmpty || password.isEmpty) {
-      _showCustomSnackBar('Please enter your email/phone and password');
+      _showCustomSnackBar('Please enter your email and password');
+      return;
+    }
+
+    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(identifier)) {
+      _showCustomSnackBar('Please use the email address you registered with.');
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      if (identifier.contains('@')) {
-        // Log in via Email
-        await supabase.auth.signInWithPassword(email: identifier, password: password);
-      } else {
-        // Log in via Phone[cite: 3]
-        // Note: Ensure '+91' or your country code logic is handled
-        await supabase.auth.signInWithPassword(phone: identifier, password: password);
-      }
+      await supabase.auth.signInWithPassword(
+        email: identifier,
+        password: password,
+      );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeSelectionScreen()));
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeSelectionScreen()),
+        );
       }
     } on AuthException catch (e) {
       if (mounted) _showCustomSnackBar(e.message);
+    } catch (_) {
+      if (mounted) _showCustomSnackBar('Unable to connect. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -78,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Tailwind.slate50, 
+      backgroundColor: Tailwind.slate50,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -97,38 +110,83 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 const Text(
                   'Welcome to Arivora',
-                  textAlign: TextAlign.center, 
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Tailwind.slate800)
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Tailwind.slate800,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                const Text('Understand deeply.', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Tailwind.slate500)),
+                const Text(
+                  'Understand deeply.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Tailwind.slate500),
+                ),
                 const SizedBox(height: 32),
-                _buildTextField(_identifierController, 'Email or Mobile Number', Icons.person_outline),
+                _buildTextField(
+                  _identifierController,
+                  'Email',
+                  Icons.person_outline,
+                ),
                 const SizedBox(height: 16),
-                _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
+                _buildTextField(
+                  _passwordController,
+                  'Password',
+                  Icons.lock,
+                  isPassword: true,
+                ),
                 const SizedBox(height: 24),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator(color: Tailwind.indigo600))
+                  const Center(
+                    child: CircularProgressIndicator(color: Tailwind.indigo600),
+                  )
                 else ...[
                   ElevatedButton(
                     onPressed: _signIn,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16), 
-                      backgroundColor: Tailwind.indigo600, 
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Tailwind.indigo600,
                       foregroundColor: Tailwind.white,
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: Tailwind.roundedXl,
+                      ),
                     ),
-                    child: const Text('Log In', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Log In',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
-                    child: const Text('Forgot Password?', style: TextStyle(color: Tailwind.indigo600, fontWeight: FontWeight.bold)),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordScreen(),
+                      ),
+                    ),
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Tailwind.indigo600,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignUpScreen())),
-                    child: const Text('New user? Create an account here', style: TextStyle(color: Tailwind.slate600, fontWeight: FontWeight.w500)),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                    ),
+                    child: const Text(
+                      'New user? Create an account here',
+                      style: TextStyle(
+                        color: Tailwind.slate600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -139,7 +197,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool isPassword = false,
+  }) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -156,7 +219,10 @@ class _LoginScreenState extends State<LoginScreen> {
           labelStyle: const TextStyle(color: Tailwind.slate500),
           prefixIcon: Icon(icon, color: Tailwind.indigo500),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -171,7 +237,8 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
-  final _phoneController = TextEditingController(); // NEW: Phone Controller[cite: 3]
+  final _phoneController =
+      TextEditingController(); // NEW: Phone Controller[cite: 3]
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -183,10 +250,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       barrierDismissible: false,
       builder: (context) {
         PageController _pageController = PageController();
-        
+
         return StatefulBuilder(
           builder: (context, setState) {
-            int _currentPage = _pageController.hasClients ? _pageController.page?.round() ?? 0 : 0;
+            int _currentPage = _pageController.hasClients
+                ? _pageController.page?.round() ?? 0
+                : 0;
 
             List<Widget> _slides = [
               _buildSlide(
@@ -207,7 +276,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ];
 
             return AlertDialog(
-              backgroundColor: Tailwind.white, 
+              backgroundColor: Tailwind.white,
               shape: RoundedRectangleBorder(borderRadius: Tailwind.rounded2Xl),
               content: SizedBox(
                 height: 320,
@@ -224,21 +293,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("${_currentPage + 1} / 3", style: const TextStyle(color: Tailwind.slate500)),
+                        Text(
+                          "${_currentPage + 1} / 3",
+                          style: const TextStyle(color: Tailwind.slate500),
+                        ),
                         TextButton(
                           onPressed: () {
                             if (_currentPage < 2) {
                               _pageController.nextPage(
-                                duration: const Duration(milliseconds: 300), 
-                                curve: Curves.easeIn
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeIn,
                               );
                             } else {
                               Navigator.of(context, rootNavigator: true).pop();
                               Future.delayed(Duration.zero, () {
                                 if (mounted) {
                                   Navigator.of(context).pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (_) => const HomeSelectionScreen()), 
-                                    (route) => false
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const HomeSelectionScreen(),
+                                    ),
+                                    (route) => false,
                                   );
                                 }
                               });
@@ -246,7 +321,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                           child: Text(
                             _currentPage == 2 ? "START" : "NEXT",
-                            style: const TextStyle(color: Tailwind.indigo600, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              color: Tailwind.indigo600,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -267,9 +345,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
       children: [
         Icon(icon, size: 60, color: Tailwind.indigo500),
         const SizedBox(height: 20),
-        Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Tailwind.slate800)),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Tailwind.slate800,
+          ),
+        ),
         const SizedBox(height: 12),
-        Text(desc, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: Tailwind.slate600)),
+        Text(
+          desc,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14, color: Tailwind.slate600),
+        ),
       ],
     );
   }
@@ -278,11 +368,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim(); // Capture Phone[cite: 3]
     final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final confirm = _confirmPasswordController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmPasswordController.text;
 
     // Updated validation to include phone
-    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || confirm.isEmpty) {
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        password.isEmpty ||
+        confirm.isEmpty) {
       _showCustomSnackBar('Please fill out all fields!');
       return;
     }
@@ -291,26 +385,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     // Simple 10-digit validation for mobile
-    if (phone.length < 10) {
-      _showCustomSnackBar('Please enter a valid mobile number');
+    if (!RegExp(r'^[0-9]{10}$').hasMatch(phone)) {
+      _showCustomSnackBar('Please enter a 10-digit mobile number');
       return;
     }
 
+    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+      _showCustomSnackBar('Please enter a valid email address');
+      return;
+    }
     setState(() => _isLoading = true);
     try {
       // Updated to send both 'username' and 'phone_number' to metadata
       await supabase.auth.signUp(
-        email: email, 
-        password: password, 
-        data: {
-          'username': name,
-          'phone_number': phone, 
-        }
+        email: email,
+        password: password,
+        data: {'username': name, 'phone_number': phone},
       );
       if (mounted) _showWelcomeCarousel(name);
     } on AuthException catch (e) {
       final message = await signupErrorMessage(e.message, phone);
       if (mounted) _showCustomSnackBar(message);
+    } catch (_) {
+      if (mounted) _showCustomSnackBar('Unable to connect. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -323,7 +420,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 10),
-            Expanded(child: Text(message, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white))),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ],
         ),
         backgroundColor: Colors.redAccent,
@@ -339,11 +444,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       backgroundColor: Tailwind.slate50,
       appBar: AppBar(
-        title: const Text('Create Account'), 
-        backgroundColor: Colors.transparent, 
+        title: const Text('Create Account'),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Tailwind.slate800),
-        titleTextStyle: const TextStyle(color: Tailwind.slate800, fontSize: 20, fontWeight: FontWeight.bold),
+        titleTextStyle: const TextStyle(
+          color: Tailwind.slate800,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -360,28 +469,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 _buildField(_nameController, 'Full Name', Icons.person),
                 const SizedBox(height: 16),
-                _buildField(_phoneController, 'Mobile Number', Icons.phone, isPhone: true),
+                _buildField(
+                  _phoneController,
+                  'Mobile Number',
+                  Icons.phone,
+                  isPhone: true,
+                ),
                 const SizedBox(height: 16),
                 _buildField(_emailController, 'Email', Icons.email),
                 const SizedBox(height: 16),
-                _buildField(_passwordController, 'Password', Icons.lock, isPass: true),
+                _buildField(
+                  _passwordController,
+                  'Password',
+                  Icons.lock,
+                  isPass: true,
+                ),
                 const SizedBox(height: 16),
-                _buildField(_confirmPasswordController, 'Confirm Password', Icons.lock_clock, isPass: true),
+                _buildField(
+                  _confirmPasswordController,
+                  'Confirm Password',
+                  Icons.lock_clock,
+                  isPass: true,
+                ),
                 const SizedBox(height: 16),
                 const SizedBox(height: 32),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator(color: Tailwind.indigo600))
+                  const Center(
+                    child: CircularProgressIndicator(color: Tailwind.indigo600),
+                  )
                 else
                   ElevatedButton(
                     onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16), 
-                      backgroundColor: Tailwind.indigo600, 
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Tailwind.indigo600,
                       foregroundColor: Tailwind.white,
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: Tailwind.roundedXl,
+                      ),
                     ),
-                    child: const Text('Create Account', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Create Account',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -392,7 +526,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   // Updated helper to handle phone keyboard type[cite: 3]
-  Widget _buildField(TextEditingController controller, String label, IconData icon, {bool isPass = false, bool isPhone = false}) {
+  Widget _buildField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool isPass = false,
+    bool isPhone = false,
+  }) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -410,7 +550,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
           labelStyle: const TextStyle(color: Tailwind.slate500),
           prefixIcon: Icon(icon, color: Tailwind.indigo500),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );

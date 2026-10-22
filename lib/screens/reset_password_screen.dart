@@ -21,17 +21,25 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(isError ? Icons.error_outline : Icons.check_circle_outline, color: Colors.white),
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
         ),
-        backgroundColor: isError ? Colors.redAccent : Colors.greenAccent.shade700,
+        backgroundColor: isError
+            ? Colors.redAccent
+            : Colors.greenAccent.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(20),
@@ -41,10 +49,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _updatePassword() async {
-    final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
 
-    if (password.isEmpty || password.length != 4 || !RegExp(r'^[0-9]{4}$').hasMatch(password)) {
+    if (password.isEmpty ||
+        password.length != 4 ||
+        !RegExp(r'^[0-9]{4}$').hasMatch(password)) {
       _showCustomSnackBar('PIN must be exactly 4 digits');
       return;
     }
@@ -57,12 +67,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await supabase.auth.updateUser(
-        UserAttributes(password: password),
-      );
+      await supabase.auth.updateUser(UserAttributes(password: password));
 
       if (mounted) {
-        _showCustomSnackBar('PIN updated successfully! Please log in.', isError: false);
+        _showCustomSnackBar(
+          'PIN updated successfully! Please log in.',
+          isError: false,
+        );
         // Ensure user is signed out so they have to log in with new PIN
         await supabase.auth.signOut();
         Navigator.of(context).pushAndRemoveUntil(
@@ -107,21 +118,39 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 const Text(
                   'Set New PIN',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Tailwind.slate800)
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Tailwind.slate800,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
                   'Enter a new 4-digit numeric PIN.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Tailwind.slate500)
+                  style: TextStyle(fontSize: 14, color: Tailwind.slate500),
                 ),
                 const SizedBox(height: 40),
-                _buildTextField(_passwordController, 'New 4-Digit PIN', Icons.lock, isPassword: true, isPin: true),
+                _buildTextField(
+                  _passwordController,
+                  'New 4-Digit PIN',
+                  Icons.lock,
+                  isPassword: true,
+                  isPin: true,
+                ),
                 const SizedBox(height: 16),
-                _buildTextField(_confirmPasswordController, 'Confirm New PIN', Icons.lock_outline, isPassword: true, isPin: true),
+                _buildTextField(
+                  _confirmPasswordController,
+                  'Confirm New PIN',
+                  Icons.lock_outline,
+                  isPassword: true,
+                  isPin: true,
+                ),
                 const SizedBox(height: 24),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator(color: Tailwind.indigo600))
+                  const Center(
+                    child: CircularProgressIndicator(color: Tailwind.indigo600),
+                  )
                 else
                   ElevatedButton(
                     onPressed: _updatePassword,
@@ -130,9 +159,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       backgroundColor: Tailwind.indigo600,
                       foregroundColor: Tailwind.white,
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: Tailwind.roundedXl,
+                      ),
                     ),
-                    child: const Text('Update PIN', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Update PIN',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -142,7 +179,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false, bool isPin = false}) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool isPassword = false,
+    bool isPin = false,
+  }) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -162,7 +205,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           labelStyle: const TextStyle(color: Tailwind.slate500),
           prefixIcon: Icon(icon, color: Tailwind.indigo500),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );

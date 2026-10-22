@@ -20,17 +20,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(isError ? Icons.error_outline : Icons.check_circle_outline, color: Colors.white),
+            Icon(
+              isError ? Icons.error_outline : Icons.check_circle_outline,
+              color: Colors.white,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
         ),
-        backgroundColor: isError ? Colors.redAccent : Colors.greenAccent.shade700,
+        backgroundColor: isError
+            ? Colors.redAccent
+            : Colors.greenAccent.shade700,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(20),
@@ -42,36 +50,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _sendOtp() async {
     String identifier = _identifierController.text.trim();
 
-    if (identifier.isEmpty) {
-      _showCustomSnackBar('Please enter your email or phone number');
+    if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(identifier)) {
+      _showCustomSnackBar('Please enter your registered email address');
       return;
     }
 
     setState(() => _isLoading = true);
-    
+
     try {
-      bool isEmail = identifier.contains('@');
-      
-      if (isEmail) {
-        // Send email reset OTP
-        await supabase.auth.resetPasswordForEmail(identifier);
-      } else {
-        // Send phone reset OTP
-        // Ensure +91 if length is 10
-        if (identifier.length == 10 && !identifier.startsWith('+')) {
-          identifier = '+91$identifier';
-        }
-        await supabase.auth.signInWithOtp(phone: identifier);
-      }
+      await supabase.auth.resetPasswordForEmail(identifier);
 
       if (mounted) {
-        _showCustomSnackBar('OTP sent successfully to $identifier!', isError: false);
+        _showCustomSnackBar(
+          'Check your email for password reset instructions.',
+          isError: false,
+        );
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => OtpVerificationScreen(
-              identifier: identifier,
-              isEmail: isEmail,
-            ),
+            builder: (_) =>
+                OtpVerificationScreen(identifier: identifier, isEmail: true),
           ),
         );
       }
@@ -107,24 +104,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.lock_reset, size: 80, color: Tailwind.indigo500),
+                const Icon(
+                  Icons.lock_reset,
+                  size: 80,
+                  color: Tailwind.indigo500,
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   'Forgot Password?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Tailwind.slate800)
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Tailwind.slate800,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Enter your registered email or phone number and we will send you an OTP to reset your password.',
+                  'Enter your registered email address and we will send you an OTP to reset your password.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Tailwind.slate500)
+                  style: TextStyle(fontSize: 14, color: Tailwind.slate500),
                 ),
                 const SizedBox(height: 40),
-                _buildTextField(_identifierController, 'Email or Phone Number', Icons.person_outline),
+                _buildTextField(
+                  _identifierController,
+                  'Email',
+                  Icons.person_outline,
+                ),
                 const SizedBox(height: 24),
                 if (_isLoading)
-                  const Center(child: CircularProgressIndicator(color: Tailwind.indigo600))
+                  const Center(
+                    child: CircularProgressIndicator(color: Tailwind.indigo600),
+                  )
                 else
                   ElevatedButton(
                     onPressed: _sendOtp,
@@ -133,9 +144,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       backgroundColor: Tailwind.indigo600,
                       foregroundColor: Tailwind.white,
                       elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: Tailwind.roundedXl)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: Tailwind.roundedXl,
+                      ),
                     ),
-                    child: const Text('Send OTP', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Send OTP',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -145,7 +164,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon) {
+  Widget _buildTextField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+  ) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       decoration: BoxDecoration(
@@ -161,7 +184,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           labelStyle: const TextStyle(color: Tailwind.slate500),
           prefixIcon: Icon(icon, color: Tailwind.indigo500),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );

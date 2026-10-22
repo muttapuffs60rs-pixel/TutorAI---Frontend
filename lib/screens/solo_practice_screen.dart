@@ -1,3 +1,5 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'board_selection_screen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -74,7 +76,12 @@ Future<List<PracticeQuestion>> loadPracticeQuiz(
 class SoloPracticeScreen extends StatefulWidget {
   final Future<List<PracticeQuestion>> Function(Map<String, dynamic>)
   quizLoader;
-  const SoloPracticeScreen({super.key, this.quizLoader = loadPracticeQuiz});
+  final String? initialBoard;
+  const SoloPracticeScreen({
+    super.key,
+    this.quizLoader = loadPracticeQuiz,
+    this.initialBoard,
+  });
   @override
   State<SoloPracticeScreen> createState() => _SoloPracticeScreenState();
 }
@@ -83,6 +90,30 @@ class _SoloPracticeScreenState extends State<SoloPracticeScreen> {
   final _topic = TextEditingController();
   int _grade = 10, _count = 5, _index = 0;
   String _subject = 'Maths';
+  String? _board;
+  @override
+  void initState() {
+    super.initState();
+    _board = widget.initialBoard;
+    try {
+      _board ??= savedBoard(
+        Supabase.instance.client.auth.currentUser?.userMetadata,
+      );
+    } catch (_) {
+      /* A board can also be selected explicitly below. */
+    }
+    if (_board != null) {
+      final names = subjectsForBoard(
+        _board!,
+        _grade,
+      ).map((s) => s['name']).toList();
+      if (!names.contains(_subject))
+        _subject = names.contains('Mathematics')
+            ? 'Mathematics'
+            : names.first as String;
+    }
+  }
+
   bool _loading = false, _finished = false;
   String? _error;
   List<PracticeQuestion> _questions = [];
@@ -96,6 +127,10 @@ class _SoloPracticeScreenState extends State<SoloPracticeScreen> {
 
   Future<void> _start() async {
     if (_loading) return;
+    if (_board == null) {
+      setState(() => _error = 'Select your school board first.');
+      return;
+    }
     if (_topic.text.trim().isEmpty) {
       setState(() => _error = 'Enter a chapter or topic to practise.');
       return;
@@ -106,6 +141,7 @@ class _SoloPracticeScreenState extends State<SoloPracticeScreen> {
     });
     try {
       final questions = await widget.quizLoader({
+        'board': _board,
         'grade_level': _grade,
         'subject': _subject,
         'units': [_topic.text.trim()],
@@ -177,12 +213,26 @@ class _SoloPracticeScreenState extends State<SoloPracticeScreen> {
       'Choose a topic, answer each question, and learn from the explanations. No timer or leaderboard.',
     ),
     const SizedBox(height: 12),
-    const Text(
-      'Tamil Nadu State Board · Classes 6–12',
-      style: TextStyle(fontWeight: FontWeight.w600),
-    ),
-    const Text(
-      'Solo practice currently uses State Board textbooks. CBSE practice is not available here yet.',
+    DropdownButtonFormField<String>(
+      initialValue: _board,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'School board'),
+      items: boardNames.entries
+          .map(
+            (e) => DropdownMenuItem(
+              value: e.key,
+              child: Text(e.value, overflow: TextOverflow.ellipsis),
+            ),
+          )
+          .toList(),
+      onChanged: _loading
+          ? null
+          : (value) => setState(() {
+              _board = value;
+              _subject =
+                  subjectsForBoard(value!, _grade).first['name'] as String;
+              _topic.clear();
+            }),
     ),
     const SizedBox(height: 20),
     DropdownButtonFormField<int>(
@@ -195,17 +245,19 @@ class _SoloPracticeScreenState extends State<SoloPracticeScreen> {
           ? null
           : (g) => setState(() {
               _grade = g!;
-              _subject = subjectsForBoard('tn', _grade).first['name'] as String;
+              _subject =
+                  subjectsForBoard(_board ?? 'tn', _grade).first['name']
+                      as String;
               _topic.clear();
             }),
     ),
     const SizedBox(height: 16),
     DropdownButtonFormField<String>(
-      key: ValueKey(_grade),
+      key: ValueKey('$_board-$_grade'),
       initialValue: _subject,
       isExpanded: true,
       decoration: const InputDecoration(labelText: 'Subject'),
-      items: subjectsForBoard('tn', _grade)
+      items: subjectsForBoard(_board ?? 'tn', _grade)
           .map(
             (s) => DropdownMenuItem(
               value: s['name'] as String,

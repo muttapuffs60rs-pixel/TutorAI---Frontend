@@ -46,6 +46,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: SoloPracticeScreen(
+            initialBoard: 'tn',
             quizLoader: (request) async {
               calls++;
               expect(request['subject'], 'Maths');
@@ -105,6 +106,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: SoloPracticeScreen(
+          initialBoard: 'tn',
           quizLoader: (_) async {
             calls++;
             throw StateError('Daily quiz limit reached.');
@@ -131,5 +133,28 @@ void main() {
           .onPressed,
       isNotNull,
     );
+  });
+  testWidgets('CBSE practice forwards selected board and curriculum subject', (
+    tester,
+  ) async {
+    Map<String, dynamic>? submitted;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SoloPracticeScreen(
+          initialBoard: 'cbse',
+          quizLoader: (request) async {
+            submitted = request;
+            throw StateError('Synthetic stop');
+          },
+        ),
+      ),
+    );
+    await tester.enterText(find.byType(TextField), 'Fractions');
+    await tester.ensureVisible(find.text('Start practice'));
+    await tester.tap(find.text('Start practice'));
+    await tester.pumpAndSettle();
+    expect(submitted?['board'], 'cbse');
+    expect(submitted?['subject'], 'Mathematics');
+    expect(tester.takeException(), isNull);
   });
 }
