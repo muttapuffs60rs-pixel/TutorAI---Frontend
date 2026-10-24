@@ -465,7 +465,7 @@ class _ChatScreenState extends State<ChatScreen> {
         bool showPaywall = false;
 
         // Listen to the byte stream in real-time
-        await for (final chunkString in streamedResponse.stream.transform(utf8.decoder)) {
+        await for (final chunkString in readTutorReply(streamedResponse.stream)) {
           
           if (chunkString.contains("__PAYWALL__")) {
              showPaywall = true;

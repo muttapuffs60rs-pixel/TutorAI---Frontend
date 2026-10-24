@@ -12,6 +12,17 @@ String newChatRequestId() {
   return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
 }
 
+/// Fail visibly if a successful HTTP response never supplies an answer.
+Stream<String> readTutorReply(Stream<List<int>> bytes,
+    {Duration idleTimeout = const Duration(seconds: 100)}) async* {
+  var hasAnswer = false;
+  await for (final chunk in bytes.timeout(idleTimeout).transform(utf8.decoder)) {
+    if (chunk.trim().isNotEmpty) hasAnswer = true;
+    yield chunk;
+  }
+  if (!hasAnswer) throw StateError('The tutor returned an empty answer.');
+}
+
 /// Retry transport/admission failures with the same body and idempotency key.
 /// Never retry an AI stream after it has started delivering an answer.
 Future<http.StreamedResponse> sendChatWithRetry({
@@ -20,9 +31,13 @@ Future<http.StreamedResponse> sendChatWithRetry({
   required String token,
   required Map<String, dynamic> payload,
   Future<void> Function(Duration)? pause,
+  Duration? responseTimeout,
 }) async {
   final wait = pause ?? (duration) => Future<void>.delayed(duration);
   final body = jsonEncode(payload);
+  final headerTimeout = responseTimeout ??
+      (payload['image_url'] is String && (payload['image_url'] as String).isNotEmpty
+          ? const Duration(seconds: 120) : const Duration(seconds: 60));
   if (payload['client_request_id'] == null) {
     throw ArgumentError('A stable request ID is required for retries.');
   }
@@ -34,12 +49,13 @@ Future<http.StreamedResponse> sendChatWithRetry({
         ..headers['Content-Type'] = 'application/json'
         ..headers['Authorization'] = 'Bearer $token'
         ..body = body;
-      timeout = Timer(const Duration(seconds: 60), () {
+      timeout = Timer(headerTimeout, () {
         if (!abort.isCompleted) abort.complete();
       });
-      final response = await client.send(request).timeout(const Duration(seconds: 60));
+      final response = await client.send(request).timeout(headerTimeout);
       timeout.cancel();
-      final retryable = [502, 503, 504].contains(response.statusCode) ||
+      final retryable = ([502, 503, 504].contains(response.statusCode) &&
+          response.headers['x-chat-error'] != 'image_unavailable') ||
           (response.statusCode == 409 && response.headers['x-chat-error'] == 'request_pending');
       if (!retryable || attempt == 3) return response;
       await response.stream.drain<void>();
