@@ -1,5 +1,6 @@
 import '../services/chat_image_access.dart';
 import '../widgets/learning_mascot.dart';
+import '../widgets/question_photo_review.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -322,17 +323,24 @@ class _ChatScreenState extends State<ChatScreen> {
     if (isLoading) return;
     final pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 70,
-      maxWidth: 1200,
+      imageQuality: 95,
+      maxWidth: 2400,
     );
     if (pickedFile == null) return;
 
     try {
       if (mounted) setState(() => isLoading = true);
-      final CroppedFile? croppedFile = await _cropImage(pickedFile);
-      if (croppedFile == null) return; 
-
-      final Uint8List bytes = await croppedFile.readAsBytes();
+      Uint8List bytes = await pickedFile.readAsBytes();
+      if (!mounted) return;
+      final choice = await showDialog<QuestionPhotoChoice>(context: context,
+          builder: (_) => QuestionPhotoReview(bytes: bytes));
+      if (choice == null) return;
+      if (choice == QuestionPhotoChoice.crop) {
+        if (!mounted) return;
+        final croppedFile = await _cropImage(pickedFile);
+        if (croppedFile == null) return;
+        bytes = await croppedFile.readAsBytes();
+      }
       final imageUrl = await _uploadImageToSupabase(bytes);
       if (imageUrl == null || imageUrl.isEmpty) {
         throw Exception("Upload failed");
