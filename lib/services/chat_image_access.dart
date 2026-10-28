@@ -1,12 +1,15 @@
 import 'dart:math';
 
-String newChatImagePath(String userId) {
+String newChatImagePath(String userId, {String extension = 'jpg'}) {
+  if (extension != 'jpg' && extension != 'png') {
+    throw ArgumentError('Unsupported image format');
+  }
   if (!RegExp(r'^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$').hasMatch(userId)) {
     throw ArgumentError('A signed-in user is required');
   }
   final random = Random.secure();
   final name = List.generate(16, (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
-  return 'chat_uploads/$userId/$name.jpg';
+  return 'chat_uploads/$userId/$name.$extension';
 }
 
 Map<String, String> privateChatImageHeaders({

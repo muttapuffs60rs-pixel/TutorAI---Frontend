@@ -11,6 +11,8 @@ void main() {
     expect(paths.toSet().length, 100);
     expect(paths.every((p) => RegExp('^chat_uploads/$owner/[a-f0-9]{32}\\.jpg\$').hasMatch(p)), isTrue);
     expect(() => newChatImagePath('../other-user'), throwsArgumentError);
+    expect(newChatImagePath(owner, extension: 'png'), endsWith('.png'));
+    expect(() => newChatImagePath(owner, extension: '../png'), throwsArgumentError);
   });
 
   test('private previews use the current access token', () {

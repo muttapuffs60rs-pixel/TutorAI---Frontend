@@ -1,9 +1,11 @@
 import '../services/chat_image_access.dart';
 import '../widgets/learning_mascot.dart';
 import '../widgets/question_photo_review.dart';
+import '../widgets/question_photo_crop.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -310,11 +312,6 @@ class _ChatScreenState extends State<ChatScreen> {
             CropAspectRatioPreset.ratio3x2,
           ],
         ),
-        WebUiSettings(
-          context: context,
-          presentStyle: WebPresentStyle.dialog,
-          size: const CropperSize(width: 400, height: 400),
-        ),
       ],
    );
   }
@@ -337,9 +334,17 @@ class _ChatScreenState extends State<ChatScreen> {
       if (choice == null) return;
       if (choice == QuestionPhotoChoice.crop) {
         if (!mounted) return;
-        final croppedFile = await _cropImage(pickedFile);
-        if (croppedFile == null) return;
-        bytes = await croppedFile.readAsBytes();
+        if (kIsWeb) {
+          final croppedBytes = await showDialog<Uint8List>(
+              context: context, barrierDismissible: false,
+              builder: (_) => QuestionPhotoCrop(bytes: bytes));
+          if (croppedBytes == null) return;
+          bytes = croppedBytes;
+        } else {
+          final croppedFile = await _cropImage(pickedFile);
+          if (croppedFile == null) return;
+          bytes = await croppedFile.readAsBytes();
+        }
       }
       final imageUrl = await _uploadImageToSupabase(bytes);
       if (imageUrl == null || imageUrl.isEmpty) {
@@ -366,9 +371,11 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final userId = supabase.auth.currentUser?.id;
       if (userId == null || bytes.length > 5 * 1024 * 1024) return null;
-      final path = newChatImagePath(userId);
+      final isPng = bytes.length >= 8 && bytes[0] == 137 && bytes[1] == 80 &&
+          bytes[2] == 78 && bytes[3] == 71;
+      final path = newChatImagePath(userId, extension: isPng ? 'png' : 'jpg');
       await supabase.storage.from('chat-images').uploadBinary(
-        path, bytes, fileOptions: const FileOptions(contentType: 'image/jpeg'),
+        path, bytes, fileOptions: FileOptions(contentType: isPng ? 'image/png' : 'image/jpeg'),
       );
       
       return supabase.storage.from('chat-images').getPublicUrl(path).replaceFirst('/object/public/', '/object/authenticated/');
