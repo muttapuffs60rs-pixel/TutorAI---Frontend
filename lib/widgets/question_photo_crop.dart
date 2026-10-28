@@ -336,7 +336,7 @@ class _CropPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawColor(const Color(0xff222222), BlendMode.src);
+    canvas.drawRect(Offset.zero & size, Paint()..color = const Color(0xff222222));
     canvas.drawImageRect(
       image,
       Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
